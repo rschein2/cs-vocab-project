@@ -33,20 +33,28 @@ Spaced repetition solves this by building muscle memory. After reviewing these c
 
 ### Importing into Anki
 
-1. **Option A - Direct HTML Import:**
-   - Open Anki
-   - File → Import
-   - Select the HTML file
-   - Anki will parse the structured cards
+**Recommended Method - Use the .apkg files:**
 
-2. **Option B - Copy/Paste Individual Cards:**
-   - Create a new deck in Anki
-   - Add cards manually, copying front and back content
-   - Tags are included in each card (cs, git, EN)
+1. **Download the package you want:**
+   - `cs-vocab-all.apkg` - All topics (70 cards)
+   - `cs-vocab-git.apkg` - Git only (32 cards)
+   - `cs-vocab-tmux.apkg` - tmux only (18 cards)
+   - `cs-vocab-ssh.apkg` - SSH only (20 cards)
 
-3. **Option C - Convert to Anki Package:**
-   - Use tools like `genanki` to convert HTML to `.apkg` format
-   - Import the package directly
+2. **Import into Anki:**
+   - Desktop: File → Import → Select .apkg file
+   - Mobile: Tap the .apkg file → Open with AnkiMobile/AnkiDroid
+
+3. **Result:**
+   - Creates subdeck structure: `CS Vocab::Git`, `CS Vocab::tmux`, `CS Vocab::SSH`
+   - All cards pre-tagged and formatted
+   - Works on desktop and mobile!
+
+**Alternative Methods:**
+
+- **Text import:** Use the `.txt` files (see ANKI_IMPORT_GUIDE.md)
+- **Manual import:** Copy/paste from HTML files (tedious but gives full control)
+- **Regenerate packages:** Run `python3 generate-anki-packages.py` to rebuild .apkg files
 
 ### Study Approach
 
