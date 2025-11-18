@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SSH Flashcards - CS Vocabulary Project</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #E84D3D;
+        }
+        .card {
+            background-color: #fff;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .back {
+            color: #555;
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.85em;
+            color: #888;
+        }
+        .tags::before {
+            content: "Tags: ";
+            font-weight: 600;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>SSH Flashcards - CS Vocabulary Project</h1>
+    <p><strong>20 cards</strong> covering essential SSH workflows</p>
+    <p><strong>Tags:</strong> cs, ssh, EN</p>
+
+    <h3>How to Import into Anki:</h3>
+    <ol>
+        <li><strong>Option 1 - Manual Import:</strong> Create a deck in Anki and manually copy/paste the front/back content from each card below</li>
+        <li><strong>Option 2 - HTML Parser:</strong> Use Anki add-ons like "Import from HTML" or similar tools</li>
+        <li><strong>Option 3 - Convert to CSV:</strong> Extract the content and format as: <code>Front;Back;Tags</code> for Anki's text import</li>
+    </ol>
+
+    <p><em>Each card includes the question, command(s), explanation of WHY, and 2-3 alternatives or related commands.</em></p>
+</div>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        How do you connect to a remote server via SSH?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh username@hostname</code>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code>ssh user@192.168.1.100
+ssh admin@example.com
+ssh root@server.company.com</code></pre>
+
+        <p><strong>Why this format:</strong> <code>username</code> is your account on the remote server, <code>hostname</code> is the server's address (IP or domain).</p>
+
+        <p><strong>If your local and remote usernames match:</strong></p>
+        <pre><code>ssh hostname</code></pre>
+        <p>SSH assumes you want to use the same username.</p>
+
+        <p><strong>Specify port (if not default 22):</strong></p>
+        <pre><code>ssh -p 2222 user@hostname</code></pre>
+
+        <p><strong>First connection:</strong> You'll be asked to verify the host fingerprint. Type "yes" to continue.</p>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        How do you generate a new SSH key pair?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh-keygen</code>
+
+        <p><strong>Why:</strong> Creates a public/private key pair for passwordless authentication. More secure than passwords and essential for automated workflows.</p>
+
+        <p><strong>Interactive prompts:</strong></p>
+        <ul>
+            <li>File location (default: <code>~/.ssh/id_rsa</code>)</li>
+            <li>Passphrase (optional but recommended)</li>
+        </ul>
+
+        <p><strong>Better practice - specify key type:</strong></p>
+        <pre><code>ssh-keygen -t ed25519 -C "your_email@example.com"</code></pre>
+
+        <p><strong>Why ed25519:</strong> More secure and faster than RSA. Use RSA only for legacy systems:</p>
+        <pre><code>ssh-keygen -t rsa -b 4096 -C "your_email@example.com"</code></pre>
+
+        <p><strong>Output:</strong> Two files created:</p>
+        <ul>
+            <li><code>id_ed25519</code> - private key (NEVER share this!)</li>
+            <li><code>id_ed25519.pub</code> - public key (safe to share)</li>
+        </ul>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        How do you copy your SSH public key to a remote server for passwordless login?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh-copy-id user@hostname</code>
+
+        <p><strong>Why:</strong> Automatically copies your public key to the server's <code>~/.ssh/authorized_keys</code> file with correct permissions. After this, you can log in without a password.</p>
+
+        <p><strong>Example:</strong></p>
+        <pre><code>ssh-copy-id user@example.com
+# Enter password one last time
+# Future logins are passwordless!</code></pre>
+
+        <p><strong>Specify which key:</strong></p>
+        <pre><code>ssh-copy-id -i ~/.ssh/id_ed25519.pub user@hostname</code></pre>
+
+        <p><strong>Manual method (if ssh-copy-id not available):</strong></p>
+        <pre><code>cat ~/.ssh/id_ed25519.pub | ssh user@host "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"</code></pre>
+
+        <p><strong>Or even more manual:</strong></p>
+        <pre><code>scp ~/.ssh/id_ed25519.pub user@host:~/
+ssh user@host
+cat ~/id_ed25519.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        How do you create an SSH config file to simplify connection commands?
+    </div>
+    <div class="back">
+        <strong>File location:</strong> <code>~/.ssh/config</code>
+
+        <p><strong>Why:</strong> Instead of typing <code>ssh user@really-long-hostname.com -p 2222 -i ~/.ssh/special_key</code>, you can just type <code>ssh myserver</code>.</p>
+
+        <p><strong>Example config:</strong></p>
+        <pre><code>Host myserver
+    HostName example.com
+    User myusername
+    Port 22
+    IdentityFile ~/.ssh/id_ed25519
+
+Host work
+    HostName 192.168.1.100
+    User admin
+    Port 2222</code></pre>
+
+        <p><strong>Then connect with:</strong></p>
+        <pre><code>ssh myserver
+ssh work</code></pre>
+
+        <p><strong>Wildcards for multiple servers:</strong></p>
+        <pre><code>Host *.company.com
+    User admin
+    IdentityFile ~/.ssh/work_key</code></pre>
+
+        <p><strong>Pro tip:</strong> Set permissions correctly:</p>
+        <pre><code>chmod 600 ~/.ssh/config</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        How do you copy a file from your local machine to a remote server?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>scp local-file user@host:/remote/path</code>
+
+        <p><strong>Why SCP:</strong> "Secure Copy" uses SSH protocol. Simple for one-off file transfers.</p>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code>scp report.pdf user@server.com:/home/user/documents/
+scp image.png user@192.168.1.100:~/Pictures/
+scp -r folder/ user@host:/remote/path/  # Recursive for directories</code></pre>
+
+        <p><strong>Copy FROM remote TO local:</strong></p>
+        <pre><code>scp user@host:/remote/file.txt ~/local/path/</code></pre>
+
+        <p><strong>Copy between two remote servers:</strong></p>
+        <pre><code>scp user1@host1:/path/file user2@host2:/path/</code></pre>
+
+        <p><strong>Modern alternative (better for complex scenarios):</strong></p>
+        <pre><code>rsync -avz file user@host:/path/</code></pre>
+        <p>Rsync is smarter: only transfers changes, shows progress, can resume.</p>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        How do you sync a directory to a remote server, only transferring changed files?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>rsync -avz source/ user@host:/destination/</code>
+
+        <p><strong>Why rsync over scp:</strong> Only transfers differences. If you run it again, only new/changed files are copied. Much faster for repeated syncs!</p>
+
+        <p><strong>Flag meanings:</strong></p>
+        <ul>
+            <li><code>-a</code> - archive mode (preserves permissions, timestamps, etc.)</li>
+            <li><code>-v</code> - verbose (shows what's being transferred)</li>
+            <li><code>-z</code> - compress during transfer (faster over slow connections)</li>
+        </ul>
+
+        <p><strong>Important trailing slash:</strong></p>
+        <pre><code>rsync -avz source/ dest/    # Copies CONTENTS of source into dest
+rsync -avz source dest/     # Copies source FOLDER into dest</code></pre>
+
+        <p><strong>Useful additions:</strong></p>
+        <pre><code>rsync -avz --progress source/ user@host:/dest/  # Show progress
+rsync -avz --delete source/ user@host:/dest/    # Delete files in dest not in source
+rsync -avzn source/ user@host:/dest/            # Dry run (preview changes)</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        How do you set up local port forwarding to access a remote service through SSH?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh -L local_port:destination:dest_port user@host</code>
+
+        <p><strong>Why:</strong> Access a service on the remote network as if it's running locally. Essential for accessing databases, web apps, or services behind firewalls.</p>
+
+        <p><strong>Example - access remote database:</strong></p>
+        <pre><code>ssh -L 3306:localhost:3306 user@server.com
+# Now connect to localhost:3306 on your machine
+# It tunnels to the database on server.com</code></pre>
+
+        <p><strong>Example - access internal web app:</strong></p>
+        <pre><code>ssh -L 8080:internal-server:80 user@gateway.com
+# Visit http://localhost:8080 in your browser
+# It shows the web app from internal-server:80</code></pre>
+
+        <p><strong>Keep SSH session open in background:</strong></p>
+        <pre><code>ssh -L 8080:target:80 user@host -N -f</code></pre>
+        <ul>
+            <li><code>-N</code> - don't execute remote commands (just forward)</li>
+            <li><code>-f</code> - go to background</li>
+        </ul>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        How do you set up remote port forwarding to expose your local service to a remote server?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh -R remote_port:localhost:local_port user@host</code>
+
+        <p><strong>Why:</strong> Let people on the remote network access a service running on your local machine. Useful for demos, webhooks, or temporary access.</p>
+
+        <p><strong>Example - expose local web server:</strong></p>
+        <pre><code>ssh -R 8080:localhost:3000 user@server.com
+# Your local app on port 3000 is now accessible at
+# server.com:8080 to anyone on that network</code></pre>
+
+        <p><strong>Use case - testing webhooks:</strong></p>
+        <pre><code># You're developing locally on port 5000
+ssh -R 9000:localhost:5000 user@publicserver.com
+# GitHub webhook can hit http://publicserver.com:9000
+# It tunnels to your local dev server!</code></pre>
+
+        <p><strong>Background mode:</strong></p>
+        <pre><code>ssh -R 8080:localhost:3000 user@host -N -f</code></pre>
+
+        <p><strong>Security note:</strong> Remote server must have <code>GatewayPorts yes</code> in <code>/etc/ssh/sshd_config</code> to allow external access.</p>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        How do you run a single command on a remote server without starting an interactive session?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh user@host 'command'</code>
+
+        <p><strong>Why:</strong> Quick one-off commands without the overhead of an interactive session. Perfect for scripts and automation.</p>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code>ssh user@server 'uptime'
+ssh user@server 'df -h'
+ssh user@server 'ls -la /var/log'
+ssh user@server 'sudo systemctl restart nginx'</code></pre>
+
+        <p><strong>Multiple commands:</strong></p>
+        <pre><code>ssh user@host 'cd /app && git pull && npm restart'</code></pre>
+
+        <p><strong>Capture output locally:</strong></p>
+        <pre><code>ssh user@host 'cat /var/log/app.log' > local-log.txt
+result=$(ssh user@host 'hostname')
+echo "Connected to: $result"</code></pre>
+
+        <p><strong>With sudo (requires NOPASSWD or -t flag):</strong></p>
+        <pre><code>ssh -t user@host 'sudo command'</code></pre>
+        <p>The <code>-t</code> flag allocates a pseudo-terminal for sudo.</p>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        What are the correct permissions for SSH keys and config files?
+    </div>
+    <div class="back">
+        <strong>Critical permissions:</strong>
+
+        <pre><code>chmod 700 ~/.ssh                    # Directory
+chmod 600 ~/.ssh/id_*               # Private keys
+chmod 644 ~/.ssh/id_*.pub           # Public keys
+chmod 600 ~/.ssh/config             # Config file
+chmod 600 ~/.ssh/authorized_keys    # Authorized keys</code></pre>
+
+        <p><strong>Why these matter:</strong> SSH refuses to use keys with wrong permissions for security. Too permissive = potential security risk.</p>
+
+        <p><strong>Common error:</strong></p>
+        <pre><code>@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Permissions 0644 for '/home/user/.ssh/id_rsa' are too open.</code></pre>
+
+        <p><strong>Fix it:</strong></p>
+        <pre><code>chmod 600 ~/.ssh/id_rsa</code></pre>
+
+        <p><strong>Quick fix for entire .ssh directory:</strong></p>
+        <pre><code>chmod 700 ~/.ssh
+chmod 600 ~/.ssh/*
+chmod 644 ~/.ssh/*.pub</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        How do you start the SSH agent and add your key to it?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <pre><code>eval "$(ssh-agent -s)"    # Start agent
+ssh-add ~/.ssh/id_ed25519  # Add key</code></pre>
+
+        <p><strong>Why use ssh-agent:</strong> You unlock your key once (enter passphrase), and the agent remembers it for your entire session. No more typing passphrase for every SSH connection!</p>
+
+        <p><strong>Check loaded keys:</strong></p>
+        <pre><code>ssh-add -l</code></pre>
+
+        <p><strong>Add all default keys:</strong></p>
+        <pre><code>ssh-add</code></pre>
+        <p>Automatically finds and adds <code>id_rsa</code>, <code>id_ed25519</code>, etc.</p>
+
+        <p><strong>Remove all keys from agent:</strong></p>
+        <pre><code>ssh-add -D</code></pre>
+
+        <p><strong>Auto-start on login (add to ~/.bashrc or ~/.zshrc):</strong></p>
+        <pre><code>if [ -z "$SSH_AUTH_SOCK" ]; then
+   eval "$(ssh-agent -s)"
+   ssh-add
+fi</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        How do you SSH through a jump host (bastion server) to reach an internal server?
+    </div>
+    <div class="back">
+        <strong>Modern method:</strong> <code>ssh -J jump_user@jumphost final_user@destination</code>
+
+        <p><strong>Why jump hosts:</strong> Many networks have a single "bastion" server that's publicly accessible, and internal servers that aren't. You SSH to the bastion, then from there to internal servers.</p>
+
+        <p><strong>Example:</strong></p>
+        <pre><code>ssh -J user@bastion.com user@internal-server
+# Connects through bastion to reach internal-server</code></pre>
+
+        <p><strong>Multiple jump hosts:</strong></p>
+        <pre><code>ssh -J user@jump1,user@jump2 user@final-destination</code></pre>
+
+        <p><strong>In SSH config (~/.ssh/config):</strong></p>
+        <pre><code>Host internal
+    HostName internal-server.local
+    User admin
+    ProxyJump bastion.com
+
+Host bastion.com
+    User jump_user</code></pre>
+
+        <p>Then just: <code>ssh internal</code></p>
+
+        <p><strong>Old method (still works):</strong></p>
+        <pre><code>ssh -o ProxyCommand="ssh -W %h:%p jump_user@jumphost" user@destination</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        How do you debug SSH connection problems with verbose output?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh -v user@host</code>
+
+        <p><strong>Why:</strong> Shows detailed connection steps: which keys are tried, authentication methods, connection stages. Essential for troubleshooting.</p>
+
+        <p><strong>Verbosity levels:</strong></p>
+        <ul>
+            <li><code>ssh -v</code> - verbose (most common)</li>
+            <li><code>ssh -vv</code> - very verbose</li>
+            <li><code>ssh -vvv</code> - extremely verbose (debug level)</li>
+        </ul>
+
+        <p><strong>What to look for in output:</strong></p>
+        <ul>
+            <li>"Offering public key..." - which keys are being tried</li>
+            <li>"Authentication succeeded" - what worked</li>
+            <li>"Permission denied" - what failed</li>
+            <li>"Connection refused" - can't reach server</li>
+            <li>"Host key verification failed" - known_hosts issue</li>
+        </ul>
+
+        <p><strong>Common issues revealed:</strong></p>
+        <ul>
+            <li>Wrong key being used</li>
+            <li>Key permissions too open</li>
+            <li>Server's authorized_keys misconfigured</li>
+            <li>Firewall blocking connection</li>
+        </ul>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        How do you remove a host from your known_hosts file (when you get a "host key verification failed" warning)?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh-keygen -R hostname</code>
+
+        <p><strong>Why this happens:</strong> The server's host key changed (server was reinstalled, IP reassigned, or potential man-in-the-middle attack). SSH refuses to connect for security.</p>
+
+        <p><strong>Example:</strong></p>
+        <pre><code>ssh-keygen -R example.com
+ssh-keygen -R 192.168.1.100</code></pre>
+
+        <p><strong>Manual method:</strong></p>
+        <pre><code>nano ~/.ssh/known_hosts
+# Delete the offending line
+# Or delete entire file: rm ~/.ssh/known_hosts</code></pre>
+
+        <p><strong>Skip host key checking (DANGEROUS - use only for testing):</strong></p>
+        <pre><code>ssh -o StrictHostKeyChecking=no user@host
+ssh -o UserKnownHostsFile=/dev/null user@host</code></pre>
+
+        <p><strong>Why dangerous:</strong> Disables the main protection against man-in-the-middle attacks!</p>
+
+        <p><strong>Best practice:</strong> Verify the key change is legitimate before removing it.</p>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        How do you keep an SSH connection alive to prevent timeout disconnections?
+    </div>
+    <div class="back">
+        <strong>In SSH config (~/.ssh/config):</strong>
+        <pre><code>Host *
+    ServerAliveInterval 60
+    ServerAliveCountMax 3</code></pre>
+
+        <p><strong>Why:</strong> Many firewalls/routers drop "idle" SSH connections. These settings send keepalive packets every 60 seconds, preventing timeouts.</p>
+
+        <p><strong>What the settings mean:</strong></p>
+        <ul>
+            <li><code>ServerAliveInterval 60</code> - send keepalive every 60 seconds</li>
+            <li><code>ServerAliveCountMax 3</code> - disconnect after 3 failed keepalives (3 minutes of no response)</li>
+        </ul>
+
+        <p><strong>One-time use:</strong></p>
+        <pre><code>ssh -o ServerAliveInterval=60 user@host</code></pre>
+
+        <p><strong>Server-side equivalent (in /etc/ssh/sshd_config):</strong></p>
+        <pre><code>ClientAliveInterval 60
+ClientAliveCountMax 3</code></pre>
+
+        <p><strong>Other useful SSH config options:</strong></p>
+        <pre><code>Host *
+    ServerAliveInterval 60
+    TCPKeepAlive yes
+    Compression yes</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        How do you escape from a frozen SSH session without closing your terminal?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>~.</code> (tilde followed by period)
+
+        <p><strong>Why:</strong> Sometimes SSH sessions freeze (network issues, server hung). This escape sequence kills the connection from the client side.</p>
+
+        <p><strong>Important:</strong> Type <code>~</code> immediately after pressing Enter (at the start of a new line). Then type <code>.</code></p>
+
+        <p><strong>Other SSH escape sequences:</strong></p>
+        <ul>
+            <li><code>~.</code> - terminate connection (kill)</li>
+            <li><code>~^Z</code> - suspend SSH (background it, like Ctrl+Z)</li>
+            <li><code>~#</code> - list forwarded connections</li>
+            <li><code>~?</code> - show all escape sequences</li>
+            <li><code>~~</code> - send literal <code>~</code> character</li>
+        </ul>
+
+        <p><strong>When you see nothing after typing:</strong> Network is probably dead. Try <code>~.</code> to force disconnect.</p>
+
+        <p><strong>If even that doesn't work:</strong></p>
+        <ul>
+            <li>Close the terminal window, or</li>
+            <li>Find the SSH process and kill it: <code>pkill -9 ssh</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        How do you create an SSH tunnel that acts as a SOCKS proxy?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh -D local_port user@host</code>
+
+        <p><strong>Why:</strong> Creates a SOCKS5 proxy on your local machine. All traffic through this proxy is encrypted and tunneled through the SSH connection. Great for secure browsing or accessing region-restricted content.</p>
+
+        <p><strong>Example:</strong></p>
+        <pre><code>ssh -D 8080 user@server.com -N</code></pre>
+
+        <p><strong>Then configure your browser:</strong></p>
+        <ul>
+            <li>SOCKS Host: <code>localhost</code></li>
+            <li>Port: <code>8080</code></li>
+            <li>SOCKS v5</li>
+        </ul>
+
+        <p><strong>Now your browser traffic:</strong></p>
+        <ul>
+            <li>Encrypted end-to-end</li>
+            <li>Appears to come from the SSH server</li>
+            <li>Bypasses local network restrictions</li>
+        </ul>
+
+        <p><strong>Use case - secure public WiFi:</strong></p>
+        <pre><code># At coffee shop, connect to your home/VPS server
+ssh -D 1080 user@home-server.com -N
+# Configure browser to use SOCKS proxy localhost:1080
+# All traffic is now encrypted through SSH</code></pre>
+
+        <p><strong>Background mode:</strong></p>
+        <pre><code>ssh -D 8080 user@host -N -f</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        How do you specify a different SSH key for a specific connection?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>ssh -i /path/to/key user@host</code>
+
+        <p><strong>Why:</strong> You might have different keys for work, personal, different clients, etc. The <code>-i</code> flag tells SSH which key to use.</p>
+
+        <p><strong>Example:</strong></p>
+        <pre><code>ssh -i ~/.ssh/work_key user@work-server.com
+ssh -i ~/.ssh/personal_key user@personal-vps.com
+ssh -i ~/Downloads/client_key.pem ec2-user@aws-instance.com</code></pre>
+
+        <p><strong>Better approach - SSH config:</strong></p>
+        <pre><code>Host work
+    HostName work-server.com
+    User admin
+    IdentityFile ~/.ssh/work_key
+
+Host personal
+    HostName personal-vps.com
+    User myuser
+    IdentityFile ~/.ssh/personal_key</code></pre>
+
+        <p>Then just: <code>ssh work</code> or <code>ssh personal</code></p>
+
+        <p><strong>Multiple keys for one host:</strong></p>
+        <pre><code>Host github.com
+    IdentityFile ~/.ssh/github_personal
+    IdentityFile ~/.ssh/github_work
+    # Tries keys in order</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        How do you reuse an existing SSH connection (multiplexing) to speed up subsequent connections?
+    </div>
+    <div class="back">
+        <strong>In SSH config (~/.ssh/config):</strong>
+        <pre><code>Host *
+    ControlMaster auto
+    ControlPath ~/.ssh/sockets/%r@%h:%p
+    ControlPersist 10m</code></pre>
+
+        <p><strong>Why:</strong> The first SSH connection creates a master socket. Subsequent connections to the same host reuse it - instant connection, no re-authentication!</p>
+
+        <p><strong>Create the socket directory:</strong></p>
+        <pre><code>mkdir -p ~/.ssh/sockets</code></pre>
+
+        <p><strong>What each setting does:</strong></p>
+        <ul>
+            <li><code>ControlMaster auto</code> - automatically create/reuse master connections</li>
+            <li><code>ControlPath</code> - where to store socket files</li>
+            <li><code>ControlPersist 10m</code> - keep connection alive 10 minutes after last use</li>
+        </ul>
+
+        <p><strong>Benefits:</strong></p>
+        <ul>
+            <li>Instant subsequent connections (no SSH handshake)</li>
+            <li>No re-entering passwords/passphrases</li>
+            <li>Great for scp, rsync, git over SSH</li>
+        </ul>
+
+        <p><strong>Check active connections:</strong></p>
+        <pre><code>ssh -O check user@host</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        How do you disable password authentication and only allow key-based SSH login (server-side)?
+    </div>
+    <div class="back">
+        <strong>Edit server config:</strong> <code>/etc/ssh/sshd_config</code>
+
+        <p><strong>Settings to change:</strong></p>
+        <pre><code>PasswordAuthentication no
+PubkeyAuthentication yes
+ChallengeResponseAuthentication no
+UsePAM no</code></pre>
+
+        <p><strong>Why disable passwords:</strong></p>
+        <ul>
+            <li>Prevents brute force attacks</li>
+            <li>More secure than passwords</li>
+            <li>Industry best practice</li>
+        </ul>
+
+        <p><strong>IMPORTANT - before disabling passwords:</strong></p>
+        <ol>
+            <li>Add your public key to <code>~/.ssh/authorized_keys</code></li>
+            <li>Test key-based login in a separate session</li>
+            <li>Keep your current session open as backup</li>
+        </ol>
+
+        <p><strong>Restart SSH service after editing:</strong></p>
+        <pre><code>sudo systemctl restart sshd     # Most Linux
+sudo service ssh restart        # Ubuntu/Debian</code></pre>
+
+        <p><strong>Other recommended hardening:</strong></p>
+        <pre><code>PermitRootLogin no              # Disable root login
+Port 2222                       # Use non-standard port
+AllowUsers username             # Only allow specific users</code></pre>
+    </div>
+    <div class="tags">cs ssh EN</div>
+</div>
+
+</body>
+</html>

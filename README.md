@@ -86,6 +86,29 @@ Each card follows this pattern:
   - Recovering from mistakes
   - Tags and releases
 
+- **tmux-flashcards.html** - 18 cards covering essential tmux workflows
+  - Starting and attaching sessions
+  - Detaching without killing sessions
+  - Creating and navigating windows
+  - Splitting panes (horizontal/vertical)
+  - Moving between panes
+  - Copy/scroll mode
+  - Resizing and zooming panes
+  - Session management
+  - Configuration and key bindings
+
+- **ssh-flashcards.html** - 20 cards covering essential SSH workflows
+  - Basic connections and authentication
+  - SSH key generation and management
+  - SSH config file for shortcuts
+  - File transfer (scp, rsync)
+  - Port forwarding (local, remote, dynamic)
+  - Jump hosts and bastion servers
+  - SSH agent and key management
+  - Debugging connection issues
+  - Security and hardening
+  - Advanced tunneling and multiplexing
+
 ## Coming Soon
 
 - Linux command line (ls, grep, find, chmod, etc.)

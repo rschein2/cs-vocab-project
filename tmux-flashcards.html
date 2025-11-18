@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>tmux Flashcards - CS Vocabulary Project</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #1BB91F;
+        }
+        .card {
+            background-color: #fff;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .back {
+            color: #555;
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.85em;
+            color: #888;
+        }
+        .tags::before {
+            content: "Tags: ";
+            font-weight: 600;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>tmux Flashcards - CS Vocabulary Project</h1>
+    <p><strong>18 cards</strong> covering essential tmux workflows</p>
+    <p><strong>Tags:</strong> cs, tmux, EN</p>
+
+    <h3>How to Import into Anki:</h3>
+    <ol>
+        <li><strong>Option 1 - Manual Import:</strong> Create a deck in Anki and manually copy/paste the front/back content from each card below</li>
+        <li><strong>Option 2 - HTML Parser:</strong> Use Anki add-ons like "Import from HTML" or similar tools</li>
+        <li><strong>Option 3 - Convert to CSV:</strong> Extract the content and format as: <code>Front;Back;Tags</code> for Anki's text import</li>
+    </ol>
+
+    <p><em>Each card includes the question, command(s), explanation of WHY, and 2-3 alternatives or related commands.</em></p>
+    <p><strong>Note:</strong> Default prefix key is <code>Ctrl+b</code> (shown as <code>C-b</code>). You can remap to <code>Ctrl+a</code> in your config.</p>
+</div>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        How do you start a new tmux session?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>tmux</code>
+
+        <p><strong>Why:</strong> Creates a new unnamed session. If your SSH connection drops, the session keeps running in the background.</p>
+
+        <p><strong>Better practice - name your sessions:</strong></p>
+        <pre><code>tmux new -s session-name</code></pre>
+
+        <p><strong>Why name sessions:</strong> Makes it easy to reconnect to the right session later, especially when you have multiple projects running.</p>
+
+        <p><strong>Variations:</strong></p>
+        <ul>
+            <li><code>tmux new -s work</code> - create session named "work"</li>
+            <li><code>tmux new -s project -n window1</code> - create session with named first window</li>
+        </ul>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You're in a tmux session and need to disconnect without killing it. What's the command?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>C-b d</code>
+
+        <p><strong>What it does:</strong> <code>d</code> stands for "detach". Your session keeps running in the background with all processes intact.</p>
+
+        <p><strong>Why this matters:</strong> You can close your terminal/SSH connection and everything keeps running. Reconnect later to pick up exactly where you left off.</p>
+
+        <p><strong>Alternative ways to detach:</strong></p>
+        <ul>
+            <li><code>tmux detach</code> - type this inside tmux (longer)</li>
+            <li><code>C-b D</code> - choose which session to detach from a list</li>
+        </ul>
+
+        <p><strong>Pro tip:</strong> Make detaching a habit before closing SSH connections!</p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        How do you reconnect to a detached tmux session?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>tmux attach</code>
+
+        <p><strong>Or (shorthand):</strong> <code>tmux a</code></p>
+
+        <p><strong>Why:</strong> Attaches to the most recent session. All your windows, panes, and running processes are exactly as you left them.</p>
+
+        <p><strong>If you have multiple sessions:</strong></p>
+        <pre><code>tmux attach -t session-name
+# Or shorthand:
+tmux a -t session-name</code></pre>
+
+        <p><strong>Workflow:</strong></p>
+        <pre><code>tmux ls                    # List all sessions
+tmux attach -t work        # Attach to "work" session</code></pre>
+
+        <p><strong>Create or attach:</strong></p>
+        <pre><code>tmux new -As session-name</code></pre>
+        <p>Attaches if exists, creates if doesn't - great for scripts!</p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        How do you see a list of all running tmux sessions?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>tmux ls</code>
+
+        <p><strong>Or:</strong> <code>tmux list-sessions</code></p>
+
+        <p><strong>Example output:</strong></p>
+        <pre><code>work: 3 windows (created Mon Jan 15 10:23:45 2024)
+dev: 2 windows (created Mon Jan 15 11:45:12 2024) (attached)</code></pre>
+
+        <p><strong>From inside tmux:</strong></p>
+        <pre><code>C-b s</code></pre>
+        <p>Shows interactive list where you can switch between sessions with arrow keys and Enter.</p>
+
+        <p><strong>Why the interactive view is better:</strong> You can see window previews and switch sessions without detaching.</p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You're in a tmux session and want to split the current pane horizontally (top/bottom). What's the command?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>C-b "</code>
+
+        <p><strong>Why the double-quote:</strong> Think of it as a horizontal line, splitting top from bottom.</p>
+
+        <p><strong>Mnemonic:</strong> The <code>"</code> symbol looks like a horizontal divider when you squint!</p>
+
+        <p><strong>Alternative (easier to remember):</strong></p>
+        <p>Add to your <code>~/.tmux.conf</code>:</p>
+        <pre><code>bind - split-window -v</code></pre>
+        <p>Then use <code>C-b -</code> (minus is horizontal!)</p>
+
+        <p><strong>Pro tip:</strong> The new pane starts in the same directory as the current pane.</p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You're in a tmux session and want to split the current pane vertically (left/right). What's the command?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>C-b %</code>
+
+        <p><strong>Why the percent sign:</strong> Think of it as a vertical line dividing left from right.</p>
+
+        <p><strong>Mnemonic:</strong> The <code>%</code> symbol has a vertical line in the middle!</p>
+
+        <p><strong>Alternative (easier to remember):</strong></p>
+        <p>Add to your <code>~/.tmux.conf</code>:</p>
+        <pre><code>bind | split-window -h</code></pre>
+        <p>Then use <code>C-b |</code> (pipe is vertical!)</p>
+
+        <p><strong>Common setup:</strong></p>
+        <pre><code># Intuitive splits
+bind | split-window -h  # vertical split
+bind - split-window -v  # horizontal split</code></pre>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        How do you navigate between panes in tmux?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>C-b [arrow key]</code>
+
+        <p><strong>Why:</strong> Arrow keys match the direction you want to move. Intuitive once you have multiple panes.</p>
+
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>C-b ←</code> - move to left pane</li>
+            <li><code>C-b →</code> - move to right pane</li>
+            <li><code>C-b ↑</code> - move to pane above</li>
+            <li><code>C-b ↓</code> - move to pane below</li>
+        </ul>
+
+        <p><strong>Cycle through panes:</strong></p>
+        <ul>
+            <li><code>C-b o</code> - next pane (circular)</li>
+            <li><code>C-b ;</code> - toggle between current and previous pane</li>
+        </ul>
+
+        <p><strong>Vim-style navigation:</strong></p>
+        <p>Add to <code>~/.tmux.conf</code> for hjkl movement:</p>
+        <pre><code>bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R</code></pre>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        How do you create a new window in your current tmux session?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>C-b c</code>
+
+        <p><strong>Why:</strong> <code>c</code> stands for "create". Each window is like a separate terminal tab, and can contain multiple panes.</p>
+
+        <p><strong>Windows vs Panes:</strong></p>
+        <ul>
+            <li><strong>Windows</strong> - separate screens (like browser tabs)</li>
+            <li><strong>Panes</strong> - split views within a window (like split screen)</li>
+        </ul>
+
+        <p><strong>Create named window:</strong></p>
+        <pre><code>C-b c
+# Then rename:
+C-b ,
+# Type new name</code></pre>
+
+        <p><strong>Or from command line inside tmux:</strong></p>
+        <pre><code>tmux new-window -n "window-name"</code></pre>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        How do you switch between windows in tmux?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>C-b n</code> - <strong>n</strong>ext window</li>
+            <li><code>C-b p</code> - <strong>p</strong>revious window</li>
+            <li><code>C-b [0-9]</code> - jump to window by number</li>
+        </ul>
+
+        <p><strong>Interactive window list:</strong></p>
+        <pre><code>C-b w</code></pre>
+        <p>Shows all windows across all sessions. Use arrows and Enter to select.</p>
+
+        <p><strong>Why numbers matter:</strong> Windows are numbered starting at 0. You can see the number in the status bar at the bottom.</p>
+
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>C-b 0</code> - jump to window 0</li>
+            <li><code>C-b 1</code> - jump to window 1</li>
+            <li><code>C-b l</code> - toggle to last window (like <code>cd -</code>)</li>
+        </ul>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        How do you close/kill the current pane in tmux?
+    </div>
+    <div class="back">
+        <strong>Simple way:</strong> <code>exit</code> or <code>Ctrl+d</code>
+
+        <p><strong>Why:</strong> Just exit the shell normally. When the shell exits, the pane closes.</p>
+
+        <p><strong>Force kill (if process is stuck):</strong></p>
+        <pre><code>C-b x</code></pre>
+        <p>Prompts for confirmation before killing the pane.</p>
+
+        <p><strong>Important:</strong> If you kill the last pane in a window, the window closes. If you kill the last window in a session, the session closes.</p>
+
+        <p><strong>Kill current window:</strong></p>
+        <pre><code>C-b &</code></pre>
+        <p>Closes all panes in the current window (asks for confirmation).</p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        How do you kill an entire tmux session from outside tmux?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>tmux kill-session -t session-name</code>
+
+        <p><strong>Why:</strong> Terminates the session and all its windows/panes. Useful for cleaning up old sessions.</p>
+
+        <p><strong>Kill current session (from inside):</strong></p>
+        <pre><code>tmux kill-session</code></pre>
+
+        <p><strong>Kill all sessions except current:</strong></p>
+        <pre><code>tmux kill-session -a</code></pre>
+
+        <p><strong>Kill all sessions:</strong></p>
+        <pre><code>tmux kill-server</code></pre>
+        <p><strong>Warning:</strong> This terminates EVERYTHING. Use with caution!</p>
+
+        <p><strong>List then kill workflow:</strong></p>
+        <pre><code>tmux ls
+tmux kill-session -t old-project</code></pre>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You're in tmux and need to scroll up to see previous output. How do you enter scroll/copy mode?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>C-b [</code>
+
+        <p><strong>Why:</strong> Enters "copy mode" which lets you scroll through terminal history using keyboard.</p>
+
+        <p><strong>Navigation in copy mode:</strong></p>
+        <ul>
+            <li><code>↑↓</code> or <code>j/k</code> - move up/down line by line</li>
+            <li><code>Page Up/Down</code> or <code>C-b/C-f</code> - move by page</li>
+            <li><code>g</code> - go to top</li>
+            <li><code>G</code> - go to bottom</li>
+            <li><code>/</code> - search forward</li>
+            <li><code>?</code> - search backward</li>
+        </ul>
+
+        <p><strong>Exit copy mode:</strong> <code>q</code> or <code>Esc</code></p>
+
+        <p><strong>Pro tip:</strong> Enable mouse mode for scrolling with mouse wheel:</p>
+        <pre><code>set -g mouse on</code></pre>
+        <p>Add this to <code>~/.tmux.conf</code></p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        How do you rename an existing tmux session?
+    </div>
+    <div class="back">
+        <strong>From inside the session:</strong> <code>C-b $</code>
+
+        <p><strong>Why:</strong> Opens a prompt at the bottom where you can type the new name.</p>
+
+        <p><strong>From outside tmux:</strong></p>
+        <pre><code>tmux rename-session -t old-name new-name</code></pre>
+
+        <p><strong>Rename current window:</strong></p>
+        <pre><code>C-b ,</code></pre>
+        <p>Opens prompt to rename the current window.</p>
+
+        <p><strong>Why naming matters:</strong> When you have multiple sessions, names like "work", "personal", "project-x" are much clearer than "0", "1", "2".</p>
+
+        <p><strong>Auto-naming windows:</strong></p>
+        <p>Disable auto-rename to keep your custom names:</p>
+        <pre><code>set-option -g allow-rename off</code></pre>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        How do you resize a tmux pane?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>C-b C-[arrow]</code>
+
+        <p><strong>Why hold Ctrl:</strong> You can press the arrow multiple times while holding <code>Ctrl+b</code> to resize incrementally.</p>
+
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>C-b C-↑</code> - resize pane upward (make taller)</li>
+            <li><code>C-b C-↓</code> - resize pane downward (make shorter)</li>
+            <li><code>C-b C-←</code> - resize pane left (make narrower)</li>
+            <li><code>C-b C-→</code> - resize pane right (make wider)</li>
+        </ul>
+
+        <p><strong>Alternative - manual mode:</strong></p>
+        <pre><code>C-b :
+resize-pane -D 5    # Down 5 lines
+resize-pane -U 5    # Up 5 lines
+resize-pane -L 5    # Left 5 columns
+resize-pane -R 5    # Right 5 columns</code></pre>
+
+        <p><strong>Even out pane sizes:</strong></p>
+        <pre><code>C-b M-1    # Even horizontal split
+C-b M-2    # Even vertical split</code></pre>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        How do you zoom/maximize a single pane in tmux (temporarily hide other panes)?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>C-b z</code>
+
+        <p><strong>Why:</strong> Toggles the current pane to full-screen. Other panes are hidden but not closed.</p>
+
+        <p><strong>Use case:</strong> You have a 4-pane layout but need to focus on one pane's output or edit a long file. Zoom in, do your work, then zoom out to return to the split layout.</p>
+
+        <p><strong>Exit zoom:</strong> Press <code>C-b z</code> again (it's a toggle).</p>
+
+        <p><strong>Visual indicator:</strong> When zoomed, you'll see a <code>Z</code> indicator in the window status bar.</p>
+
+        <p><strong>Pro tip:</strong> This is way better than closing and recreating panes!</p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        How do you access the tmux command prompt?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>C-b :</code>
+
+        <p><strong>Why:</strong> Opens a command prompt where you can type any tmux command directly (like <code>:</code> in vim).</p>
+
+        <p><strong>Example commands:</strong></p>
+        <pre><code>:set -g mouse on                    # Enable mouse mode
+:split-window -h                    # Split vertically
+:rename-session new-name            # Rename session
+:resize-pane -D 5                   # Resize down 5 lines
+:source-file ~/.tmux.conf           # Reload config</code></pre>
+
+        <p><strong>Why use the prompt:</strong> Some commands don't have keyboard shortcuts, or you forget the shortcut. The prompt gives you access to the full tmux API.</p>
+
+        <p><strong>Tab completion:</strong> Works in the command prompt! Start typing and press Tab.</p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        How do you reload your tmux configuration file without restarting tmux?
+    </div>
+    <div class="back">
+        <strong>From inside tmux:</strong>
+        <pre><code>C-b :
+source-file ~/.tmux.conf</code></pre>
+
+        <p><strong>Or create a keybinding:</strong></p>
+        <p>Add to <code>~/.tmux.conf</code>:</p>
+        <pre><code>bind r source-file ~/.tmux.conf \; display "Config reloaded!"</code></pre>
+
+        <p>Then just press <code>C-b r</code> to reload!</p>
+
+        <p><strong>Why this matters:</strong> You can tweak your tmux config and test changes immediately without detaching/reattaching or restarting sessions.</p>
+
+        <p><strong>From outside tmux:</strong></p>
+        <pre><code>tmux source-file ~/.tmux.conf</code></pre>
+
+        <p><strong>Note:</strong> Some settings (like prefix key changes) might need a full restart to work properly.</p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        What's the difference between detaching from a tmux session and killing it? When would you use each?
+    </div>
+    <div class="back">
+        <strong>Detach (<code>C-b d</code>):</strong>
+        <ul>
+            <li>Session keeps running in background</li>
+            <li>All processes continue</li>
+            <li>You can reattach later</li>
+            <li>Like minimizing a window</li>
+        </ul>
+
+        <strong>Kill (<code>tmux kill-session</code>):</strong>
+        <ul>
+            <li>Session terminates completely</li>
+            <li>All processes are killed</li>
+            <li>Cannot reattach</li>
+            <li>Like closing a window</li>
+        </ul>
+
+        <p><strong>When to detach:</strong></p>
+        <ul>
+            <li>Long-running processes (builds, downloads, servers)</li>
+            <li>You're logging out but want to continue work later</li>
+            <li>SSH connection is unstable</li>
+        </ul>
+
+        <p><strong>When to kill:</strong></p>
+        <ul>
+            <li>You're completely done with the session</li>
+            <li>Cleaning up old/unused sessions</li>
+            <li>Freeing up resources</li>
+        </ul>
+
+        <p><strong>Best practice:</strong> Detach by default, kill when you're sure you're done.</p>
+    </div>
+    <div class="tags">cs tmux EN</div>
+</div>
+
+</body>
+</html>
