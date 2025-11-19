@@ -222,6 +222,7 @@ if __name__ == '__main__':
         ('disk-management-flashcards.html', 'CS Vocab::Disk Management', 'cs-vocab-disk.apkg', 2059400129),
         ('symlinks-attributes-flashcards.html', 'CS Vocab::Symbolic Links & File Attributes', 'cs-vocab-symlinks.apkg', 2059400130),
         ('xargs-chaining-flashcards.html', 'CS Vocab::xargs & Command Chaining', 'cs-vocab-xargs.apkg', 2059400131),
+        ('grep-deep-dive-flashcards.html', 'CS Vocab::Grep Deep Dive', 'cs-vocab-grep.apkg', 2059400132),
     ]
 
     for html_file, deck_name, output_file, deck_id in deck_configs:
@@ -265,8 +266,9 @@ if __name__ == '__main__':
     print('  - cs-vocab-disk.apkg        (Disk Management only)')
     print('  - cs-vocab-symlinks.apkg    (Symbolic Links & File Attributes only)')
     print('  - cs-vocab-xargs.apkg       (xargs & Command Chaining only)')
+    print('  - cs-vocab-grep.apkg        (Grep Deep Dive only)')
     print()
     print('Combined package:')
     print('  - cs-vocab-all.apkg         (All topics)')
     print()
-    print('Import creates subdeck structure: CS Vocab → [22 subdecks]')
+    print('Import creates subdeck structure: CS Vocab → [23 subdecks]')

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - Grep Deep Dive</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You need to find all occurrences of "error" in a log file. How do you search for a simple pattern? What if you want case-insensitive search?
+    </div>
+    <div class="back">
+        <strong>Basic search:</strong> <code>grep "error" logfile.txt</code><br>
+        <strong>Case-insensitive:</strong> <code>grep -i "error" logfile.txt</code>
+
+        <p><strong>Why:</strong> <code>grep</code> searches for literal text by default. <code>-i</code> ignores case (matches ERROR, Error, error, etc.). Shows matching lines.</p>
+
+        <p><strong>Variations:</strong></p>
+        <ul>
+            <li><code>grep -i "error\|warning" logfile.txt</code> (match error OR warning)</li>
+            <li><code>grep -i "error" *.log</code> (search multiple files)</li>
+            <li><code>grep -i "error" file.txt | wc -l</code> (count matches)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep search EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You want to search recursively through all files in a directory tree. How do you recursive search? How do you exclude certain directories?
+    </div>
+    <div class="back">
+        <strong>Recursive search:</strong> <code>grep -r "pattern" /path/</code><br>
+        <strong>Exclude directories:</strong> <code>grep -r "pattern" --exclude-dir={node_modules,.git} /path/</code>
+
+        <p><strong>Why:</strong> <code>-r</code> searches recursively through subdirectories. <code>--exclude-dir</code> skips specified directories (multiple with comma-separated list in braces).</p>
+
+        <p><strong>File filtering:</strong></p>
+        <ul>
+            <li><code>grep -r --include="*.py" "def " .</code> (only Python files)</li>
+            <li><code>grep -r --exclude="*.min.js" "function" .</code> (skip minified JS)</li>
+            <li><code>grep -rn "TODO" .</code> (recursive with line numbers)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep recursive EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You need to see context around matches to understand them better. How do you show lines before a match? After? Both?
+    </div>
+    <div class="back">
+        <strong>3 lines before:</strong> <code>grep -B 3 "pattern" file.txt</code><br>
+        <strong>3 lines after:</strong> <code>grep -A 3 "pattern" file.txt</code><br>
+        <strong>3 before and after:</strong> <code>grep -C 3 "pattern" file.txt</code>
+
+        <p><strong>Why:</strong> <code>-B</code> (before), <code>-A</code> (after), <code>-C</code> (context - both). Shows surrounding lines for context. Critical for understanding log errors.</p>
+
+        <p><strong>Use cases:</strong></p>
+        <ul>
+            <li><code>grep -B 5 -A 10 "Exception" error.log</code> (asymmetric context)</li>
+            <li><code>grep -C 2 "ERROR" /var/log/syslog</code> (symmetric context)</li>
+            <li>Context lines marked with <code>--</code> separator between groups</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep context EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You want to find lines that DON'T contain a pattern. How do you invert match? What about finding files without a pattern?
+    </div>
+    <div class="back">
+        <strong>Invert match:</strong> <code>grep -v "pattern" file.txt</code><br>
+        <strong>Files without pattern:</strong> <code>grep -L "pattern" *.txt</code>
+
+        <p><strong>Why:</strong> <code>-v</code> shows lines that DON'T match. <code>-L</code> lists files that DON'T contain pattern. Opposite of <code>-l</code> which lists files WITH pattern.</p>
+
+        <p><strong>Practical scenarios:</strong></p>
+        <ul>
+            <li><code>grep -v "^#" config.txt</code> (skip comments)</li>
+            <li><code>grep -v "^$" file.txt</code> (remove blank lines)</li>
+            <li><code>ps aux | grep -v grep</code> (exclude grep from process list)</li>
+            <li><code>grep -v "DEBUG\|INFO" app.log</code> (exclude debug and info)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep invert EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You need to count how many times a pattern appears. How do you count matching lines? How do you count total occurrences in a file?
+    </div>
+    <div class="back">
+        <strong>Count matching lines:</strong> <code>grep -c "pattern" file.txt</code><br>
+        <strong>Total occurrences:</strong> <code>grep -o "pattern" file.txt | wc -l</code>
+
+        <p><strong>Why:</strong> <code>-c</code> counts lines containing pattern (line with 5 matches = 1). <code>-o</code> shows only matching part, each on new line, so <code>wc -l</code> counts all occurrences.</p>
+
+        <p><strong>Counting scenarios:</strong></p>
+        <ul>
+            <li><code>grep -c "error" *.log</code> (count per file)</li>
+            <li><code>grep -o "TODO" *.py | wc -l</code> (total TODOs across files)</li>
+            <li><code>grep -r -c "import" --include="*.py" .</code> (imports per Python file)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep count EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want line numbers with your matches for easy navigation. How do you show line numbers? How do you show only filenames?
+    </div>
+    <div class="back">
+        <strong>With line numbers:</strong> <code>grep -n "pattern" file.txt</code><br>
+        <strong>Only filenames:</strong> <code>grep -l "pattern" *.txt</code>
+
+        <p><strong>Why:</strong> <code>-n</code> prefixes each match with line number (file.txt:42:matching line). <code>-l</code> shows only filenames containing pattern, useful for finding which files have matches.</p>
+
+        <p><strong>Combining options:</strong></p>
+        <ul>
+            <li><code>grep -rn "TODO" .</code> (recursive with line numbers)</li>
+            <li><code>grep -rnH "pattern" .</code> (-H shows filename even with 1 file)</li>
+            <li><code>grep -rl "pattern" . | xargs wc -l</code> (find files, count lines)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep output EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You're searching code and want to match whole words only, not partial matches. How do you match exact words? How do you match lines starting or ending with a pattern?
+    </div>
+    <div class="back">
+        <strong>Whole word only:</strong> <code>grep -w "word" file.txt</code><br>
+        <strong>Start of line:</strong> <code>grep "^pattern" file.txt</code><br>
+        <strong>End of line:</strong> <code>grep "pattern$" file.txt</code>
+
+        <p><strong>Why:</strong> <code>-w</code> matches word boundaries (won't match "words" when searching "word"). <code>^</code> anchors to start, <code>$</code> to end of line.</p>
+
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>grep -w "test" code.js</code> (matches "test()" but not "testing")</li>
+            <li><code>grep "^import " *.py</code> (imports at line start)</li>
+            <li><code>grep ";$" *.js</code> (lines ending with semicolon)</li>
+            <li><code>grep "^$" file.txt</code> (empty lines)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep word-boundary EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You need to search for multiple patterns (OR condition). How do you match any of several patterns? What about matching ALL patterns (AND)?
+    </div>
+    <div class="back">
+        <strong>OR - basic regex:</strong> <code>grep "error\|warning\|critical" file.txt</code><br>
+        <strong>OR - extended regex:</strong> <code>grep -E "error|warning|critical" file.txt</code><br>
+        <strong>AND (all patterns):</strong> <code>grep "pattern1" file.txt | grep "pattern2"</code>
+
+        <p><strong>Why:</strong> <code>\|</code> is OR in basic regex. <code>-E</code> enables extended regex (no backslash needed). Pipe through grep again for AND.</p>
+
+        <p><strong>Advanced OR patterns:</strong></p>
+        <ul>
+            <li><code>grep -E "(error|fail|exception)" *.log</code></li>
+            <li><code>grep -e "pattern1" -e "pattern2" file.txt</code> (multiple -e flags)</li>
+            <li><code>grep "user.*error" file.txt</code> (user AND error on same line)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep multiple-patterns EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You're searching for a literal string that contains regex special characters like . * [ ]. How do you search for literal strings? How do you escape special characters?
+    </div>
+    <div class="back">
+        <strong>Fixed strings (literal):</strong> <code>grep -F "192.168.1.1" file.txt</code><br>
+        <strong>Escape special chars:</strong> <code>grep "192\.168\.1\.1" file.txt</code>
+
+        <p><strong>Why:</strong> <code>-F</code> (fixed strings, or <code>fgrep</code>) treats pattern as literal, not regex. Otherwise escape special chars with backslash: <code>. * [ ] ^ $ ( ) { } | \ + ?</code></p>
+
+        <p><strong>When to use -F:</strong></p>
+        <ul>
+            <li><code>grep -F "[ERROR]" log.txt</code> (literal brackets)</li>
+            <li><code>grep -F "file.txt" files.txt</code> (literal dot)</li>
+            <li><code>grep -F "$HOME" script.sh</code> (literal dollar sign)</li>
+            <li>-F is also faster for simple literal searches!</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep literal EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You need to search for patterns with flexible character matching. How do you use character classes? How do you match digits, letters, or specific sets?
+    </div>
+    <div class="back">
+        <strong>Any digit:</strong> <code>grep "[0-9]" file.txt</code><br>
+        <strong>Any letter:</strong> <code>grep "[a-zA-Z]" file.txt</code><br>
+        <strong>Specific set:</strong> <code>grep "[aeiou]" file.txt</code>
+
+        <p><strong>Why:</strong> <code>[]</code> matches any single character in set. <code>[0-9]</code> = any digit, <code>[a-z]</code> = lowercase letter. Can combine ranges and individual chars.</p>
+
+        <p><strong>Useful patterns:</strong></p>
+        <ul>
+            <li><code>grep "[0-9]\{3\}-[0-9]\{3\}-[0-9]\{4\}" contacts.txt</code> (phone numbers)</li>
+            <li><code>grep "^[A-Z]" file.txt</code> (lines starting with uppercase)</li>
+            <li><code>grep "[^0-9]" file.txt</code> (NOT a digit - ^ inside [] negates)</li>
+            <li><code>grep -E "[0-9]{3}" file.txt</code> (3 digits with extended regex)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep character-classes EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You're analyzing logs and need to find IP addresses. How do you match IP address patterns? What about email addresses?
+    </div>
+    <div class="back">
+        <strong>IP addresses (simple):</strong> <code>grep -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" file.txt</code><br>
+        <strong>Email addresses:</strong> <code>grep -E "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" file.txt</code>
+
+        <p><strong>Why:</strong> <code>-E</code> enables extended regex for <code>{}</code> quantifiers. <code>{1,3}</code> = 1 to 3 occurrences. <code>+</code> = one or more.</p>
+
+        <p><strong>More patterns:</strong></p>
+        <ul>
+            <li><code>grep -oE "https?://[^ ]+" file.txt</code> (extract URLs)</li>
+            <li><code>grep -E "[0-9]{4}-[0-9]{2}-[0-9]{2}" log.txt</code> (dates YYYY-MM-DD)</li>
+            <li><code>grep -oE "\b[A-Z]{2,}\b" file.txt</code> (acronyms)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep regex patterns EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You want to search with Perl-compatible regex for advanced features. How do you use PCRE? What features does it add?
+    </div>
+    <div class="back">
+        <strong>Use Perl regex:</strong> <code>grep -P "pattern" file.txt</code><br>
+        <strong>Non-greedy match:</strong> <code>grep -P "start.*?end" file.txt</code><br>
+        <strong>Lookahead:</strong> <code>grep -P "foo(?=bar)" file.txt</code>
+
+        <p><strong>Why:</strong> <code>-P</code> enables Perl-Compatible Regular Expressions (PCRE). Adds features: non-greedy quantifiers (<code>*?</code>, <code>+?</code>), lookahead/lookbehind, shorthand classes (<code>\d</code>, <code>\w</code>, <code>\s</code>).</p>
+
+        <p><strong>PCRE features:</strong></p>
+        <ul>
+            <li><code>grep -P "\d{3}-\d{4}" file.txt</code> (\d = digit)</li>
+            <li><code>grep -P "\w+@\w+\.\w+" file.txt</code> (\w = word char)</li>
+            <li><code>grep -P "(?<=price: )\d+" file.txt</code> (positive lookbehind)</li>
+            <li><code>grep -P "\s+" file.txt</code> (\s = whitespace)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep pcre EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to highlight matches in color for easier reading. How do you enable color? How do you make it permanent?
+    </div>
+    <div class="back">
+        <strong>Color output:</strong> <code>grep --color=auto "pattern" file.txt</code><br>
+        <strong>Always color:</strong> <code>grep --color=always "pattern" file.txt</code><br>
+        <strong>Make permanent:</strong> Add <code>alias grep='grep --color=auto'</code> to ~/.bashrc
+
+        <p><strong>Why:</strong> <code>--color=auto</code> highlights matches in red when output is terminal (not pipe). <code>--color=always</code> even in pipes. Alias makes it default.</p>
+
+        <p><strong>Using with pipes:</strong></p>
+        <ul>
+            <li><code>grep --color=always "error" file.txt | less -R</code> (preserve color in less)</li>
+            <li>Most systems have color aliased by default</li>
+            <li><code>export GREP_COLOR='1;32'</code> (change highlight color to green)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep color EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You need to search but want to suppress error messages or all output. How do you quiet grep? When would you use silent mode?
+    </div>
+    <div class="back">
+        <strong>Suppress errors:</strong> <code>grep "pattern" file.txt 2>/dev/null</code><br>
+        <strong>Silent mode (exit code only):</strong> <code>grep -q "pattern" file.txt</code><br>
+        <strong>Check in script:</strong> <code>if grep -q "pattern" file.txt; then echo "found"; fi</code>
+
+        <p><strong>Why:</strong> <code>2>/dev/null</code> redirects stderr (permission errors, etc.). <code>-q</code> produces no output, just sets exit code (0 = found, 1 = not found). Perfect for scripts.</p>
+
+        <p><strong>Script usage:</strong></p>
+        <ul>
+            <li><code>grep -q "error" log && mail -s "Error found" admin@example.com</code></li>
+            <li><code>if grep -q "127.0.0.1" /etc/hosts; then echo "Localhost configured"; fi</code></li>
+            <li>-q is faster - stops at first match!</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep quiet scripting EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You want to stop after finding N matches for performance. How do you limit results? How do you search only first N lines of a file?
+    </div>
+    <div class="back">
+        <strong>Stop after N matches:</strong> <code>grep -m 5 "pattern" file.txt</code><br>
+        <strong>Search first N lines:</strong> <code>head -100 file.txt | grep "pattern"</code>
+
+        <p><strong>Why:</strong> <code>-m 5</code> (max-count) stops after 5 matches. Faster for large files when you just need to know if pattern exists or get a few examples.</p>
+
+        <p><strong>Performance scenarios:</strong></p>
+        <ul>
+            <li><code>grep -m 1 -q "pattern" hugefile.log</code> (check existence quickly)</li>
+            <li><code>grep -m 10 "error" /var/log/syslog</code> (first 10 errors)</li>
+            <li><code>tail -1000 app.log | grep "error"</code> (recent errors only)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep performance EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You're searching files and hitting binary files you want to skip. How do you exclude binary files? How do you search only in text files?
+    </div>
+    <div class="back">
+        <strong>Skip binary files:</strong> <code>grep -I "pattern" *</code><br>
+        <strong>Show binary matches:</strong> <code>grep -a "pattern" binaryfile</code><br>
+        <strong>List binary files with matches:</strong> <code>grep -l "pattern" * 2>/dev/null | file -f - | grep -i text</code>
+
+        <p><strong>Why:</strong> <code>-I</code> ignores binary files (acts like <code>--binary-files=without-match</code>). <code>-a</code> treats binary as text. Without flags, grep shows "Binary file matches".</p>
+
+        <p><strong>Binary handling:</strong></p>
+        <ul>
+            <li><code>grep -rI "pattern" .</code> (recursive, skip binaries)</li>
+            <li><code>grep --binary-files=text "pattern" file</code> (force text treatment)</li>
+            <li><code>strings binaryfile | grep "pattern"</code> (extract strings first)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep binary EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You need to search through compressed files without extracting them. How do you grep in .gz files? What about other compressed formats?
+    </div>
+    <div class="back">
+        <strong>Search .gz files:</strong> <code>zgrep "pattern" file.txt.gz</code><br>
+        <strong>Multiple compressed files:</strong> <code>zgrep "error" /var/log/*.gz</code><br>
+        <strong>Other formats:</strong> <code>bzgrep</code> (.bz2), <code>xzgrep</code> (.xz)
+
+        <p><strong>Why:</strong> <code>zgrep</code> transparently decompresses gzip files and searches. Same options as grep. Saves disk space and extraction time.</p>
+
+        <p><strong>Log analysis:</strong></p>
+        <ul>
+            <li><code>zgrep -i "error" /var/log/syslog*.gz</code> (old rotated logs)</li>
+            <li><code>zgrep -c "404" access.log.*.gz</code> (count 404s in archived logs)</li>
+            <li><code>zcat file.gz | grep "pattern"</code> (alternative approach)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep compressed zgrep EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You're analyzing access logs and want to find specific HTTP status codes. How do you search for patterns within structured data? How do you extract specific fields?
+    </div>
+    <div class="back">
+        <strong>Find 404 errors:</strong> <code>grep " 404 " access.log</code><br>
+        <strong>4xx or 5xx errors:</strong> <code>grep -E " [45][0-9]{2} " access.log</code><br>
+        <strong>Extract IPs with errors:</strong> <code>grep " 500 " access.log | grep -oE "^[0-9.]+"`</code>
+
+        <p><strong>Why:</strong> Log files have structured format. Match patterns with surrounding context (spaces, quotes). <code>-oE</code> extracts only matching part with extended regex.</p>
+
+        <p><strong>Log analysis patterns:</strong></p>
+        <ul>
+            <li><code>grep -E " (GET|POST) " access.log | grep -v " 200 "</code> (failed requests)</li>
+            <li><code>grep -oE "/api/[^ ]*" access.log | sort | uniq -c</code> (API endpoint usage)</li>
+            <li><code>grep "slow query" mysql.log | grep -oE "[0-9.]+ seconds"</code> (query times)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep logs analysis EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You want to find security issues like hardcoded passwords or API keys in code. How do you search for sensitive patterns? What regex patterns detect secrets?
+    </div>
+    <div class="back">
+        <strong>Possible passwords:</strong> <code>grep -rn -E "(password|passwd|pwd)\s*=\s*['\"][^'\"]{3,}" .</code><br>
+        <strong>API keys:</strong> <code>grep -rn -E "(api_key|apikey|api-key)\s*[:=]\s*['\"][^'\"]{10,}" .</code><br>
+        <strong>AWS keys:</strong> <code>grep -r "AKIA[0-9A-Z]{16}" .</code>
+
+        <p><strong>Why:</strong> Hardcoded credentials are security risks. Use regex to find assignment patterns. Look for variable names + assignment + string values.</p>
+
+        <p><strong>Security patterns:</strong></p>
+        <ul>
+            <li><code>grep -rn "TODO.*security\|FIXME.*security" --include="*.py" .</code></li>
+            <li><code>grep -r "eval(" --include="*.js" .</code> (dangerous eval usage)</li>
+            <li><code>grep -rE "mysql_query.*\$_(GET|POST)" --include="*.php" .</code> (SQL injection)</li>
+            <li><code>grep -r "chmod 777" .</code> (overly permissive permissions)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep security audit EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You want to find TODO comments across your codebase. How do you search for code annotations? How do you group by type?
+    </div>
+    <div class="back">
+        <strong>Find all TODOs:</strong> <code>grep -rn "TODO" --include="*.py" --include="*.js" .</code><br>
+        <strong>TODO/FIXME/HACK:</strong> <code>grep -rn -E "TODO|FIXME|HACK|XXX" --include="*.{py,js,java}" .</code><br>
+        <strong>Count by type:</strong> <code>grep -roh -E "TODO|FIXME|HACK" . | sort | uniq -c</code>
+
+        <p><strong>Why:</strong> Code comments mark future work. <code>--include</code> filters file types. <code>-o</code> shows only matched part for counting.</p>
+
+        <p><strong>Code review searches:</strong></p>
+        <ul>
+            <li><code>grep -rn "console.log\|debugger" --include="*.js" src/</code> (debug code)</li>
+            <li><code>grep -rn "import pdb\|breakpoint()" --include="*.py" .</code> (Python debuggers)</li>
+            <li><code>grep -rn "@deprecated" --include="*.java" .</code> (deprecated code)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep code-review EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        You're debugging and want to find where a function is defined or called. How do you search for function definitions? What about function calls?
+    </div>
+    <div class="back">
+        <strong>Python function definitions:</strong> <code>grep -rn "^def functionname" --include="*.py" .</code><br>
+        <strong>Function calls:</strong> <code>grep -rn "functionname(" --include="*.py" .</code><br>
+        <strong>Class definitions:</strong> <code>grep -rn "^class " --include="*.py" .</code>
+
+        <p><strong>Why:</strong> <code>^def</code> anchors to line start (definitions, not comments). <code>functionname(</code> finds calls. Adjust pattern for language.</p>
+
+        <p><strong>Language-specific patterns:</strong></p>
+        <ul>
+            <li><code>grep -rn "function \w\+(" --include="*.js" .</code> (JS functions)</li>
+            <li><code>grep -rn "public.*functionname" --include="*.java" .</code> (Java methods)</li>
+            <li><code>grep -rn "impl.*for" --include="*.rs" .</code> (Rust implementations)</li>
+            <li><code>grep -rn "export.*function" --include="*.ts" .</code> (TS exports)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep code-search EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        You need to find imports or dependencies in code. How do you search for import statements? How do you list all imported modules?
+    </div>
+    <div class="back">
+        <strong>Python imports:</strong> <code>grep -rh "^import \|^from .* import" --include="*.py" . | sort -u</code><br>
+        <strong>Specific module:</strong> <code>grep -rn "import.*requests" --include="*.py" .</code><br>
+        <strong>JS imports:</strong> <code>grep -rh "^import.*from" --include="*.js" . | sort -u</code>
+
+        <p><strong>Why:</strong> <code>^import</code> finds imports at line start. <code>-h</code> hides filenames, <code>sort -u</code> removes duplicates. Shows all unique imports.</p>
+
+        <p><strong>Dependency analysis:</strong></p>
+        <ul>
+            <li><code>grep -rh "^import " --include="*.py" . | cut -d' ' -f2 | sort | uniq -c</code> (count imports)</li>
+            <li><code>grep -r "require(" --include="*.js" .</code> (Node.js requires)</li>
+            <li><code>grep -r "#include" --include="*.{c,cpp,h}" .</code> (C/C++ includes)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep dependencies EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        You want to find lines that are too long for style guidelines. How do you find long lines? How do you find files with long lines?
+    </div>
+    <div class="back">
+        <strong>Lines over 80 chars:</strong> <code>grep -rn "^.\{80,\}" --include="*.py" .</code><br>
+        <strong>With PCRE:</strong> <code>grep -Prn "^.{80,}" --include="*.py" .</code><br>
+        <strong>Files with long lines:</strong> <code>grep -rl "^.\{100,\}" --include="*.py" .</code>
+
+        <p><strong>Why:</strong> <code>.{80,}</code> matches any character 80+ times. <code>^</code> ensures from line start. Use <code>-P</code> for cleaner syntax, or escape braces in basic regex.</p>
+
+        <p><strong>Code quality checks:</strong></p>
+        <ul>
+            <li><code>grep -Pn "^.{120,}" --include="*.{py,js}" . | wc -l</code> (count violations)</li>
+            <li><code>grep -rn "^ \{8,\}" --include="*.py" .</code> (deep indentation 8+ spaces)</li>
+            <li><code>grep -rn "\t" --include="*.py" .</code> (tabs in Python - style violation)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep style linting EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        You're searching config files and want to ignore comments and blank lines. How do you filter out comments? How do you show only active config?
+    </div>
+    <div class="back">
+        <strong>Skip comments and blanks:</strong> <code>grep -v "^#\|^$" config.conf</code><br>
+        <strong>With extended regex:</strong> <code>grep -Ev "^#|^$|^\s*$" config.conf</code><br>
+        <strong>Show active config:</strong> <code>grep -Ev "^#|^$|^\s*#" /etc/ssh/sshd_config</code>
+
+        <p><strong>Why:</strong> <code>^#</code> matches comment lines, <code>^$</code> matches empty lines. <code>-v</code> inverts (shows non-matching). <code>\s*#</code> handles indented comments.</p>
+
+        <p><strong>Config file analysis:</strong></p>
+        <ul>
+            <li><code>grep -v "^#\|^$" /etc/nginx/nginx.conf | less</code> (view active config)</li>
+            <li><code>grep -E "^[^#]*password" /etc/*.conf</code> (uncommented password lines)</li>
+            <li><code>grep "=" /etc/config | grep -v "^#"</code> (active settings)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep config EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        You need to find duplicated code or repeated lines. How do you find lines that appear multiple times? How do you find code duplication?
+    </div>
+    <div class="back">
+        <strong>Find duplicate lines:</strong> <code>sort file.txt | uniq -d</code><br>
+        <strong>Lines appearing in multiple files:</strong> <code>grep -rhF "exact line text" *.py | sort | uniq -d</code><br>
+        <strong>Similar code blocks:</strong> <code>grep -rn -A 5 "pattern" --include="*.py" . | grep -B 5 "pattern"</code>
+
+        <p><strong>Why:</strong> <code>sort | uniq -d</code> finds duplicates in single file. <code>-rh</code> searches recursively without filenames, then find duplicates. Context helps find similar blocks.</p>
+
+        <p><strong>Duplication detection:</strong></p>
+        <ul>
+            <li><code>grep -rh "^def " --include="*.py" . | sort | uniq -d</code> (duplicate function names)</li>
+            <li><code>grep -rh "import " --include="*.py" . | sort | uniq -c | sort -rn</code> (most imported)</li>
+            <li>For real code duplication detection, use <code>jscpd</code> or similar tools</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep duplication EN</div>
+</div>
+
+<!-- Card 26 -->
+<div class="card">
+    <div class="front">
+        You want to search within search results or combine multiple grep commands. How do you chain greps? When should you use one grep vs multiple?
+    </div>
+    <div class="back">
+        <strong>Chain with pipe:</strong> <code>grep "error" file.txt | grep "database"</code><br>
+        <strong>Complex AND:</strong> <code>grep "user" file.txt | grep "login" | grep -v "failed"</code><br>
+        <strong>Single grep alternative:</strong> <code>grep "user.*login" file.txt | grep -v "failed"</code>
+
+        <p><strong>Why:</strong> Multiple greps = AND condition (all patterns must match). Each grep filters previous results. Sometimes single grep with complex regex is better.</p>
+
+        <p><strong>When to chain:</strong></p>
+        <ul>
+            <li><code>ps aux | grep python | grep -v grep</code> (classic pattern)</li>
+            <li><code>cat file.txt | grep "start" | grep "end"</code> (both patterns on line)</li>
+            <li><code>dmesg | grep -i error | grep -v "corrected"</code> (errors excluding corrected)</li>
+            <li>Chain when patterns don't need to be in order or near each other</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep chaining EN</div>
+</div>
+
+<!-- Card 27 -->
+<div class="card">
+    <div class="front">
+        You need to generate a report from grep results. How do you format grep output? How do you create a summary?
+    </div>
+    <div class="back">
+        <strong>Custom format:</strong> <code>grep -rn "ERROR" /var/log/*.log | awk -F: '{print $1" line "$2": ERROR found"}' </code><br>
+        <strong>Count per file:</strong> <code>grep -rc "pattern" *.txt | grep -v ":0$"</code><br>
+        <strong>Summary report:</strong> <code>grep -rh "ERROR" /var/log/ | cut -d' ' -f1-3 | sort | uniq -c | sort -rn</code>
+
+        <p><strong>Why:</strong> Combine grep with awk, cut, sort, uniq for reports. <code>-c</code> counts per file. Remove zero counts with <code>grep -v ":0$"</code>.</p>
+
+        <p><strong>Reporting examples:</strong></p>
+        <ul>
+            <li><code>grep -oh "\b[A-Z]{2,}\b" file.txt | sort | uniq -c</code> (acronym frequency)</li>
+            <li><code>grep -oE "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" access.log | sort | uniq -c | sort -rn | head -10</code> (top IPs)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep reporting EN</div>
+</div>
+
+<!-- Card 28 -->
+<div class="card">
+    <div class="front">
+        You want to exclude certain file patterns from recursive search. How do you exclude files? How do you search only specific file types?
+    </div>
+    <div class="back">
+        <strong>Exclude files:</strong> <code>grep -r "pattern" --exclude="*.min.js" --exclude="*.log" .</code><br>
+        <strong>Exclude dirs:</strong> <code>grep -r "pattern" --exclude-dir={node_modules,.git,dist} .</code><br>
+        <strong>Include only:</strong> <code>grep -r "pattern" --include="*.{py,sh}" .</code>
+
+        <p><strong>Why:</strong> <code>--exclude</code> skips matching files, <code>--exclude-dir</code> skips directories. <code>--include</code> searches only matching files. Use braces for multiple patterns.</p>
+
+        <p><strong>Project-specific searches:</strong></p>
+        <ul>
+            <li><code>grep -r "TODO" --include="*.py" --exclude-dir={.venv,__pycache__} .</code></li>
+            <li><code>grep -r "pattern" --exclude="*test*.py" --include="*.py" .</code> (skip tests)</li>
+            <li><code>grep -r "error" --exclude-dir={vendor,node_modules} .</code> (skip dependencies)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep filtering EN</div>
+</div>
+
+<!-- Card 29 -->
+<div class="card">
+    <div class="front">
+        You're comparing grep with alternatives like ripgrep or ag. When should you use each? What are the tradeoffs?
+    </div>
+    <div class="back">
+        <strong>Classic grep:</strong> Everywhere, POSIX standard, slower<br>
+        <strong>Ripgrep (rg):</strong> <code>rg "pattern" .</code> - Much faster, respects .gitignore, modern<br>
+        <strong>Silver Searcher (ag):</strong> <code>ag "pattern"</code> - Fast, simpler syntax
+
+        <p><strong>Why:</strong> grep is universal but slow. ripgrep is 10-100x faster, respects .gitignore automatically. For scripts, use grep (portable). For interactive use, use rg/ag.</p>
+
+        <p><strong>Comparison:</strong></p>
+        <ul>
+            <li><code>grep -r "pattern" .</code> vs <code>rg "pattern"</code> (ripgrep auto-recursive)</li>
+            <li>rg skips .git, node_modules, binaries by default</li>
+            <li><code>rg -t py "pattern"</code> (file type shortcuts)</li>
+            <li>grep: portable, rg: fast, ag: middle ground</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux grep alternatives EN</div>
+</div>
+
+<!-- Card 30 -->
+<div class="card">
+    <div class="front">
+        You're writing a script that needs to extract specific data from grep results. How do you extract just the matched text? How do you use grep with variables?
+    </div>
+    <div class="back">
+        <strong>Extract only matches:</strong> <code>grep -oE "pattern" file.txt</code><br>
+        <strong>With variable:</strong> <code>grep "$PATTERN" file.txt</code><br>
+        <strong>Safe variable (prevent regex):</strong> <code>grep -F "$LITERAL" file.txt</code>
+
+        <p><strong>Why:</strong> <code>-o</code> shows only matched part, not whole line. Use quotes with variables. <code>-F</code> treats variable as literal (if it contains regex chars).</p>
+
+        <p><strong>Script examples:</strong></p>
+        <pre><code>#!/bin/bash
+pattern="error"
+if grep -q "$pattern" /var/log/app.log; then
+    count=$(grep -c "$pattern" /var/log/app.log)
+    echo "Found $count errors"
+    grep -m 5 "$pattern" /var/log/app.log
+fi</code></pre>
+    </div>
+    <div class="tags">cs linux grep scripting EN</div>
+</div>
+
+</body>
+</html>
