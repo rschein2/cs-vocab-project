@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shell Scripting (Bash) Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 1.1em;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .back {
+            color: #555;
+        }
+        .back strong {
+            color: #2c3e50;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.95em;
+            color: #c7254e;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #333;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ecf0f1;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shell Scripting (Bash) Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            How do you assign a value to a variable in a shell script? What about using the value? What if the value contains spaces?
+        </div>
+        <div class="back">
+            <strong>Assign:</strong> <code>name=value</code> (no spaces around =)<br>
+            <strong>Use:</strong> <code>$name</code> or <code>${name}</code><br>
+            <strong>With spaces:</strong> <code>name="value with spaces"</code>
+
+            <p><strong>Why:</strong> Variables store data. The <code>${}</code> syntax is safer and required for complex expansions.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+count=5
+name="John Doe"
+echo "Count is $count"
+echo "Name is ${name}"
+
+# Wrong - spaces cause errors
+count = 5  # ERROR!
+count=5 + 1  # This sets count to "5" literally!</pre>
+
+            <div class="note"><strong>Best practice:</strong> Always quote variables in use: <code>"$name"</code> to prevent word splitting</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            You want to make a variable available to child processes (like scripts you call from your script). What command exports it? How do you do it in one line?
+        </div>
+        <div class="back">
+            <strong>Export existing variable:</strong> <code>export VARNAME</code><br>
+            <strong>Export and assign:</strong> <code>export VARNAME=value</code>
+
+            <p><strong>Why:</strong> By default, variables are only available in the current shell. <code>export</code> makes them environment variables visible to child processes.</p>
+
+            <p><strong>Example:</strong></p>
+            <pre>#!/bin/bash
+# Local variable - only in this script
+local_var="hello"
+
+# Environment variable - available to child processes
+export GLOBAL_VAR="world"
+
+# Call another script - it can see GLOBAL_VAR but not local_var
+./other_script.sh</pre>
+
+            <p><strong>Common use:</strong> <code>export PATH=$PATH:/new/dir</code></p>
+
+            <div class="note"><strong>Check exports:</strong> Use <code>env</code> or <code>printenv</code> to see all environment variables</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            How do you capture the output of a command into a variable? What are the two syntaxes? Which one is preferred?
+        </div>
+        <div class="back">
+            <strong>Modern syntax:</strong> <code>var=$(command)</code><br>
+            <strong>Old syntax:</strong> <code>var=`command`</code>
+
+            <p><strong>Why:</strong> Command substitution lets you use command output in your script. Modern <code>$()</code> syntax is preferred because it nests better and is more readable.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Get current date
+today=$(date +%Y-%m-%d)
+
+# Count files
+file_count=$(ls | wc -l)
+
+# Nested (only works well with $())
+user_home=$(dirname $(which bash))
+
+# Old style - harder to read
+today=`date +%Y-%m-%d`</pre>
+
+            <div class="note"><strong>Tip:</strong> Use <code>"$(command)"</code> in quotes to preserve newlines and spaces</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            How do you write an if statement in bash? How do you check if a file exists? What about checking if a variable is empty?
+        </div>
+        <div class="back">
+            <strong>Basic if:</strong>
+            <pre>if [ condition ]; then
+    commands
+fi</pre>
+
+            <strong>File exists:</strong> <code>if [ -f "$file" ]; then</code><br>
+            <strong>Variable empty:</strong> <code>if [ -z "$var" ]; then</code>
+
+            <p><strong>Why:</strong> Conditionals control script flow. <code>[ ]</code> is the test command (also <code>[[ ]]</code> is modern/safer).</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+if [ -f "/etc/passwd" ]; then
+    echo "File exists"
+fi
+
+if [ -z "$USER" ]; then
+    echo "USER is empty"
+else
+    echo "USER is $USER"
+fi
+
+# Multiple conditions with elif
+if [ "$count" -gt 10 ]; then
+    echo "More than 10"
+elif [ "$count" -eq 10 ]; then
+    echo "Exactly 10"
+else
+    echo "Less than 10"
+fi</pre>
+
+            <div class="note"><strong>Modern:</strong> Use <code>[[ ]]</code> for better string comparison and pattern matching</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            What are the common file test operators? How do you check if a file is a directory? Regular file? Executable? Readable?
+        </div>
+        <div class="back">
+            <strong>Common tests:</strong>
+            <ul>
+                <li><code>-f file</code> - Regular file exists</li>
+                <li><code>-d dir</code> - Directory exists</li>
+                <li><code>-e path</code> - Any file exists (file, dir, link, etc.)</li>
+                <li><code>-r file</code> - Readable</li>
+                <li><code>-w file</code> - Writable</li>
+                <li><code>-x file</code> - Executable</li>
+                <li><code>-s file</code> - Non-empty (size > 0)</li>
+                <li><code>-L file</code> - Symbolic link</li>
+            </ul>
+
+            <p><strong>Why:</strong> These tests are essential for safe scripts that check preconditions before acting.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+if [ -d "/var/log" ]; then
+    echo "Log directory exists"
+fi
+
+if [ -x "./myscript.sh" ]; then
+    ./myscript.sh
+else
+    echo "Not executable, fixing..."
+    chmod +x ./myscript.sh
+fi
+
+# Check before reading
+if [ -r "$config_file" ] && [ -f "$config_file" ]; then
+    source "$config_file"
+fi</pre>
+
+            <div class="note"><strong>Combine tests:</strong> Use <code>&amp;&amp;</code> (AND) or <code>||</code> (OR)</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            How do you compare strings in bash? What about comparing numbers? What's the difference between = and -eq?
+        </div>
+        <div class="back">
+            <strong>String comparison:</strong>
+            <ul>
+                <li><code>[ "$a" = "$b" ]</code> - Strings equal</li>
+                <li><code>[ "$a" != "$b" ]</code> - Strings not equal</li>
+                <li><code>[ -z "$a" ]</code> - String is empty</li>
+                <li><code>[ -n "$a" ]</code> - String is not empty</li>
+            </ul>
+
+            <strong>Numeric comparison:</strong>
+            <ul>
+                <li><code>[ "$a" -eq "$b" ]</code> - Equal</li>
+                <li><code>[ "$a" -ne "$b" ]</code> - Not equal</li>
+                <li><code>[ "$a" -lt "$b" ]</code> - Less than</li>
+                <li><code>[ "$a" -le "$b" ]</code> - Less than or equal</li>
+                <li><code>[ "$a" -gt "$b" ]</code> - Greater than</li>
+                <li><code>[ "$a" -ge "$b" ]</code> - Greater than or equal</li>
+            </ul>
+
+            <p><strong>Why:</strong> <code>=</code> does string comparison (lexicographic), <code>-eq</code> does numeric comparison.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# String comparison
+if [ "$USER" = "root" ]; then
+    echo "Running as root"
+fi
+
+# Numeric comparison
+count=10
+if [ "$count" -gt 5 ]; then
+    echo "Count is greater than 5"
+fi
+
+# DON'T mix them up!
+# "10" = "9" is false (string comparison)
+# "10" -gt "9" is true (numeric comparison)</pre>
+
+            <div class="warning"><strong>Gotcha:</strong> Always quote variables: <code>"$var"</code> to avoid errors when empty</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            How do you write a for loop in bash? How do you loop over files in a directory? What about looping over a list of values?
+        </div>
+        <div class="back">
+            <strong>Basic for loop:</strong>
+            <pre>for var in list; do
+    commands
+done</pre>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Loop over a list
+for name in Alice Bob Charlie; do
+    echo "Hello, $name"
+done
+
+# Loop over files
+for file in *.txt; do
+    echo "Processing $file"
+    wc -l "$file"
+done
+
+# Loop over command output
+for user in $(cat /etc/passwd | cut -d: -f1); do
+    echo "User: $user"
+done
+
+# C-style loop
+for ((i=1; i<=10; i++)); do
+    echo "Number $i"
+done
+
+# Loop over array
+files=(file1.txt file2.txt file3.txt)
+for file in "${files[@]}"; do
+    echo "$file"
+done</pre>
+
+            <div class="note"><strong>Safer file loop:</strong> Use <code>find ... -print0 | while IFS= read -r -d '' file</code> for files with spaces</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            How do you write a while loop? What about reading a file line by line? How do you break out of a loop early?
+        </div>
+        <div class="back">
+            <strong>While loop:</strong>
+            <pre>while [ condition ]; do
+    commands
+done</pre>
+
+            <strong>Break early:</strong> <code>break</code><br>
+            <strong>Skip iteration:</strong> <code>continue</code>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Basic while loop
+count=0
+while [ $count -lt 5 ]; do
+    echo "Count: $count"
+    count=$((count + 1))
+done
+
+# Read file line by line (best practice)
+while IFS= read -r line; do
+    echo "Line: $line"
+done < input.txt
+
+# Infinite loop
+while true; do
+    echo "Running..."
+    sleep 1
+done
+
+# Break and continue
+while read -r line; do
+    [ -z "$line" ] && continue  # Skip empty lines
+    [[ "$line" == "STOP" ]] && break  # Exit on STOP
+    echo "$line"
+done < file.txt</pre>
+
+            <div class="note"><strong>Until loop:</strong> <code>until [ condition ]; do ... done</code> runs until condition is TRUE</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            How do you define a function in bash? How do you pass arguments to it? How do you return a value?
+        </div>
+        <div class="back">
+            <strong>Define function:</strong>
+            <pre>function_name() {
+    commands
+}</pre>
+
+            <strong>Access arguments:</strong> <code>$1</code>, <code>$2</code>, etc. (all: <code>$@</code>)<br>
+            <strong>Return status:</strong> <code>return N</code> (0 = success, 1-255 = error)<br>
+            <strong>Return value:</strong> Use <code>echo</code> and capture with <code>$()</code>
+
+            <p><strong>Why:</strong> Functions can't return strings directly, only exit codes (0-255). Use <code>echo</code> to output values.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Simple function
+greet() {
+    echo "Hello, $1!"
+}
+greet "Alice"  # Prints: Hello, Alice!
+
+# Return a value (via echo)
+add() {
+    local result=$(( $1 + $2 ))
+    echo "$result"
+}
+sum=$(add 5 3)
+echo "Sum is $sum"  # Sum is 8
+
+# Return status code
+check_file() {
+    if [ -f "$1" ]; then
+        return 0  # Success
+    else
+        return 1  # Failure
+    fi
+}
+
+if check_file "/etc/passwd"; then
+    echo "File exists"
+fi</pre>
+
+            <div class="note"><strong>Local variables:</strong> Use <code>local var=value</code> inside functions to avoid polluting global scope</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            How do you access script arguments? What's $0, $1, $#, $@, and $*? How do you check if the right number of arguments were passed?
+        </div>
+        <div class="back">
+            <strong>Positional parameters:</strong>
+            <ul>
+                <li><code>$0</code> - Script name</li>
+                <li><code>$1, $2, ...</code> - Arguments 1, 2, etc.</li>
+                <li><code>$#</code> - Number of arguments</li>
+                <li><code>$@</code> - All arguments (as separate words)</li>
+                <li><code>$*</code> - All arguments (as single string)</li>
+            </ul>
+
+            <p><strong>Why:</strong> Scripts need to process input. Always use <code>"$@"</code> (quoted) to preserve arguments with spaces.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+echo "Script name: $0"
+echo "First arg: $1"
+echo "Second arg: $2"
+echo "Number of args: $#"
+
+# Check argument count
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <input> <output>"
+    exit 1
+fi
+
+# Loop over all arguments
+for arg in "$@"; do
+    echo "Arg: $arg"
+done
+
+# Shift arguments (remove first, move others down)
+shift
+echo "After shift, first arg is now: $1"</pre>
+
+            <div class="note"><strong>Difference:</strong> <code>"$@"</code> preserves spaces in arguments, <code>"$*"</code> joins them into one string</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">
+            How do you get the exit status of the last command? How do you make your script exit with an error code? What does exit code 0 mean?
+        </div>
+        <div class="back">
+            <strong>Last exit status:</strong> <code>$?</code><br>
+            <strong>Exit with code:</strong> <code>exit N</code><br>
+            <strong>Convention:</strong> 0 = success, non-zero = error
+
+            <p><strong>Why:</strong> Exit codes let other scripts/tools know if your script succeeded. Standard Unix convention.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Check if command succeeded
+grep "pattern" file.txt
+if [ $? -eq 0 ]; then
+    echo "Pattern found"
+else
+    echo "Pattern not found"
+fi
+
+# Shorter version using &&/||
+grep "pattern" file.txt && echo "Found" || echo "Not found"
+
+# Exit with error if file doesn't exist
+if [ ! -f "$config_file" ]; then
+    echo "Error: Config file not found"
+    exit 1
+fi
+
+# Exit successfully
+echo "All done!"
+exit 0</pre>
+
+            <p><strong>Common codes:</strong> 0=success, 1=general error, 2=misuse, 126=not executable, 127=command not found, 130=Ctrl+C</p>
+
+            <div class="note"><strong>In functions:</strong> Use <code>return N</code> instead of <code>exit N</code> to avoid exiting the entire script</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">
+            How do you make your script exit immediately on any error? What about exiting on undefined variables? What's the pipefail option?
+        </div>
+        <div class="back">
+            <strong>Exit on error:</strong> <code>set -e</code><br>
+            <strong>Exit on undefined var:</strong> <code>set -u</code><br>
+            <strong>Fail on pipe errors:</strong> <code>set -o pipefail</code><br>
+            <strong>All at once:</strong> <code>set -euo pipefail</code>
+
+            <p><strong>Why:</strong> These make scripts safer by catching errors early instead of continuing with bad state.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+set -euo pipefail
+
+# With set -e: script exits if this fails
+cd /some/directory
+
+# With set -u: script exits if VAR is not defined
+echo "$VAR"
+
+# With set -o pipefail: script exits if ANY command in pipe fails
+cat file.txt | grep pattern | sort
+
+# Disable temporarily
+set +e
+command_that_might_fail
+set -e</pre>
+
+            <p><strong>What they do:</strong></p>
+            <ul>
+                <li><code>set -e</code> - Exit if any command returns non-zero</li>
+                <li><code>set -u</code> - Exit if using undefined variable</li>
+                <li><code>set -o pipefail</code> - Pipe fails if any command in it fails (not just last one)</li>
+            </ul>
+
+            <div class="warning"><strong>Gotcha:</strong> <code>set -e</code> doesn't work in all contexts (if statements, &&/||). Test thoroughly!</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">
+            How do you provide a default value for a variable if it's not set? How do you exit with an error message if a required variable is missing?
+        </div>
+        <div class="back">
+            <strong>Default value:</strong> <code>${var:-default}</code><br>
+            <strong>Set if unset:</strong> <code>${var:=default}</code><br>
+            <strong>Error if unset:</strong> <code>${var:?error message}</code>
+
+            <p><strong>Why:</strong> Parameter expansion provides flexible ways to handle missing/empty variables safely.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Use default if not set
+name=${USER:-"guest"}
+echo "Hello, $name"
+
+# Set variable if not already set
+: ${PORT:=8080}
+echo "Using port $PORT"
+
+# Exit with error if required var missing
+database=${DATABASE:?Error: DATABASE not set}
+
+# Other useful patterns
+file=${1:?Usage: $0 <filename>}  # Require argument
+
+# Use alternate value if set
+debug=${DEBUG:+"-v"}  # If DEBUG set, use "-v", else empty</pre>
+
+            <p><strong>Syntax patterns:</strong></p>
+            <ul>
+                <li><code>${var:-default}</code> - Use default if var is unset or empty</li>
+                <li><code>${var-default}</code> - Use default only if var is unset (not if empty)</li>
+                <li><code>${var:=default}</code> - Assign default if unset/empty</li>
+                <li><code>${var:?message}</code> - Error and exit if unset/empty</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">
+            How do you do arithmetic in bash? What about incrementing a variable? How do you use floating point numbers?
+        </div>
+        <div class="back">
+            <strong>Arithmetic expansion:</strong> <code>$((expression))</code><br>
+            <strong>Increment:</strong> <code>((var++))</code> or <code>var=$((var + 1))</code><br>
+            <strong>Floating point:</strong> Use <code>bc</code> or <code>awk</code> (bash only does integers)
+
+            <p><strong>Why:</strong> Bash arithmetic is integer-only. For decimals, pipe to <code>bc</code>.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Basic arithmetic
+a=5
+b=3
+sum=$((a + b))
+product=$((a * b))
+echo "Sum: $sum, Product: $product"
+
+# Increment/decrement
+count=0
+((count++))
+count=$((count + 1))
+
+# All operators: + - * / % (modulo) ** (power)
+result=$((10 ** 2))  # 100
+
+# Floating point with bc
+result=$(echo "scale=2; 10 / 3" | bc)
+echo $result  # 3.33
+
+# Floating point with awk
+result=$(awk "BEGIN {print 10 / 3}")
+echo $result  # 3.33333</pre>
+
+            <div class="note"><strong>No $ inside:</strong> <code>$((a + b))</code> not <code>$(($a + $b))</code> (both work, but first is cleaner)</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">
+            How do you create an array in bash? How do you access elements? How do you get all elements? How do you get the array length?
+        </div>
+        <div class="back">
+            <strong>Create array:</strong> <code>arr=(value1 value2 value3)</code><br>
+            <strong>Access element:</strong> <code>${arr[0]}</code> (0-indexed)<br>
+            <strong>All elements:</strong> <code>${arr[@]}</code><br>
+            <strong>Length:</strong> <code>${#arr[@]}</code>
+
+            <p><strong>Why:</strong> Arrays store multiple values. Bash has indexed arrays and associative arrays (hashes).</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Create array
+fruits=(apple banana cherry)
+
+# Access elements
+echo ${fruits[0]}  # apple
+echo ${fruits[1]}  # banana
+
+# All elements
+echo ${fruits[@]}  # apple banana cherry
+
+# Length
+echo ${#fruits[@]}  # 3
+
+# Loop over array
+for fruit in "${fruits[@]}"; do
+    echo "Fruit: $fruit"
+done
+
+# Add element
+fruits+=(date)
+
+# Associative array (hash/dict)
+declare -A person
+person[name]="Alice"
+person[age]=30
+echo ${person[name]}  # Alice</pre>
+
+            <div class="note"><strong>Quote properly:</strong> Use <code>"${arr[@]}"</code> to preserve elements with spaces</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">
+            How do you manipulate strings in bash? How do you get the length? Extract a substring? Remove a prefix or suffix?
+        </div>
+        <div class="back">
+            <strong>Length:</strong> <code>${#var}</code><br>
+            <strong>Substring:</strong> <code>${var:offset:length}</code><br>
+            <strong>Remove prefix:</strong> <code>${var#pattern}</code> (shortest) or <code>${var##pattern}</code> (longest)<br>
+            <strong>Remove suffix:</strong> <code>${var%pattern}</code> (shortest) or <code>${var%%pattern}</code> (longest)
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+text="Hello World"
+
+# Length
+echo ${#text}  # 11
+
+# Substring (offset 0, length 5)
+echo ${text:0:5}  # Hello
+echo ${text:6}    # World (from offset 6 to end)
+
+# Remove prefix
+file="myproject-1.2.3.tar.gz"
+echo ${file#*.}     # 2.3.tar.gz (remove shortest match)
+echo ${file##*.}    # gz (remove longest match)
+
+# Remove suffix
+echo ${file%.*}     # myproject-1.2.3.tar (remove shortest)
+echo ${file%%.*}    # myproject-1 (remove longest)
+
+# Replace
+echo ${text/World/Universe}  # Hello Universe (first match)
+echo ${text//l/L}            # HeLLo WorLd (all matches)
+
+# Uppercase/lowercase
+echo ${text^^}  # HELLO WORLD
+echo ${text,,}  # hello world</pre>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">
+            How do you create a multi-line string (heredoc) in bash? How do you use it with a command? What about suppressing leading tabs?
+        </div>
+        <div class="back">
+            <strong>Heredoc:</strong>
+            <pre>cat &lt;&lt;EOF
+multiple lines
+here
+EOF</pre>
+
+            <strong>To variable:</strong> <code>var=$(cat &lt;&lt;EOF ... EOF)</code><br>
+            <strong>Suppress tabs:</strong> <code>&lt;&lt;-EOF</code> (use tabs, not spaces)
+
+            <p><strong>Why:</strong> Heredocs are great for multi-line strings, config files, or SQL queries.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Print multi-line text
+cat &lt;&lt;EOF
+This is line 1
+This is line 2
+Variables work: $USER
+EOF
+
+# Write to file
+cat &lt;&lt;EOF > config.txt
+server=localhost
+port=8080
+EOF
+
+# Heredoc to variable
+sql=$(cat &lt;&lt;EOF
+SELECT * FROM users
+WHERE status = 'active'
+ORDER BY created_at DESC;
+EOF
+)
+
+# Suppress leading tabs (use TAB not spaces!)
+cat &lt;&lt;-EOF
+    This line has leading tabs
+    But they'll be removed
+EOF
+
+# Quoted EOF prevents variable expansion
+cat &lt;&lt;'EOF'
+This $USER won't be expanded
+EOF</pre>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">
+            How do you debug a bash script? How do you print each command before it runs? How do you trace variable assignments?
+        </div>
+        <div class="back">
+            <strong>Debug mode:</strong> <code>set -x</code> (or <code>bash -x script.sh</code>)<br>
+            <strong>Verbose mode:</strong> <code>set -v</code><br>
+            <strong>Turn off:</strong> <code>set +x</code>
+
+            <p><strong>Why:</strong> <code>set -x</code> shows each command with expanded variables before execution. Essential for debugging.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Enable debug mode
+set -x
+
+count=5
+echo "Count is $count"
+
+# Output with set -x:
+# + count=5
+# + echo 'Count is 5'
+# Count is 5
+
+# Disable for sensitive parts
+set +x
+password="secret"
+set -x
+
+# Run script with debugging
+bash -x myscript.sh
+
+# Partial debugging
+#!/bin/bash
+set -euo pipefail
+
+function debug_this() {
+    set -x
+    # commands to debug
+    set +x
+}</pre>
+
+            <p><strong>Other debug tricks:</strong></p>
+            <ul>
+                <li><code>set -v</code> - Print lines as read (before expansion)</li>
+                <li><code>trap 'echo "Error on line $LINENO"' ERR</code> - Show error line numbers</li>
+                <li>Add <code>echo</code> statements liberally</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 19 -->
+    <div class="card">
+        <div class="front">
+            How do you parse command-line options in bash (like -v, -f filename)? What command helps with this? How do you handle both short and long options?
+        </div>
+        <div class="back">
+            <strong>Simple parsing:</strong> Use <code>getopts</code> for short options (-v, -f)<br>
+            <strong>Long options:</strong> Use <code>getopt</code> (different tool!) or manual parsing
+
+            <p><strong>Why:</strong> <code>getopts</code> (built-in) handles short options cleanly. For long options (--verbose), use external <code>getopt</code> or case statements.</p>
+
+            <p><strong>Example with getopts:</strong></p>
+            <pre>#!/bin/bash
+verbose=false
+output=""
+
+while getopts "vf:h" opt; do
+    case $opt in
+        v)
+            verbose=true
+            ;;
+        f)
+            output="$OPTARG"
+            ;;
+        h)
+            echo "Usage: $0 [-v] [-f file]"
+            exit 0
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG"
+            exit 1
+            ;;
+    esac
+done
+
+# Shift past the options
+shift $((OPTIND-1))
+
+# Remaining arguments in $@
+echo "Verbose: $verbose"
+echo "Output: $output"
+echo "Args: $@"</pre>
+
+            <p><strong>Format:</strong> <code>getopts "vf:h"</code> means -v and -h are flags, -f takes an argument (colon)</p>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 20 -->
+    <div class="card">
+        <div class="front">
+            How do you handle errors and cleanup in bash scripts? How do you run code when the script exits (even on error)? What's the trap command?
+        </div>
+        <div class="back">
+            <strong>Trap command:</strong> <code>trap 'commands' SIGNAL</code>
+
+            <p><strong>Why:</strong> <code>trap</code> lets you run cleanup code when script exits, gets interrupted, or errors occur.</p>
+
+            <p><strong>Common signals:</strong></p>
+            <ul>
+                <li><code>EXIT</code> - Script exits (any reason)</li>
+                <li><code>ERR</code> - Command returns non-zero</li>
+                <li><code>INT</code> - Ctrl+C pressed</li>
+                <li><code>TERM</code> - Termination signal</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Cleanup on exit
+cleanup() {
+    echo "Cleaning up..."
+    rm -f /tmp/tempfile.$$
+}
+trap cleanup EXIT
+
+# Create temp file
+echo "data" > /tmp/tempfile.$$
+# ... do work ...
+# cleanup() runs automatically on exit
+
+# Handle Ctrl+C
+trap 'echo "Interrupted!"; exit 130' INT
+
+# Error handling
+trap 'echo "Error on line $LINENO"' ERR
+
+# Multiple signals
+trap 'cleanup_function' EXIT INT TERM
+
+# Ignore signal
+trap '' INT  # Ignore Ctrl+C
+
+# Reset to default
+trap - INT</pre>
+
+            <div class="note"><strong>Best practice:</strong> Always use trap for cleanup of temp files, locks, or background processes</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 21 -->
+    <div class="card">
+        <div class="front">
+            How do you read user input in a bash script? How do you read with a prompt? What about reading securely (hiding password input)?
+        </div>
+        <div class="back">
+            <strong>Read input:</strong> <code>read varname</code><br>
+            <strong>With prompt:</strong> <code>read -p "Prompt: " varname</code><br>
+            <strong>Silent (password):</strong> <code>read -s -p "Password: " password</code>
+
+            <p><strong>Why:</strong> <code>read</code> captures user input. <code>-s</code> (silent) hides input for passwords.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Simple read
+echo "Enter your name:"
+read name
+echo "Hello, $name"
+
+# With prompt
+read -p "Enter filename: " filename
+
+# Silent input for password
+read -s -p "Enter password: " password
+echo  # New line after hidden input
+echo "Password captured"
+
+# Read with timeout
+read -t 5 -p "Quick! Enter something (5 sec): " input
+
+# Read single character
+read -n 1 -p "Press any key to continue..."
+
+# Read into array (split on whitespace)
+echo "Enter multiple values:"
+read -a values
+echo "First value: ${values[0]}"
+
+# Read with default
+read -p "Port [8080]: " port
+port=${port:-8080}</pre>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 22 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between [[ ]] and [ ] in bash? When should you use each? What extra features does [[ ]] provide?
+        </div>
+        <div class="back">
+            <strong>[ ]</strong> - Original POSIX test command (compatible with sh)<br>
+            <strong>[[ ]]</strong> - Bash keyword with enhanced features (not in sh)
+
+            <p><strong>Why use [[ ]]:</strong></p>
+            <ul>
+                <li>Safer - no word splitting or glob expansion</li>
+                <li>Pattern matching with <code>=~</code> (regex) and <code>==</code> (glob)</li>
+                <li>Logical operators <code>&amp;&amp;</code> and <code>||</code> work inside</li>
+                <li>No need to quote variables (but still good practice)</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# Pattern matching (only in [[ ]])
+if [[ "$file" == *.txt ]]; then
+    echo "Text file"
+fi
+
+# Regex matching (only in [[ ]])
+if [[ "$email" =~ ^[a-z]+@[a-z]+\.[a-z]+$ ]]; then
+    echo "Valid email format"
+fi
+
+# Logical operators inside (only [[ ]])
+if [[ "$x" -gt 5 &amp;&amp; "$y" -lt 10 ]]; then
+    echo "Both conditions true"
+fi
+
+# [ ] requires -a and -o
+if [ "$x" -gt 5 -a "$y" -lt 10 ]; then
+    echo "Both conditions true"
+fi
+
+# No word splitting in [[ ]]
+var="hello world"
+[[ $var == "hello world" ]]  # Works
+[ $var == "hello world" ]    # Error! Need quotes: [ "$var" == "hello world" ]</pre>
+
+            <div class="note"><strong>Recommendation:</strong> Use <code>[[ ]]</code> in bash scripts. Use <code>[ ]</code> only for POSIX sh compatibility</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 23 -->
+    <div class="card">
+        <div class="front">
+            How do you make a bash script executable? What's the shebang line and why is it important? What should it be for bash scripts?
+        </div>
+        <div class="back">
+            <strong>Make executable:</strong> <code>chmod +x script.sh</code><br>
+            <strong>Shebang:</strong> <code>#!/bin/bash</code> (first line of script)<br>
+            <strong>Portable:</strong> <code>#!/usr/bin/env bash</code>
+
+            <p><strong>Why:</strong> The shebang tells the system which interpreter to use. Without it, the default shell is used (might not be bash!).</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# This is a bash script
+echo "Hello from bash"
+
+# Make it executable
+$ chmod +x myscript.sh
+$ ./myscript.sh
+
+# Portable shebang (finds bash in PATH)
+#!/usr/bin/env bash
+
+# Other interpreters
+#!/bin/sh          # POSIX shell
+#!/usr/bin/python3 # Python
+#!/usr/bin/ruby    # Ruby</pre>
+
+            <p><strong>Common mistakes:</strong></p>
+            <ul>
+                <li>No shebang - script might run in wrong shell</li>
+                <li>Using <code>#!/bin/sh</code> for bash features - sh doesn't have arrays, [[ ]], etc.</li>
+                <li>Forgetting <code>chmod +x</code> - script won't execute</li>
+                <li>Windows line endings (CRLF) - use <code>dos2unix</code> to fix</li>
+            </ul>
+
+            <div class="note"><strong>Recommendation:</strong> Always use <code>#!/usr/bin/env bash</code> for portability across systems</div>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+    <!-- Card 24 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between sourcing a script (. or source) and executing it (./script.sh)? When would you use each?
+        </div>
+        <div class="back">
+            <strong>Source:</strong> <code>source script.sh</code> or <code>. script.sh</code> - Runs in current shell<br>
+            <strong>Execute:</strong> <code>./script.sh</code> - Runs in new subshell
+
+            <p><strong>Why:</strong> Sourcing runs code in your current shell (variables persist). Executing runs in a subshell (isolated).</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>#!/bin/bash
+# script.sh
+export MY_VAR="hello"
+cd /tmp
+
+# Executing (subshell)
+$ pwd
+/home/user
+$ ./script.sh
+$ echo $MY_VAR
+# (empty - variable not in parent shell)
+$ pwd
+/home/user  # Still in original directory
+
+# Sourcing (current shell)
+$ pwd
+/home/user
+$ source script.sh
+$ echo $MY_VAR
+hello  # Variable exists!
+$ pwd
+/tmp  # Directory changed!</pre>
+
+            <p><strong>Use sourcing for:</strong></p>
+            <ul>
+                <li>Config files (<code>source ~/.bashrc</code>)</li>
+                <li>Setting environment variables</li>
+                <li>Defining functions or aliases</li>
+            </ul>
+
+            <p><strong>Use executing for:</strong></p>
+            <ul>
+                <li>Running independent scripts</li>
+                <li>Isolation (don't affect current shell)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash scripting EN</div>
+    </div>
+
+</body>
+</html>

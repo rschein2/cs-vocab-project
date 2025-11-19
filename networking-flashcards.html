@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Networking Basics Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 1.1em;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .back {
+            color: #555;
+        }
+        .back strong {
+            color: #2c3e50;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.95em;
+            color: #c7254e;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #333;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ecf0f1;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Networking Basics Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            How do you show all network interfaces and their IP addresses on Linux? What command replaced ifconfig? How do you show just the IP addresses?
+        </div>
+        <div class="back">
+            <strong>Show all interfaces:</strong> <code>ip addr</code> or <code>ip a</code><br>
+            <strong>Show specific interface:</strong> <code>ip addr show eth0</code><br>
+            <strong>Brief format:</strong> <code>ip -br addr</code>
+
+            <p><strong>Why:</strong> <code>ip</code> is the modern replacement for deprecated <code>ifconfig</code>. Part of the iproute2 package.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Show all interfaces with IPs
+ip addr
+
+# Brief, colored output
+ip -br -c addr
+
+# Show only IPv4
+ip -4 addr
+
+# Show only specific interface
+ip addr show wlan0
+
+# Old way (deprecated)
+ifconfig  # Still works but avoid it</pre>
+
+            <p><strong>Common interfaces:</strong></p>
+            <ul>
+                <li><code>lo</code> - Loopback (127.0.0.1)</li>
+                <li><code>eth0</code>, <code>enp0s3</code> - Ethernet</li>
+                <li><code>wlan0</code>, <code>wlp2s0</code> - WiFi</li>
+                <li><code>docker0</code> - Docker bridge</li>
+            </ul>
+
+            <div class="note"><strong>Tip:</strong> Use <code>ip -br -c addr</code> for quick, readable output with colors</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            How do you bring a network interface up or down? How do you assign an IP address to an interface? How do you make it permanent?
+        </div>
+        <div class="back">
+            <strong>Bring up:</strong> <code>sudo ip link set eth0 up</code><br>
+            <strong>Bring down:</strong> <code>sudo ip link set eth0 down</code><br>
+            <strong>Assign IP:</strong> <code>sudo ip addr add 192.168.1.100/24 dev eth0</code><br>
+            <strong>Make permanent:</strong> Edit <code>/etc/network/interfaces</code> or use NetworkManager/netplan
+
+            <p><strong>Why:</strong> Temporary changes are lost on reboot. Permanent config depends on your distribution.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Bring interface up
+sudo ip link set wlan0 up
+
+# Assign IP address
+sudo ip addr add 192.168.1.100/24 dev eth0
+
+# Remove IP address
+sudo ip addr del 192.168.1.100/24 dev eth0
+
+# Show link status
+ip link show eth0
+
+# Permanent config (Debian/Ubuntu - /etc/network/interfaces)
+auto eth0
+iface eth0 inet static
+    address 192.168.1.100
+    netmask 255.255.255.0
+    gateway 192.168.1.1
+
+# Permanent config (Ubuntu 18.04+ with netplan)
+# Edit /etc/netplan/*.yaml
+
+# Restart networking
+sudo systemctl restart networking  # Debian/Ubuntu
+sudo nmcli connection reload       # NetworkManager</pre>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            How do you view the routing table? How do you add or delete a route? What's the default gateway?
+        </div>
+        <div class="back">
+            <strong>View routes:</strong> <code>ip route</code> or <code>ip r</code><br>
+            <strong>Add route:</strong> <code>sudo ip route add 10.0.0.0/24 via 192.168.1.1</code><br>
+            <strong>Delete route:</strong> <code>sudo ip route del 10.0.0.0/24</code><br>
+            <strong>Default gateway:</strong> Line with <code>default via</code>
+
+            <p><strong>Why:</strong> Routes determine where packets go. Default gateway is the "exit" to other networks.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Show routing table
+ip route
+
+# Sample output:
+# default via 192.168.1.1 dev eth0  # Default gateway
+# 192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.100
+
+# Add default gateway
+sudo ip route add default via 192.168.1.1
+
+# Add specific network route
+sudo ip route add 10.0.0.0/8 via 192.168.1.254
+
+# Delete route
+sudo ip route del 10.0.0.0/8
+
+# Show route to specific destination
+ip route get 8.8.8.8
+
+# Old way (deprecated)
+route -n  # Still works</pre>
+
+            <div class="note"><strong>Default gateway:</strong> The router that forwards traffic to the internet. Usually ends in .1 or .254</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            How do you see active network connections? What command replaced netstat? How do you see listening ports?
+        </div>
+        <div class="back">
+            <strong>Show connections:</strong> <code>ss</code> (replaces <code>netstat</code>)<br>
+            <strong>Listening ports:</strong> <code>ss -tuln</code><br>
+            <strong>All connections:</strong> <code>ss -tuna</code>
+
+            <p><strong>Why:</strong> <code>ss</code> is faster and more detailed than deprecated <code>netstat</code>. Shows sockets and connections.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Show all TCP connections
+ss -t
+
+# Show listening TCP ports
+ss -tl
+
+# Show all listening ports (TCP + UDP, numeric)
+ss -tuln
+
+# Show process using each port
+sudo ss -tulnp
+
+# Show established connections
+ss -t state established
+
+# Show summary statistics
+ss -s
+
+# Filter by port
+ss -tunlp | grep :80
+
+# Old way (deprecated)
+netstat -tuln  # Still works but slower</pre>
+
+            <p><strong>Common flags:</strong></p>
+            <ul>
+                <li><code>-t</code> - TCP</li>
+                <li><code>-u</code> - UDP</li>
+                <li><code>-l</code> - Listening</li>
+                <li><code>-n</code> - Numeric (don't resolve hostnames)</li>
+                <li><code>-p</code> - Show process</li>
+                <li><code>-a</code> - All</li>
+            </ul>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            How do you test if a host is reachable? How do you trace the route packets take to reach a host? What tools diagnose network connectivity?
+        </div>
+        <div class="back">
+            <strong>Test reachability:</strong> <code>ping hostname</code><br>
+            <strong>Trace route:</strong> <code>traceroute hostname</code> or <code>mtr hostname</code><br>
+            <strong>Test port:</strong> <code>telnet host port</code> or <code>nc -zv host port</code>
+
+            <p><strong>Why:</strong> Ping tests if a host is up. Traceroute shows the path and where failures occur.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Ping a host (Ctrl+C to stop)
+ping google.com
+ping -c 4 google.com  # Send only 4 packets
+
+# Trace route to host
+traceroute google.com
+traceroute -n google.com  # Don't resolve hostnames (faster)
+
+# Better traceroute with live updates
+mtr google.com
+
+# Test if port is open
+nc -zv google.com 80     # Port 80
+telnet google.com 443    # Port 443
+
+# Timeout for ping
+ping -W 1 -c 1 192.168.1.1  # 1 second timeout
+
+# Ping specific interface
+ping -I eth0 192.168.1.1</pre>
+
+            <p><strong>What they show:</strong></p>
+            <ul>
+                <li><code>ping</code> - Host reachable? Latency? Packet loss?</li>
+                <li><code>traceroute</code> - Which routers between you and destination?</li>
+                <li><code>mtr</code> - Combined ping + traceroute with stats</li>
+            </ul>
+
+            <div class="warning"><strong>Note:</strong> Some hosts block ICMP (ping). Use <code>nc</code> to test TCP ports directly</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            How do you perform DNS lookups? How do you find the IP address of a domain? What about reverse DNS (IP to domain)? What tools are available?
+        </div>
+        <div class="back">
+            <strong>Lookup domain:</strong> <code>dig domain</code> or <code>nslookup domain</code> or <code>host domain</code><br>
+            <strong>Reverse DNS:</strong> <code>dig -x IP</code> or <code>host IP</code><br>
+            <strong>Specific record:</strong> <code>dig domain A/AAAA/MX/TXT</code>
+
+            <p><strong>Why:</strong> DNS translates domain names to IPs. <code>dig</code> is most detailed, <code>host</code> is simplest.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Simple lookup
+host google.com
+
+# Detailed lookup
+dig google.com
+
+# Short answer only
+dig +short google.com
+
+# IPv6 address (AAAA record)
+dig google.com AAAA
+
+# Mail servers (MX records)
+dig google.com MX
+
+# Text records (SPF, DKIM, etc.)
+dig google.com TXT
+
+# Reverse DNS (IP to domain)
+dig -x 8.8.8.8
+host 8.8.8.8
+
+# Use specific DNS server
+dig @8.8.8.8 google.com
+host google.com 1.1.1.1
+
+# Trace DNS query path
+dig +trace google.com
+
+# nslookup (interactive)
+nslookup
+> google.com
+> exit</pre>
+
+            <div class="note"><strong>DNS servers:</strong> 8.8.8.8 (Google), 1.1.1.1 (Cloudflare), 9.9.9.9 (Quad9)</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            How do you download files from the command line? What's the difference between curl and wget? How do you follow redirects, save to a file, or show headers?
+        </div>
+        <div class="back">
+            <strong>curl:</strong> <code>curl URL</code> - Outputs to stdout, must specify <code>-o</code> to save<br>
+            <strong>wget:</strong> <code>wget URL</code> - Saves to file by default<br>
+            <strong>Follow redirects (curl):</strong> <code>curl -L URL</code><br>
+            <strong>Show headers (curl):</strong> <code>curl -I URL</code>
+
+            <p><strong>Why:</strong> <code>curl</code> is for APIs/testing, outputs to stdout. <code>wget</code> is for downloading files, recursive downloads.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Download with wget (saves to file)
+wget https://example.com/file.zip
+
+# Download with curl (must specify output)
+curl -o file.zip https://example.com/file.zip
+curl -O https://example.com/file.zip  # Use remote filename
+
+# Follow redirects
+curl -L https://github.com/user/repo
+
+# Show only headers
+curl -I https://example.com
+
+# POST data with curl
+curl -X POST -d "key=value" https://api.example.com/endpoint
+
+# Send JSON
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"key":"value"}' https://api.example.com
+
+# Authentication
+curl -u username:password https://api.example.com
+curl -H "Authorization: Bearer TOKEN" https://api.example.com
+
+# Download multiple files with wget
+wget -i urls.txt  # File with URLs, one per line
+
+# Recursive download
+wget -r -np -k https://example.com/docs/</pre>
+
+            <div class="note"><strong>Quick rule:</strong> Use <code>wget</code> for downloading files. Use <code>curl</code> for API testing and scripting</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            How do you capture network packets? What command lets you see live traffic? How do you filter by port or protocol?
+        </div>
+        <div class="back">
+            <strong>Capture packets:</strong> <code>sudo tcpdump</code><br>
+            <strong>Filter by port:</strong> <code>sudo tcpdump port 80</code><br>
+            <strong>Save to file:</strong> <code>sudo tcpdump -w capture.pcap</code><br>
+            <strong>Read from file:</strong> <code>tcpdump -r capture.pcap</code>
+
+            <p><strong>Why:</strong> <code>tcpdump</code> captures raw network traffic. Essential for debugging network issues.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Capture on specific interface
+sudo tcpdump -i eth0
+
+# Capture only HTTP traffic (port 80)
+sudo tcpdump -i any port 80
+
+# Capture HTTPS (port 443)
+sudo tcpdump -i any port 443
+
+# Capture traffic to/from specific host
+sudo tcpdump host 192.168.1.100
+
+# Capture DNS queries
+sudo tcpdump -i any port 53
+
+# Show packet contents in ASCII
+sudo tcpdump -A port 80
+
+# Show packet contents in hex and ASCII
+sudo tcpdump -X port 80
+
+# Limit capture (100 packets)
+sudo tcpdump -c 100
+
+# Save to file (open in Wireshark later)
+sudo tcpdump -i any -w /tmp/capture.pcap
+
+# Multiple filters (HTTP and HTTPS)
+sudo tcpdump 'port 80 or port 443'
+
+# Exclude SSH traffic (so you can see other traffic)
+sudo tcpdump -i eth0 not port 22</pre>
+
+            <div class="warning"><strong>Permissions:</strong> Requires root/sudo. Creates large files quickly - use filters!</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            How do you check which process is using a specific port? What if the port is in use and you need to find what's using it? How do you kill that process?
+        </div>
+        <div class="back">
+            <strong>Check port usage:</strong> <code>sudo ss -tulnp | grep :PORT</code><br>
+            <strong>Alternative:</strong> <code>sudo lsof -i :PORT</code> or <code>sudo netstat -tulnp | grep PORT</code><br>
+            <strong>Kill process:</strong> <code>sudo kill PID</code>
+
+            <p><strong>Why:</strong> "Address already in use" errors mean something is using the port. Find and stop it.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># What's using port 8080?
+sudo ss -tulnp | grep :8080
+sudo lsof -i :8080
+sudo netstat -tulnp | grep 8080
+
+# Sample output:
+# tcp  LISTEN  0  128  *:8080  *:*  users:(("python3",pid=12345,fd=3))
+
+# Kill the process
+sudo kill 12345
+sudo kill -9 12345  # Force kill
+
+# Find and kill in one command
+sudo kill $(sudo lsof -t -i:8080)
+
+# Check all ports used by a process
+sudo ss -tulnp | grep python3
+
+# Find what's using ports in a range
+sudo ss -tulnp | grep -E ':(8080|8081|8082)'</pre>
+
+            <div class="note"><strong>Common ports:</strong> 80 (HTTP), 443 (HTTPS), 22 (SSH), 3306 (MySQL), 5432 (PostgreSQL), 6379 (Redis), 27017 (MongoDB)</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            How do you test network speed or bandwidth? How do you check latency and jitter? What tools measure network performance?
+        </div>
+        <div class="back">
+            <strong>Speed test:</strong> <code>speedtest-cli</code> (install first)<br>
+            <strong>Bandwidth between hosts:</strong> <code>iperf3</code><br>
+            <strong>Latency:</strong> <code>ping</code> or <code>mtr</code>
+
+            <p><strong>Why:</strong> Different tools measure different aspects: download/upload speed, latency, packet loss, jitter.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Install speedtest-cli
+sudo apt install speedtest-cli  # Debian/Ubuntu
+sudo dnf install speedtest-cli  # Fedora
+
+# Run speed test
+speedtest-cli
+speedtest-cli --simple  # Brief output
+
+# Test bandwidth between two hosts with iperf3
+# On server:
+iperf3 -s
+
+# On client:
+iperf3 -c server_ip
+
+# Test latency and packet loss
+ping -c 100 google.com
+# Look for: min/avg/max latency, packet loss %
+
+# Continuous monitoring with mtr
+mtr google.com
+# Shows latency to each hop
+
+# Download test with curl
+time curl -o /dev/null https://example.com/largefile.zip
+
+# Simple bandwidth test (not accurate but quick)
+wget -O /dev/null http://speedtest.tele2.net/100MB.zip</pre>
+
+            <div class="note"><strong>Network quality:</strong> Good: <20ms latency, 0% loss. Acceptable: 20-100ms. Poor: >100ms or >1% packet loss</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">
+            How do you manage WiFi connections from the command line? How do you scan for networks, connect to one, or forget a network?
+        </div>
+        <div class="back">
+            <strong>Scan networks:</strong> <code>nmcli device wifi list</code><br>
+            <strong>Connect:</strong> <code>nmcli device wifi connect SSID password PASSWORD</code><br>
+            <strong>Show connections:</strong> <code>nmcli connection show</code><br>
+            <strong>Disconnect:</strong> <code>nmcli device disconnect wlan0</code>
+
+            <p><strong>Why:</strong> <code>nmcli</code> (NetworkManager CLI) manages WiFi without GUI. Essential for servers or remote systems.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Scan for WiFi networks
+nmcli device wifi list
+
+# Connect to network
+nmcli device wifi connect "MyNetwork" password "mypassword"
+
+# Connect with hidden SSID
+nmcli device wifi connect "HiddenNet" password "pass" hidden yes
+
+# Show saved connections
+nmcli connection show
+
+# Disconnect WiFi
+nmcli device disconnect wlan0
+
+# Reconnect to saved network
+nmcli connection up "MyNetwork"
+
+# Delete saved connection
+nmcli connection delete "OldNetwork"
+
+# Show device status
+nmcli device status
+
+# Turn WiFi off/on
+nmcli radio wifi off
+nmcli radio wifi on
+
+# Connect with specific interface
+nmcli device wifi connect "SSID" password "pass" ifname wlan0</pre>
+
+            <div class="note"><strong>Alternative:</strong> <code>iwctl</code> (iwd) or <code>wpa_supplicant</code> for non-NetworkManager systems</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">
+            Where are DNS settings configured? How do you temporarily change DNS servers? How do you make DNS changes permanent?
+        </div>
+        <div class="back">
+            <strong>DNS config file:</strong> <code>/etc/resolv.conf</code><br>
+            <strong>Temporary change:</strong> Edit <code>/etc/resolv.conf</code> (lost on reboot)<br>
+            <strong>Permanent:</strong> Depends on system (NetworkManager, systemd-resolved, netplan)
+
+            <p><strong>Why:</strong> DNS translates names to IPs. Wrong DNS = can't resolve domains. Different systems manage it differently.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># View current DNS
+cat /etc/resolv.conf
+
+# Temporary DNS change
+sudo nano /etc/resolv.conf
+# Add:
+nameserver 8.8.8.8
+nameserver 1.1.1.1
+
+# Permanent (NetworkManager)
+nmcli connection modify "MyConnection" ipv4.dns "8.8.8.8 1.1.1.1"
+nmcli connection up "MyConnection"
+
+# Permanent (systemd-resolved on Ubuntu)
+sudo nano /etc/systemd/resolved.conf
+# Add: DNS=8.8.8.8 1.1.1.1
+sudo systemctl restart systemd-resolved
+
+# Permanent (netplan on Ubuntu 18.04+)
+# Edit /etc/netplan/*.yaml
+nameservers:
+    addresses: [8.8.8.8, 1.1.1.1]
+sudo netplan apply
+
+# Check which DNS is actually being used
+resolvectl status  # systemd-resolved
+nmcli device show eth0 | grep DNS
+
+# Flush DNS cache
+sudo systemd-resolve --flush-caches  # systemd
+sudo systemctl restart nscd           # nscd</pre>
+
+            <div class="warning"><strong>Warning:</strong> Some systems regenerate /etc/resolv.conf on boot. Change upstream config instead</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">
+            How do you scan for open ports on a remote host? What tool checks for vulnerabilities? How do you check just one port?
+        </div>
+        <div class="back">
+            <strong>Port scan:</strong> <code>nmap hostname</code><br>
+            <strong>Specific port:</strong> <code>nc -zv hostname port</code> or <code>nmap -p PORT hostname</code><br>
+            <strong>Fast scan:</strong> <code>nmap -F hostname</code>
+
+            <p><strong>Why:</strong> <code>nmap</code> discovers open ports and services. Useful for security audits and troubleshooting.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Scan common ports
+nmap example.com
+
+# Scan specific port
+nmap -p 80 example.com
+nmap -p 80,443,22 example.com
+
+# Scan all ports (slow!)
+nmap -p- example.com
+
+# Fast scan (top 100 ports)
+nmap -F example.com
+
+# Detect OS and services
+sudo nmap -A example.com
+
+# Scan network range
+nmap 192.168.1.0/24
+
+# Ping scan (which hosts are up?)
+nmap -sn 192.168.1.0/24
+
+# Check specific port with netcat
+nc -zv example.com 22
+nc -zv -w 2 192.168.1.1 1-1000  # Scan ports 1-1000
+
+# Check if port is open (simple)
+timeout 1 bash -c "</dev/tcp/example.com/80" && echo "Open" || echo "Closed"</pre>
+
+            <div class="warning"><strong>Legal warning:</strong> Only scan hosts you own or have permission to scan. Unauthorized scanning may be illegal</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">
+            How do you find your public IP address from the command line? What about your local/private IP? How can you check your IP from outside your network?
+        </div>
+        <div class="back">
+            <strong>Public IP:</strong> <code>curl ifconfig.me</code> or <code>curl ipinfo.io/ip</code><br>
+            <strong>Local IP:</strong> <code>hostname -I</code> or <code>ip addr show</code><br>
+            <strong>All info:</strong> <code>curl ipinfo.io</code>
+
+            <p><strong>Why:</strong> Public IP is what the internet sees. Local IP is on your LAN. NAT/router translates between them.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Get public IP
+curl ifconfig.me
+curl ipinfo.io/ip
+curl icanhazip.com
+curl -4 icanhazip.com  # Force IPv4
+curl -6 icanhazip.com  # Force IPv6
+
+# Get detailed info (IP, location, ISP)
+curl ipinfo.io
+curl ipinfo.io/json
+
+# Local/private IP (quick)
+hostname -I
+
+# Local IP (detailed)
+ip addr show | grep "inet " | grep -v 127.0.0.1
+
+# Local IP for specific interface
+ip -4 addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1
+
+# Using third-party services
+wget -qO- ifconfig.co
+dig +short myip.opendns.com @resolver1.opendns.com</pre>
+
+            <div class="note"><strong>Private IP ranges:</strong> 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 are reserved for local networks</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">
+            How do you configure a firewall on Linux? How do you allow or block specific ports? What tools are available for firewall management?
+        </div>
+        <div class="back">
+            <strong>ufw (Ubuntu):</strong> <code>sudo ufw allow 80</code><br>
+            <strong>firewalld (Fedora/RHEL):</strong> <code>sudo firewall-cmd --add-port=80/tcp</code><br>
+            <strong>iptables (low-level):</strong> <code>sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT</code>
+
+            <p><strong>Why:</strong> Firewalls control which network traffic is allowed. Essential for security.</p>
+
+            <p><strong>Examples - ufw (Uncomplicated Firewall):</strong></p>
+            <pre># Enable firewall
+sudo ufw enable
+
+# Allow port
+sudo ufw allow 22/tcp  # SSH
+sudo ufw allow 80/tcp  # HTTP
+sudo ufw allow 443/tcp # HTTPS
+
+# Allow from specific IP
+sudo ufw allow from 192.168.1.100
+
+# Deny port
+sudo ufw deny 23/tcp
+
+# Delete rule
+sudo ufw delete allow 80/tcp
+
+# Show status
+sudo ufw status
+sudo ufw status verbose
+
+# Disable firewall
+sudo ufw disable</pre>
+
+            <p><strong>Examples - firewalld:</strong></p>
+            <pre># Add port
+sudo firewall-cmd --add-port=8080/tcp --permanent
+sudo firewall-cmd --reload
+
+# Add service
+sudo firewall-cmd --add-service=http --permanent
+sudo firewall-cmd --reload
+
+# List rules
+sudo firewall-cmd --list-all
+
+# Remove port
+sudo firewall-cmd --remove-port=8080/tcp --permanent</pre>
+
+            <div class="warning"><strong>Warning:</strong> Don't lock yourself out! Always allow SSH (port 22) before enabling firewall on remote systems</div>
+        </div>
+        <div class="tags">cs networking linux EN</div>
+    </div>
+
+</body>
+</html>

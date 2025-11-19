@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Linux Processes Flashcards - CS Vocabulary Project</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #E74C3C;
+        }
+        .card {
+            background-color: #fff;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .back {
+            color: #555;
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.85em;
+            color: #888;
+        }
+        .tags::before {
+            content: "Tags: ";
+            font-weight: 600;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Linux Processes Flashcards - CS Vocabulary Project</h1>
+    <p><strong>27 cards</strong> covering Linux process management</p>
+    <p><strong>Tags:</strong> cs, linux, processes, EN</p>
+
+    <h3>How to Import into Anki:</h3>
+    <ol>
+        <li><strong>Option 1 - Use .apkg file:</strong> Run <code>python3 generate-anki-packages.py</code> to create <code>cs-vocab-processes.apkg</code></li>
+        <li><strong>Option 2 - Manual Import:</strong> Create a deck in Anki and manually copy/paste the front/back content from each card below</li>
+    </ol>
+
+    <p><em>Each card includes the question (sometimes with follow-up prompts), command(s), explanation of WHY, and 2-3 alternatives or related commands.</em></p>
+</div>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        How do you view all running processes? What if you want to see them in real-time? What about filtering for a specific user or command?
+    </div>
+    <div class="back">
+        <strong>Snapshot view:</strong> <code>ps aux</code>
+
+        <p><strong>Real-time view:</strong> <code>top</code> or <code>htop</code></p>
+
+        <p><strong>Why ps aux:</strong></p>
+        <ul>
+            <li><code>a</code> = all users' processes</li>
+            <li><code>u</code> = user-oriented format (shows owner)</li>
+            <li><code>x</code> = include processes without controlling terminal</li>
+        </ul>
+
+        <p><strong>Common filtering:</strong></p>
+        <pre><code>ps aux | grep firefox              # Find Firefox processes
+ps aux | grep -v grep              # Remove grep from results
+ps -u username                     # Processes for specific user
+ps -ef                             # Alternative format (full listing)
+ps aux --sort=-%cpu | head -10     # Top CPU users
+ps aux --sort=-%mem | head -10     # Top memory users</code></pre>
+
+        <p><strong>Real-time monitoring:</strong></p>
+        <pre><code>top                                # Basic, interactive
+htop                               # Better UI, colors, mouse support
+btop                               # Modern, beautiful interface
+# In top: press M (sort by memory), P (CPU), k (kill process)</code></pre>
+
+        <p><strong>Process tree (hierarchical view):</strong></p>
+        <pre><code>ps auxf                            # Forest view (ASCII tree)
+pstree                             # Dedicated tree view
+pstree -p                          # Show PIDs
+pstree username                    # Tree for specific user</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        How do you kill a process? What if you know the name but not the PID? What about killing all processes with a certain name?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>kill PID</code> - kill by process ID</li>
+            <li><code>pkill name</code> - kill by process name</li>
+            <li><code>killall name</code> - kill all with exact name</li>
+        </ul>
+
+        <p><strong>Workflow examples:</strong></p>
+        <pre><code># Method 1: Find PID first
+ps aux | grep firefox
+kill 12345
+
+# Method 2: Kill by name
+pkill firefox                      # Matches partial name
+killall firefox                    # Exact name only
+
+# Method 3: One-liner with pgrep
+kill $(pgrep firefox)              # Kill all firefox PIDs</code></pre>
+
+        <p><strong>Difference between pkill and killall:</strong></p>
+        <ul>
+            <li><code>pkill</code> - pattern matching (kills "firefox-bin", "firefox", etc.)</li>
+            <li><code>killall</code> - exact name only (safer, but must match exactly)</li>
+        </ul>
+
+        <p><strong>Force kill (when process won't die):</strong></p>
+        <pre><code>kill -9 PID                        # SIGKILL (cannot be ignored)
+pkill -9 firefox
+killall -9 firefox</code></pre>
+
+        <p><strong>Kill your own processes:</strong></p>
+        <pre><code>pkill -u $USER firefox             # Only your firefox processes</code></pre>
+
+        <p><strong>Interactive kill:</strong></p>
+        <pre><code>pkill -i firefox                   # Ask for confirmation (interactive)</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        What are the different kill signals? When do you use SIGTERM vs SIGKILL? What about SIGHUP?
+    </div>
+    <div class="back">
+        <strong>Common signals:</strong>
+
+        <p><strong>Main signals:</strong></p>
+        <ul>
+            <li><code>SIGTERM (15)</code> - Graceful termination (default)</li>
+            <li><code>SIGKILL (9)</code> - Force kill (cannot be caught/ignored)</li>
+            <li><code>SIGHUP (1)</code> - Hangup (often means "reload config")</li>
+            <li><code>SIGINT (2)</code> - Interrupt (like Ctrl+C)</li>
+            <li><code>SIGSTOP (19)</code> - Pause process (cannot be caught)</li>
+            <li><code>SIGCONT (18)</code> - Continue paused process</li>
+        </ul>
+
+        <p><strong>How to send signals:</strong></p>
+        <pre><code>kill -15 PID                       # SIGTERM (polite)
+kill -TERM PID                     # Same thing (by name)
+kill PID                           # Default is SIGTERM
+kill -9 PID                        # SIGKILL (force)
+kill -HUP PID                      # Reload config
+kill -STOP PID                     # Pause process
+kill -CONT PID                     # Resume process</code></pre>
+
+        <p><strong>When to use each:</strong></p>
+        <ul>
+            <li><strong>SIGTERM (15)</strong> - First choice. Allows cleanup, saving state</li>
+            <li><strong>SIGKILL (9)</strong> - Last resort. Process can't cleanup, may corrupt data</li>
+            <li><strong>SIGHUP (1)</strong> - Reload config without restart (nginx, apache)</li>
+            <li><strong>SIGINT (2)</strong> - Ctrl+C equivalent</li>
+        </ul>
+
+        <p><strong>Best practice:</strong></p>
+        <pre><code># Try polite first
+kill PID
+sleep 5
+# If still running, force it
+kill -9 PID</code></pre>
+
+        <p><strong>List all signals:</strong></p>
+        <pre><code>kill -l                            # Show all signal numbers and names</code></pre>
+
+        <p><strong>Example - reload nginx:</strong></p>
+        <pre><code>sudo kill -HUP $(cat /var/run/nginx.pid)
+# or
+sudo nginx -s reload</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        How do you start a process in the background? What if you forgot and started it in foreground? How do you bring a background process to foreground?
+    </div>
+    <div class="back">
+        <strong>Start in background:</strong> <code>command &</code>
+
+        <p><strong>Forgot to background it?</strong></p>
+        <pre><code>Ctrl+Z                             # Suspend (pause) current process
+bg                                 # Resume in background
+# Process now runs in background!</code></pre>
+
+        <p><strong>Bring to foreground:</strong> <code>fg</code>
+
+        <p><strong>Complete workflow:</strong></p>
+        <pre><code># Start in background
+./long-running-script &
+[1] 12345                          # Job number and PID
+
+# See background jobs
+jobs
+[1]+  Running    ./long-running-script &
+
+# Bring to foreground
+fg                                 # Brings most recent job
+fg %1                              # Bring specific job number
+
+# Oops, started in foreground
+./another-script
+Ctrl+Z                             # Suspend it
+bg                                 # Resume in background</code></pre>
+
+        <p><strong>Why & matters:</strong> Frees up your terminal while process runs. Essential for long tasks.</p>
+
+        <p><strong>Multiple jobs:</strong></p>
+        <pre><code>jobs                               # List all background jobs
+bg %2                              # Resume job 2 in background
+fg %1                              # Bring job 1 to foreground
+kill %3                            # Kill job 3</code></pre>
+
+        <p><strong>Persist after logout:</strong></p>
+        <pre><code>nohup command &                    # Keeps running after you logout
+disown                             # Detach from current shell</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        How do you find the PID of a running process? What about finding by name? Multiple methods?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>pgrep name</code> - find PID by name</li>
+            <li><code>pidof name</code> - alternative to pgrep</li>
+            <li><code>ps aux | grep name</code> - manual search</li>
+        </ul>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code>pgrep firefox                      # Returns PIDs of all firefox processes
+pgrep -l firefox                   # Show PID and process name
+pgrep -u username                  # PIDs for specific user
+pgrep -u username firefox          # User's firefox processes
+
+pidof firefox                      # Space-separated PIDs
+pidof -s firefox                   # Single PID (first match)</code></pre>
+
+        <p><strong>Why pgrep is useful:</strong> Easy to use in scripts and one-liners.</p>
+
+        <p><strong>Use in commands:</strong></p>
+        <pre><code>kill $(pgrep firefox)              # Kill all firefox
+kill -9 $(pidof chrome)            # Force kill chrome
+
+# Check if process exists
+if pgrep firefox > /dev/null; then
+    echo "Firefox is running"
+fi</code></pre>
+
+        <p><strong>Pattern matching:</strong></p>
+        <pre><code>pgrep -f "python.*server"          # Match full command line (-f)
+pgrep ^firefox                     # Only if name starts with firefox</code></pre>
+
+        <p><strong>Find with details:</strong></p>
+        <pre><code>ps aux | grep firefox              # See user, CPU, memory, etc.
+pgrep -a firefox                   # Show full command line</code></pre>
+
+        <p><strong>Top-like view for specific process:</strong></p>
+        <pre><code>top -p $(pgrep firefox | head -1)  # Monitor specific PID</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        How do you check CPU usage? What about per-core usage? What if you want to identify CPU-hogging processes?
+    </div>
+    <div class="back">
+        <strong>Overall CPU usage:</strong> <code>top</code> or <code>htop</code>
+
+        <p><strong>Top/htop shortcuts:</strong></p>
+        <pre><code>top                                # Press P to sort by CPU
+htop                               # Press F6, select CPU%
+# Look at load average: numbers for 1, 5, 15 minutes</code></pre>
+
+        <p><strong>Per-core CPU usage:</strong></p>
+        <pre><code>htop                               # Shows bars for each core
+mpstat -P ALL                      # Detailed per-CPU stats
+mpstat -P ALL 2                    # Update every 2 seconds</code></pre>
+
+        <p><strong>Find CPU hogs:</strong></p>
+        <pre><code>ps aux --sort=-%cpu | head -10     # Top 10 CPU users
+top -bn1 | grep "Cpu(s)"           # Current CPU usage percentage</code></pre>
+
+        <p><strong>Continuous monitoring:</strong></p>
+        <pre><code>vmstat 2                           # CPU, memory, I/O every 2 seconds
+sar -u 2 5                         # CPU usage, 2 sec interval, 5 times
+iostat -c 2                        # CPU stats every 2 seconds</code></pre>
+
+        <p><strong>Understanding load average:</strong></p>
+        <pre><code>uptime                             # Shows: load average: 1.5, 2.0, 1.8
+# On 4-core system:
+# < 4.0 = good
+# = 4.0 = fully utilized
+# > 4.0 = overloaded (processes waiting)</code></pre>
+
+        <p><strong>Modern alternatives:</strong></p>
+        <pre><code>btop                               # Beautiful, modern resource monitor
+glances                            # Comprehensive system monitor</code></pre>
+
+        <p><strong>CPU info:</strong></p>
+        <pre><code>lscpu                              # CPU architecture, cores, threads
+nproc                              # Number of processing units
+cat /proc/cpuinfo                  # Detailed CPU info</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        How do you monitor GPU usage? What about NVIDIA specific? AMD? Intel?
+    </div>
+    <div class="back">
+        <strong>NVIDIA GPUs:</strong>
+
+        <p><strong>nvidia-smi (NVIDIA System Management Interface):</strong></p>
+        <pre><code>nvidia-smi                         # Snapshot of GPU stats
+nvidia-smi -l 1                    # Update every 1 second (-l = loop)
+watch -n 1 nvidia-smi              # Alternative (updates every second)</code></pre>
+
+        <p><strong>What nvidia-smi shows:</strong></p>
+        <ul>
+            <li>GPU utilization %</li>
+            <li>Memory usage (used/total)</li>
+            <li>Temperature</li>
+            <li>Power usage</li>
+            <li>Running processes and their memory usage</li>
+        </ul>
+
+        <p><strong>Detailed process info:</strong></p>
+        <pre><code>nvidia-smi pmon                    # Process monitor mode
+nvidia-smi dmon                    # Device monitor mode
+nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv -l 1</code></pre>
+
+        <p><strong>AMD GPUs:</strong></p>
+        <pre><code>radeontop                          # AMD GPU monitor (install separately)
+# Shows GPU usage, memory, shader usage
+watch -n 1 cat /sys/class/drm/card0/device/gpu_busy_percent</code></pre>
+
+        <p><strong>Intel GPUs:</strong></p>
+        <pre><code>intel_gpu_top                      # Intel integrated graphics
+# Shows render, video, compute usage</code></pre>
+
+        <p><strong>Generic (works for any GPU):</strong></p>
+        <pre><code>glxinfo | grep "OpenGL renderer"   # Which GPU is active
+lspci | grep VGA                   # Installed GPUs
+cat /sys/class/drm/card*/device/mem_info_vram_used  # VRAM usage</code></pre>
+
+        <p><strong>Monitor in scripts:</strong></p>
+        <pre><code># Get GPU usage percentage
+nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        How do you change process priority? What's the difference between nice and renice? What's the priority range?
+    </div>
+    <div class="back">
+        <strong>Start with priority:</strong> <code>nice -n PRIORITY command</code>
+
+        <strong>Change running process:</strong> <code>renice PRIORITY -p PID</code>
+
+        <p><strong>Nice values:</strong> Range from -20 (highest priority) to 19 (lowest priority). Default is 0.</p>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code># Start with low priority (nice to other processes)
+nice -n 19 ./cpu-intensive-task    # Lowest priority
+
+# Start with high priority (requires root)
+sudo nice -n -20 ./critical-task   # Highest priority
+
+# Change running process
+renice -n 10 -p 12345              # Lower priority
+sudo renice -n -10 -p 12345        # Raise priority (needs root)
+
+# Renice all processes of a user
+sudo renice -n 5 -u username</code></pre>
+
+        <p><strong>Why use nice/renice:</strong></p>
+        <ul>
+            <li>Run background tasks without slowing interactive work</li>
+            <li>Prioritize critical services</li>
+            <li>Prevent runaway processes from hogging CPU</li>
+        </ul>
+
+        <p><strong>Check current nice value:</strong></p>
+        <pre><code>ps -o pid,ni,comm                  # Show PID, nice value, command
+ps -o pid,ni,comm -p 12345         # For specific PID</code></pre>
+
+        <p><strong>Common use case:</strong></p>
+        <pre><code>nice -n 19 ./backup.sh &           # Low-priority backup
+nice -n 15 make -j8                # Compile without freezing system</code></pre>
+
+        <p><strong>In top/htop:</strong></p>
+        <ul>
+            <li>NI column shows nice value</li>
+            <li>In top: press 'r', enter PID, enter new nice value</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        How do you keep a process running after you logout? What's the difference between nohup and disown? What about using screen or tmux?
+    </div>
+    <div class="back">
+        <strong>Methods to persist processes:</strong>
+
+        <p><strong>1. nohup (no hangup):</strong></p>
+        <pre><code>nohup ./long-running-script &      # Immune to hangup signal
+nohup ./script > output.log 2>&1 & # Redirect output to log</code></pre>
+        <p><strong>What nohup does:</strong> Ignores HUP signal (sent when you logout). Output goes to <code>nohup.out</code> by default.</p>
+
+        <p><strong>2. disown:</strong></p>
+        <pre><code>./script &                         # Start in background
+disown                             # Detach from shell
+# or
+./script & disown                  # One line</code></pre>
+        <p><strong>What disown does:</strong> Removes job from shell's job table, won't receive HUP signal.</p>
+
+        <p><strong>3. screen (terminal multiplexer):</strong></p>
+        <pre><code>screen                             # Start screen session
+./long-running-script              # Run your command
+Ctrl+A, D                          # Detach (keeps running)
+screen -r                          # Reattach later</code></pre>
+
+        <p><strong>4. tmux (better terminal multiplexer):</strong></p>
+        <pre><code>tmux                               # Start session
+./script                           # Run command
+Ctrl+B, D                          # Detach
+tmux attach                        # Reattach</code></pre>
+
+        <p><strong>Differences:</strong></p>
+        <ul>
+            <li><strong>nohup</strong> - Simple, one command, can't interact later</li>
+            <li><strong>disown</strong> - For processes already running, can't reattach</li>
+            <li><strong>screen/tmux</strong> - Full session management, can reattach and interact</li>
+        </ul>
+
+        <p><strong>Which to use:</strong></p>
+        <ul>
+            <li>Fire-and-forget: <code>nohup</code></li>
+            <li>Forgot to nohup: <code>disown</code></li>
+            <li>Need to monitor/interact: <code>tmux</code> or <code>screen</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        How do you monitor memory usage per process? What about finding memory leaks? Seeing total memory usage?
+    </div>
+    <div class="back">
+        <strong>Per-process memory:</strong>
+
+        <p><strong>Quick view:</strong></p>
+        <pre><code>top                                # Press M to sort by memory
+htop                               # F6, sort by MEM%
+ps aux --sort=-%mem | head -10     # Top 10 memory users</code></pre>
+
+        <p><strong>Memory columns explained:</strong></p>
+        <ul>
+            <li><strong>VSZ</strong> - Virtual memory size (total allocated)</li>
+            <li><strong>RSS</strong> - Resident Set Size (actual RAM used)</li>
+            <li><strong>%MEM</strong> - Percentage of total RAM</li>
+        </ul>
+
+        <p><strong>Detailed process memory:</strong></p>
+        <pre><code>pmap -x PID                        # Memory map of process
+cat /proc/PID/status | grep Vm     # Virtual memory stats
+cat /proc/PID/smaps                # Detailed memory mapping</code></pre>
+
+        <p><strong>Total system memory:</strong></p>
+        <pre><code>free -h                            # Human-readable memory overview
+free -m                            # In megabytes
+vmstat                             # Memory + swap stats
+cat /proc/meminfo                  # Detailed memory info</code></pre>
+
+        <p><strong>Finding memory leaks:</strong></p>
+        <pre><code># Monitor process over time
+watch -n 1 "ps aux | grep PID"     # Watch memory grow
+# or
+while true; do
+  ps -o pid,vsz,rss,comm -p PID
+  sleep 5
+done</code></pre>
+
+        <p><strong>Memory by user:</strong></p>
+        <pre><code>ps aux | awk '{mem[$1]+=$6} END {for (user in mem) print user, mem[user]}'</code></pre>
+
+        <p><strong>Kill memory hogs:</strong></p>
+        <pre><code># Find and kill top memory user
+ps aux --sort=-%mem | head -2 | tail -1 | awk '{print $2}' | xargs kill</code></pre>
+
+        <p><strong>Shared memory:</strong></p>
+        <pre><code>ipcs -m                            # Shared memory segments
+smem                               # Better memory reporting (if installed)</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        How do you trace system calls of a process? What about following a running process? Seeing what files it's accessing?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>strace</code> - trace system calls</li>
+            <li><code>ltrace</code> - trace library calls</li>
+            <li><code>lsof</code> - list open files</li>
+        </ul>
+
+        <p><strong>strace usage:</strong></p>
+        <pre><code>strace command                     # Trace from start
+strace -p PID                      # Attach to running process
+strace -o output.txt command       # Save to file
+strace -c command                  # Summary of system calls
+strace -e open,read,write command  # Only specific calls</code></pre>
+
+        <p><strong>Why strace is useful:</strong> Debug hung processes, see what files are accessed, understand what a program is doing.</p>
+
+        <p><strong>Common patterns:</strong></p>
+        <pre><code># See what files a process opens
+strace -e openat command
+
+# Find why a process is slow
+strace -T command                  # Show time spent in each syscall
+
+# Trace child processes too
+strace -f command                  # Follow forks
+
+# Less verbose
+strace -e trace=file command       # Only file-related calls</code></pre>
+
+        <p><strong>lsof (list open files):</strong></p>
+        <pre><code>lsof -p PID                        # Files opened by process
+lsof -c firefox                    # Files opened by firefox
+lsof /path/to/file                 # What's using this file?
+lsof -u username                   # Files opened by user
+lsof -i :80                        # Process using port 80</code></pre>
+
+        <p><strong>ltrace (library calls):</strong></p>
+        <pre><code>ltrace command                     # Trace library function calls
+ltrace -p PID                      # Attach to running process</code></pre>
+
+        <p><strong>Example - why is program hanging?</strong></p>
+        <pre><code>strace -p 12345
+# Output shows: read(3,  ← blocked waiting for input</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        What are zombie processes? How do you find them? Can you kill them? How do you prevent them?
+    </div>
+    <div class="back">
+        <strong>What is a zombie:</strong> Process that has finished but parent hasn't read its exit status. Shows as <code>&lt;defunct&gt;</code> or <code>Z</code> state.
+
+        <p><strong>Find zombie processes:</strong></p>
+        <pre><code>ps aux | grep Z                    # Look for Z in STAT column
+ps aux | grep defunct              # Look for &lt;defunct&gt;
+ps -eo pid,ppid,stat,comm | grep Z # PID, parent PID, status
+top                                # Shows zombie count at top</code></pre>
+
+        <p><strong>Why zombies exist:</strong> Parent process hasn't called <code>wait()</code> to collect child's exit status. They use almost no resources (just PID entry).</p>
+
+        <p><strong>Can you kill a zombie?</strong> No! It's already dead. You can only kill the parent process.</p>
+
+        <p><strong>Fix zombie processes:</strong></p>
+        <pre><code># Find parent process
+ps -o ppid= -p ZOMBIE_PID          # Get parent PID
+
+# Kill parent (zombies will be inherited by init and cleaned up)
+kill PARENT_PID
+
+# If parent is important, try reloading it
+kill -HUP PARENT_PID               # Some programs clean up on HUP</code></pre>
+
+        <p><strong>Example:</strong></p>
+        <pre><code>$ ps aux | grep defunct
+user     12345  0.0  0.0     0     0 ?   Z    10:30   0:00 [script] &lt;defunct&gt;
+
+$ ps -o ppid= -p 12345
+5678
+
+$ kill 5678                        # Kill parent
+# Zombie disappears</code></pre>
+
+        <p><strong>Prevent zombies (programming):</strong></p>
+        <ul>
+            <li>Parent must call <code>wait()</code> or <code>waitpid()</code></li>
+            <li>Or use <code>signal(SIGCHLD, SIG_IGN)</code> to ignore child exit</li>
+            <li>Or double-fork technique</li>
+        </ul>
+
+        <p><strong>Many zombies = parent not managing children properly</strong></p>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        How do you limit CPU or memory for a process? What about limiting number of processes a user can create?
+    </div>
+    <div class="back">
+        <strong>Resource limits with ulimit:</strong>
+
+        <p><strong>View current limits:</strong></p>
+        <pre><code>ulimit -a                          # All limits
+ulimit -u                          # Max processes
+ulimit -n                          # Max open files
+ulimit -m                          # Max memory (KB)</code></pre>
+
+        <p><strong>Set limits:</strong></p>
+        <pre><code>ulimit -u 100                      # Max 100 processes
+ulimit -n 1024                     # Max 1024 open files
+ulimit -v 1000000                  # Max virtual memory (KB)
+ulimit -t 60                       # Max CPU time (seconds)</code></pre>
+
+        <p><strong>Run with limits:</strong></p>
+        <pre><code># Limit then run
+ulimit -t 10 && ./cpu-intensive    # Kill after 10 seconds CPU time
+ulimit -v 1000000 && ./program     # Limit virtual memory</code></pre>
+
+        <p><strong>systemd resource control (better for services):</strong></p>
+        <pre><code>systemd-run --user --scope -p MemoryMax=500M firefox
+systemd-run --user --scope -p CPUQuota=50% ./program
+
+# In service files (/etc/systemd/system/service.service):
+[Service]
+MemoryMax=1G
+CPUQuota=50%
+TasksMax=100</code></pre>
+
+        <p><strong>cgroups (control groups) - advanced:</strong></p>
+        <pre><code># Create cgroup
+sudo cgcreate -g memory,cpu:/mygroup
+# Set limits
+sudo cgset -r memory.limit_in_bytes=500M mygroup
+sudo cgset -r cpu.cfs_quota_us=50000 mygroup
+# Run in cgroup
+sudo cgexec -g memory,cpu:mygroup command</code></pre>
+
+        <p><strong>cpulimit tool:</strong></p>
+        <pre><code>cpulimit -p PID -l 50              # Limit to 50% CPU
+cpulimit -e firefox -l 25          # Limit firefox to 25%</code></pre>
+
+        <p><strong>Permanent limits (/etc/security/limits.conf):</strong></p>
+        <pre><code>username soft nproc 100            # Soft limit: 100 processes
+username hard nproc 200            # Hard limit: 200 processes</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        How do you monitor I/O (disk reads/writes) per process? What about finding which process is causing high disk usage?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>iotop</code>
+
+        <p><strong>Basic usage:</strong></p>
+        <pre><code>sudo iotop                         # Interactive, like top for I/O
+sudo iotop -o                      # Only show processes doing I/O
+sudo iotop -a                      # Accumulated I/O instead of bandwidth</code></pre>
+
+        <p><strong>What iotop shows:</strong></p>
+        <ul>
+            <li>DISK READ - Read bandwidth</li>
+            <li>DISK WRITE - Write bandwidth</li>
+            <li>SWAPIN - Memory swapped in</li>
+            <li>IO% - I/O wait percentage</li>
+        </ul>
+
+        <p><strong>Alternatives:</strong></p>
+        <pre><code>iostat                             # System-wide I/O stats
+iostat -x 2                        # Extended stats, update every 2 sec
+pidstat -d 2                       # Per-process I/O stats</code></pre>
+
+        <p><strong>Check I/O for specific process:</strong></p>
+        <pre><code>cat /proc/PID/io                   # I/O counters for process
+# Shows: read_bytes, write_bytes, etc.</code></pre>
+
+        <p><strong>Find process doing most I/O:</strong></p>
+        <pre><code>sudo iotop -b -n 1 | head -10      # Batch mode, one iteration
+ps aux --sort=-wchan               # Sort by I/O wait</code></pre>
+
+        <p><strong>System-wide I/O monitoring:</strong></p>
+        <pre><code>vmstat 2                           # I/O in bi/bo columns
+sar -b 2 5                         # I/O stats
+dstat                              # Combined stats (if installed)</code></pre>
+
+        <p><strong>Why high I/O is bad:</strong> Can slow entire system. Processes wait for disk, CPU sits idle.</p>
+
+        <p><strong>Check if disk is the bottleneck:</strong></p>
+        <pre><code>top                                # Look at "wa" (I/O wait) in CPU line
+# High "wa" = processes waiting on disk</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        How do you see the command line arguments of a running process? What about its environment variables? Current working directory?
+    </div>
+    <div class="back">
+        <strong>Process details in /proc:</strong>
+
+        <p><strong>Command line arguments:</strong></p>
+        <pre><code>cat /proc/PID/cmdline              # Full command (null-separated)
+cat /proc/PID/cmdline | tr '\0' ' ' # Human-readable
+ps -p PID -o args                  # Using ps
+ps aux | grep PID                  # See in ps output</code></pre>
+
+        <p><strong>Environment variables:</strong></p>
+        <pre><code>cat /proc/PID/environ              # All env vars (null-separated)
+cat /proc/PID/environ | tr '\0' '\n' # One per line
+strings /proc/PID/environ          # Human-readable
+xargs -0 -L1 < /proc/PID/environ   # Formatted output</code></pre>
+
+        <p><strong>Current working directory:</strong></p>
+        <pre><code>readlink /proc/PID/cwd             # Shows directory
+ls -l /proc/PID/cwd                # As symlink
+pwdx PID                           # Dedicated command</code></pre>
+
+        <p><strong>Open files:</strong></p>
+        <pre><code>ls -l /proc/PID/fd                 # File descriptors
+lsof -p PID                        # More detailed view</code></pre>
+
+        <p><strong>Executable path:</strong></p>
+        <pre><code>readlink /proc/PID/exe             # Path to executable
+ls -l /proc/PID/exe</code></pre>
+
+        <p><strong>All process info at once:</strong></p>
+        <pre><code>cat /proc/PID/status               # Comprehensive status
+ps -p PID -f                       # Full format
+top -p PID                         # Monitor in real-time</code></pre>
+
+        <p><strong>Example workflow:</strong></p>
+        <pre><code># Find suspicious process
+ps aux | grep suspicious
+
+# Investigate
+cat /proc/12345/cmdline | tr '\0' ' '  # What command?
+readlink /proc/12345/cwd               # Where is it running?
+readlink /proc/12345/exe               # What binary?
+cat /proc/12345/environ | tr '\0' '\n' # What env vars?</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        How do you pin a process to specific CPU cores? What about viewing CPU affinity? Why would you do this?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>taskset</code>
+
+        <p><strong>Set CPU affinity when starting:</strong></p>
+        <pre><code>taskset -c 0,1 command             # Run on cores 0 and 1
+taskset -c 0-3 command             # Run on cores 0,1,2,3
+taskset -c 2 command               # Run on core 2 only</code></pre>
+
+        <p><strong>Change affinity of running process:</strong></p>
+        <pre><code>taskset -cp 0,1 PID                # Pin PID to cores 0,1
+taskset -cp 2-5 PID                # Pin to cores 2,3,4,5</code></pre>
+
+        <p><strong>View current affinity:</strong></p>
+        <pre><code>taskset -cp PID                    # Show affinity mask
+# Output: pid 12345's current affinity list: 0-7</code></pre>
+
+        <p><strong>Why pin processes to cores:</strong></p>
+        <ul>
+            <li><strong>Performance:</strong> Keep hot cache, reduce context switching</li>
+            <li><strong>NUMA systems:</strong> Keep process on same memory node</li>
+            <li><strong>Isolation:</strong> Reserve cores for critical processes</li>
+            <li><strong>Debugging:</strong> Reproduce threading issues</li>
+        </ul>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code># Reserve core 0 for important process
+taskset -c 0 ./critical-service &
+
+# Run backup on cores 4-7 (8-core system)
+taskset -c 4-7 ./backup.sh
+
+# Game on performance cores, browser on efficiency cores
+taskset -c 0-3 ./game
+taskset -c 4-7 firefox</code></pre>
+
+        <p><strong>Hexadecimal mask format:</strong></p>
+        <pre><code>taskset 0x1 command                # Core 0 (binary: 0001)
+taskset 0x3 command                # Cores 0,1 (binary: 0011)
+taskset 0xF command                # Cores 0-3 (binary: 1111)</code></pre>
+
+        <p><strong>View in top/htop:</strong> Press 'f' in top, enable 'P' for last used CPU column.</p>
+
+        <p><strong>Check NUMA topology:</strong></p>
+        <pre><code>lscpu | grep NUMA                  # See NUMA nodes
+numactl --hardware                 # Detailed NUMA info</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        How do you list all threads of a process? What about monitoring threads separately? Seeing thread-level CPU usage?
+    </div>
+    <div class="back">
+        <strong>List threads:</strong>
+
+        <p><strong>Using ps:</strong></p>
+        <pre><code>ps -T -p PID                       # Show all threads (-T)
+ps -eLf | grep PID                 # All threads system-wide
+ps -eLf | grep process-name        # Threads of specific process</code></pre>
+
+        <p><strong>Columns explained:</strong></p>
+        <ul>
+            <li><strong>PID</strong> - Process ID (same for all threads)</li>
+            <li><strong>SPID/LWP</strong> - Thread ID (different for each)</li>
+        </ul>
+
+        <p><strong>Thread details:</strong></p>
+        <pre><code>ls /proc/PID/task/                 # List all thread IDs
+cat /proc/PID/task/TID/status      # Thread-specific info</code></pre>
+
+        <p><strong>Monitor threads in top:</strong></p>
+        <pre><code>top -H                             # Show threads instead of processes
+top -H -p PID                      # Threads of specific process
+# Press H while in top to toggle thread view</code></pre>
+
+        <p><strong>htop (better thread view):</strong></p>
+        <pre><code>htop -p PID                        # Monitor specific process
+# Press F2 → Display options → Show custom thread names
+# Press H to toggle thread view</code></pre>
+
+        <p><strong>Find high-CPU threads:</strong></p>
+        <pre><code>ps -T -p PID -o pid,tid,pcpu,comm  # CPU usage per thread
+top -H -p PID                      # Interactive view
+# Useful for finding which thread in multi-threaded app is hogging CPU</code></pre>
+
+        <p><strong>Count threads:</strong></p>
+        <pre><code>ls /proc/PID/task | wc -l          # Number of threads
+cat /proc/PID/status | grep Threads</code></pre>
+
+        <p><strong>Thread names (if set by application):</strong></p>
+        <pre><code>ps -T -p PID -o comm               # Thread names
+cat /proc/PID/task/TID/comm        # Specific thread name</code></pre>
+
+        <p><strong>Example - debug multi-threaded program:</strong></p>
+        <pre><code>top -H -p $(pgrep java) | head -20 # Find CPU-hogging thread
+# Note the TID, then debug that specific thread</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        How do you send signals to all processes of a user? What about all processes matching a pattern? Exclude certain processes?
+    </div>
+    <div class="back">
+        <strong>Kill by user:</strong>
+
+        <p><strong>Using pkill:</strong></p>
+        <pre><code>pkill -u username                  # Kill all processes of user
+pkill -9 -u username               # Force kill
+sudo pkill -u username             # As root (to kill other users)</code></pre>
+
+        <p><strong>Using killall:</strong></p>
+        <pre><code>killall -u username                # Kill all by user
+sudo killall -u username firefox   # User's firefox processes only</code></pre>
+
+        <p><strong>Kill by pattern:</strong></p>
+        <pre><code>pkill pattern                      # Matches process name
+pkill -f pattern                   # Matches full command line
+pkill ^python                      # Only if starts with "python"
+pkill -f "python.*server"          # Regex matching</code></pre>
+
+        <p><strong>Exclude processes:</strong></p>
+        <pre><code># Kill all except PID 12345
+pkill -v -P 12345 process-name     # -v inverts match (not child of 12345)
+
+# Kill firefox except important instance
+ps aux | grep firefox | grep -v important | awk '{print $2}' | xargs kill</code></pre>
+
+        <p><strong>Kill by terminal:</strong></p>
+        <pre><code>pkill -t pts/0                     # Kill all on terminal pts/0
+pkill -9 -t pts/1                  # Force kill</code></pre>
+
+        <p><strong>Dry run (see what would be killed):</strong></p>
+        <pre><code>pgrep -u username                  # List PIDs that would be killed
+pgrep -a pattern                   # Show command lines</code></pre>
+
+        <p><strong>Interactive confirmation:</strong></p>
+        <pre><code>pkill -i pattern                   # Ask before killing each</code></pre>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code># Kill all python processes for user bob
+sudo pkill -u bob python
+
+# Kill all Chrome processes
+pkill -f chrome
+
+# Kill all background jobs
+pkill -u $USER -t $TTY
+
+# Send HUP to all nginx workers
+sudo pkill -HUP nginx</code></pre>
+
+        <p><strong>Count before killing:</strong></p>
+        <pre><code>pgrep -c pattern                   # Count matches
+pgrep pattern | wc -l              # Alternative</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        How do you watch a command's output update periodically? What about highlighting changes? Custom intervals?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>watch</code>
+
+        <p><strong>Basic usage:</strong></p>
+        <pre><code>watch command                      # Update every 2 seconds (default)
+watch -n 1 command                 # Update every 1 second
+watch -n 0.5 command               # Update every 0.5 seconds
+watch -d command                   # Highlight differences between updates</code></pre>
+
+        <p><strong>Common uses:</strong></p>
+        <pre><code>watch -n 1 nvidia-smi              # Monitor GPU every second
+watch -d 'ps aux | grep firefox'   # Watch for firefox processes
+watch -n 0.5 -d free -h            # Monitor memory, highlight changes
+watch 'ls -lh /tmp'                # Watch directory for changes
+watch -n 1 'cat /proc/uptime'      # System uptime
+watch df -h                        # Disk usage</code></pre>
+
+        <p><strong>Why -d (differences) is useful:</strong> Makes it easy to spot what changed between updates.</p>
+
+        <p><strong>Watch with pipes:</strong></p>
+        <pre><code>watch 'ps aux | grep python | wc -l'  # Count python processes
+watch 'netstat -tuln | grep ESTABLISHED' # Active connections</code></pre>
+
+        <p><strong>Options:</strong></p>
+        <ul>
+            <li><code>-n SEC</code> - Update interval in seconds</li>
+            <li><code>-d</code> - Highlight differences</li>
+            <li><code>-t</code> - Turn off header (no title)</li>
+            <li><code>-b</code> - Beep if command has non-zero exit</li>
+            <li><code>-e</code> - Exit on error</li>
+        </ul>
+
+        <p><strong>Exit watch:</strong> Press <code>Ctrl+C</code></p>
+
+        <p><strong>Alternative - while loop for more control:</strong></p>
+        <pre><code>while true; do
+  clear
+  ps aux | grep firefox
+  sleep 1
+done</code></pre>
+
+        <p><strong>Example - monitor log file size:</strong></p>
+        <pre><code>watch -n 1 -d 'ls -lh /var/log/syslog'</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        How do you check what network connections a process has? What about seeing which process is using a specific port?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+
+        <p><strong>lsof for network:</strong></p>
+        <pre><code>lsof -i                            # All network connections
+lsof -i -a -p PID                  # Connections for specific process
+lsof -i :80                        # What's using port 80?
+lsof -i :3000-3010                 # Range of ports
+lsof -i TCP:80                     # TCP only
+lsof -i UDP:53                     # UDP only
+lsof -i @192.168.1.1               # Connections to specific IP</code></pre>
+
+        <p><strong>ss (socket statistics - modern):</strong></p>
+        <pre><code>ss -tunap                          # All connections with processes
+ss -tunap | grep firefox           # Firefox connections
+ss -ltnp                           # Listening TCP ports
+ss -lunp                           # Listening UDP ports
+ss -tp                             # TCP connections with process names
+ss dst :80                         # Connections to port 80</code></pre>
+
+        <p><strong>netstat (older, still works):</strong></p>
+        <pre><code>netstat -tunap                     # All connections
+netstat -tunap | grep PID          # Specific process
+netstat -tlnp                      # Listening TCP ports</code></pre>
+
+        <p><strong>Flags explained:</strong></p>
+        <ul>
+            <li><code>-t</code> = TCP</li>
+            <li><code>-u</code> = UDP</li>
+            <li><code>-n</code> = numeric (don't resolve names)</li>
+            <li><code>-a</code> = all (listening + established)</li>
+            <li><code>-p</code> = process/program</li>
+            <li><code>-l</code> = listening only</li>
+        </ul>
+
+        <p><strong>Find which process uses port 8080:</strong></p>
+        <pre><code>lsof -i :8080
+# or
+ss -tlnp | grep :8080
+# or
+sudo netstat -tlnp | grep :8080</code></pre>
+
+        <p><strong>All network activity for a process:</strong></p>
+        <pre><code>lsof -i -a -p $(pgrep firefox)
+ss -p | grep firefox</code></pre>
+
+        <p><strong>Count connections by state:</strong></p>
+        <pre><code>ss -tan | awk '{print $1}' | sort | uniq -c</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        How do you create a one-off systemd service for a command? What about transient services? Running with specific user/group?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>systemd-run</code>
+
+        <p><strong>Basic usage:</strong></p>
+        <pre><code>systemd-run command                # Run as transient service
+systemd-run --user command         # Run as user service (no root)
+systemd-run --scope command        # Run in a scope (not a service unit)</code></pre>
+
+        <p><strong>Why systemd-run:</strong> Get systemd's features (logging, resource control, isolation) for one-off commands.</p>
+
+        <p><strong>With resource limits:</strong></p>
+        <pre><code>systemd-run --scope -p MemoryMax=500M firefox
+systemd-run --scope -p CPUQuota=50% ./cpu-intensive
+systemd-run -p MemoryMax=1G -p CPUQuota=25% ./script.sh</code></pre>
+
+        <p><strong>Run as specific user:</strong></p>
+        <pre><code>sudo systemd-run -u username command
+systemd-run --uid=1000 --gid=1000 command</code></pre>
+
+        <p><strong>With working directory:</strong></p>
+        <pre><code>systemd-run --working-directory=/tmp command</code></pre>
+
+        <p><strong>View in systemd:</strong></p>
+        <pre><code>systemctl status run-*.service     # See transient services
+journalctl -u run-*.service        # View logs</code></pre>
+
+        <p><strong>Named service (for easier tracking):</strong></p>
+        <pre><code>systemd-run --unit=my-backup ./backup.sh
+systemctl status my-backup
+journalctl -u my-backup -f</code></pre>
+
+        <p><strong>With environment variables:</strong></p>
+        <pre><code>systemd-run --setenv=VAR=value command
+systemd-run -E DEBUG=1 -E PATH=/custom/path command</code></pre>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code># Resource-limited backup
+systemd-run --scope -p IOWeight=10 -p CPUQuota=25% rsync -av /data /backup
+
+# Run as nobody user (safe)
+sudo systemd-run --uid=nobody --gid=nobody ./untrusted-script
+
+# Scheduled one-off task
+systemd-run --on-active=5m echo "Runs in 5 minutes"</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        How do you debug a hung process? What if it's not responding to signals? How do you generate a core dump?
+    </div>
+    <div class="back">
+        <strong>Debug hung process:</strong>
+
+        <p><strong>1. Check process state:</strong></p>
+        <pre><code>ps aux | grep PID                  # Look at STAT column
+# D = uninterruptible sleep (usually I/O)
+# Z = zombie
+# T = stopped
+# R = running
+# S = sleeping</code></pre>
+
+        <p><strong>2. See what it's doing:</strong></p>
+        <pre><code>strace -p PID                      # Attach strace to see syscalls
+# Shows where process is stuck
+# Ctrl+C to detach
+
+# Example output:
+# read(3,  ← stuck waiting for read</code></pre>
+
+        <p><strong>3. Check files it has open:</strong></p>
+        <pre><code>lsof -p PID                        # See what files/sockets are open
+# Might be waiting on network, disk, etc.</code></pre>
+
+        <p><strong>4. Thread backtrace (for multi-threaded):</strong></p>
+        <pre><code>gdb -p PID
+(gdb) thread apply all bt           # Backtrace all threads
+(gdb) quit</code></pre>
+
+        <p><strong>5. Send diagnostic signal:</strong></p>
+        <pre><code>kill -QUIT PID                     # Some programs dump state
+kill -USR1 PID                     # User-defined signal (depends on program)
+kill -ABRT PID                     # Generate core dump</code></pre>
+
+        <p><strong>Generate core dump:</strong></p>
+        <pre><code># Enable core dumps
+ulimit -c unlimited                # For current shell
+
+# Configure core dump pattern
+sudo sysctl -w kernel.core_pattern=/tmp/core.%e.%p
+
+# Trigger core dump
+kill -ABRT PID
+# or
+gcore PID                          # Without killing process
+
+# Analyze core dump
+gdb /path/to/binary /tmp/core.program.12345</code></pre>
+
+        <p><strong>If process won't die (D state):</strong></p>
+        <p>Can't kill D state (uninterruptible sleep). Usually waiting for kernel operation (I/O). Must wait or reboot.</p>
+
+        <p><strong>Check system logs:</strong></p>
+        <pre><code>dmesg | tail                       # Kernel messages
+journalctl -xe                     # System logs</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        How do you see parent-child process relationships? What about process groups and sessions? Finding all children of a process?
+    </div>
+    <div class="back">
+        <strong>Process tree:</strong>
+
+        <p><strong>Visual tree:</strong></p>
+        <pre><code>pstree                             # Tree of all processes
+pstree -p                          # Show PIDs
+pstree -u                          # Show user transitions
+pstree -a                          # Show command arguments
+pstree PID                         # Tree rooted at specific PID
+pstree username                    # Tree for specific user</code></pre>
+
+        <p><strong>Using ps:</strong></p>
+        <pre><code>ps auxf                            # Forest view (ASCII tree)
+ps -ejH                            # Process hierarchy
+ps -e -o pid,ppid,cmd --forest     # Custom columns with tree</code></pre>
+
+        <p><strong>Find parent of a process:</strong></p>
+        <pre><code>ps -o ppid= -p PID                 # Get parent PID
+ps -p $(ps -o ppid= -p PID)        # Show parent process details</code></pre>
+
+        <p><strong>Find all children:</strong></p>
+        <pre><code>pgrep -P PARENT_PID                # Direct children PIDs
+ps --ppid PARENT_PID               # Children processes
+pstree -p PARENT_PID               # Tree view</code></pre>
+
+        <p><strong>Process groups and sessions:</strong></p>
+        <pre><code>ps -eo pid,pgid,sid,comm           # Show PID, process group, session
+ps -eo pid,ppid,pgid,sid,comm | grep PID  # Specific process</code></pre>
+
+        <p><strong>Columns explained:</strong></p>
+        <ul>
+            <li><strong>PID</strong> - Process ID</li>
+            <li><strong>PPID</strong> - Parent Process ID</li>
+            <li><strong>PGID</strong> - Process Group ID</li>
+            <li><strong>SID</strong> - Session ID</li>
+        </ul>
+
+        <p><strong>Kill entire process tree:</strong></p>
+        <pre><code>pkill -P PARENT_PID                # Kill all children
+kill -TERM -PGID                   # Kill entire process group</code></pre>
+
+        <p><strong>Example - find what spawned a process:</strong></p>
+        <pre><code>ps -p 12345 -o ppid=               # Get parent: 5678
+ps -p 5678                         # See parent details
+pstree -s 12345                    # Show ancestors</code></pre>
+
+        <p><strong>Orphaned processes:</strong> When parent dies, children are adopted by PID 1 (init/systemd)</p>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        How do you run a command with a timeout? What if you want to run multiple commands in parallel? Wait for all to complete?
+    </div>
+    <div class="back">
+        <strong>Timeout command:</strong> <code>timeout</code>
+
+        <p><strong>Basic usage:</strong></p>
+        <pre><code>timeout 10 command                 # Kill after 10 seconds
+timeout 5m command                 # Kill after 5 minutes
+timeout 1h command                 # Kill after 1 hour
+timeout 30s ./script.sh            # 30 seconds</code></pre>
+
+        <p><strong>With specific signal:</strong></p>
+        <pre><code>timeout -s SIGKILL 10 command      # Force kill with signal 9
+timeout -k 5 10 command            # TERM after 10s, KILL after 5s more</code></pre>
+
+        <p><strong>Why timeout is useful:</strong> Prevent runaway processes, ensure scripts don't hang forever.</p>
+
+        <p><strong>Run commands in parallel:</strong></p>
+        <pre><code># Start all in background
+command1 &
+command2 &
+command3 &
+wait                               # Wait for all to finish
+
+# With PIDs
+command1 & pid1=$!
+command2 & pid2=$!
+wait $pid1 $pid2                   # Wait for specific PIDs</code></pre>
+
+        <p><strong>Parallel with xargs:</strong></p>
+        <pre><code>echo -e "url1\nurl2\nurl3" | xargs -P 3 -I {} curl -O {}
+# -P 3 runs 3 jobs in parallel</code></pre>
+
+        <p><strong>GNU Parallel (powerful):</strong></p>
+        <pre><code>parallel command ::: arg1 arg2 arg3
+cat urls.txt | parallel curl -O
+parallel -j 4 command ::: {1..10}  # 4 jobs at a time
+parallel --timeout 60 command ::: {1..100}  # With timeout</code></pre>
+
+        <p><strong>Check if command succeeded after timeout:</strong></p>
+        <pre><code>timeout 10 command
+if [ $? -eq 124 ]; then
+    echo "Command timed out"
+elif [ $? -eq 0 ]; then
+    echo "Command succeeded"
+else
+    echo "Command failed"
+fi
+# Exit code 124 = timeout, 0 = success, other = error</code></pre>
+
+        <p><strong>Example - parallel downloads with timeout:</strong></p>
+        <pre><code>parallel --timeout 30 curl -O ::: url1 url2 url3</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        How do you see system call statistics for a process? What about profiling which functions use the most CPU? Performance analysis?
+    </div>
+    <div class="back">
+        <strong>System call profiling:</strong>
+
+        <p><strong>strace with summary:</strong></p>
+        <pre><code>strace -c command                  # Count syscalls
+strace -c -p PID                   # Profile running process
+# Shows: time %, total time, calls, errors per syscall</code></pre>
+
+        <p><strong>Example output:</strong></p>
+        <pre><code>% time     seconds  usecs/call     calls    errors syscall
+ 99.85    0.051000          51      1000           read
+  0.10    0.000051           2        25           write
+...</code></pre>
+
+        <p><strong>perf (performance analysis):</strong></p>
+        <pre><code>perf record command                # Record performance data
+perf record -p PID sleep 10        # Record for 10 seconds
+perf report                        # View results interactively
+perf top                           # Live performance monitor</code></pre>
+
+        <p><strong>What perf shows:</strong> CPU samples, function call graph, cache misses, branch prediction, etc.</p>
+
+        <p><strong>Flamegraph (visualize CPU usage):</strong></p>
+        <pre><code>perf record -F 99 -a -g -- sleep 30
+perf script | stackcollapse-perf.pl | flamegraph.pl > flame.svg
+# Creates visual representation of where CPU time is spent</code></pre>
+
+        <p><strong>Profile specific functions:</strong></p>
+        <pre><code>perf record -e cycles -p PID
+perf annotate                      # See assembly-level hotspots</code></pre>
+
+        <p><strong>ltrace for library calls:</strong></p>
+        <pre><code>ltrace -c command                  # Count library function calls
+ltrace -p PID                      # Attach to running process</code></pre>
+
+        <p><strong>gprof (for compiled programs with -pg flag):</strong></p>
+        <pre><code># Compile with profiling
+gcc -pg program.c -o program
+./program                          # Run (generates gmon.out)
+gprof program gmon.out             # Analyze</code></pre>
+
+        <p><strong>Valgrind (memory profiling):</strong></p>
+        <pre><code>valgrind --tool=callgrind command  # Call graph profiling
+valgrind --tool=massif command     # Heap profiling
+kcachegrind callgrind.out.*        # Visualize results</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 26 -->
+<div class="card">
+    <div class="front">
+        How do you check if a process is running? What about waiting for a process to finish in a script? Waiting for a process to start?
+    </div>
+    <div class="back">
+        <strong>Check if running:</strong>
+
+        <p><strong>Using pgrep:</strong></p>
+        <pre><code>pgrep firefox                      # Returns PIDs if running
+pgrep -x firefox                   # Exact name match only
+pgrep -c firefox                   # Count matches
+
+# In script
+if pgrep firefox > /dev/null; then
+    echo "Firefox is running"
+else
+    echo "Firefox is not running"
+fi</code></pre>
+
+        <p><strong>Using pidof:</strong></p>
+        <pre><code>pidof firefox                      # Returns PIDs
+if pidof firefox > /dev/null; then
+    echo "Running"
+fi</code></pre>
+
+        <p><strong>Wait for process to finish:</strong></p>
+        <pre><code># If you started it
+command &
+pid=$!
+wait $pid                          # Wait for specific PID
+echo "Process finished with exit code: $?"
+
+# If someone else started it
+while kill -0 PID 2>/dev/null; do
+    sleep 1
+done
+echo "Process PID finished"
+
+# Or use tail --pid
+tail --pid=PID -f /dev/null        # Exits when PID dies</code></pre>
+
+        <p><strong>Wait for process to start:</strong></p>
+        <pre><code># Wait for process by name
+while ! pgrep firefox > /dev/null; do
+    echo "Waiting for firefox to start..."
+    sleep 1
+done
+echo "Firefox started!"
+
+# Wait for specific PID file
+while [ ! -f /var/run/nginx.pid ]; do
+    sleep 1
+done</code></pre>
+
+        <p><strong>Wait with timeout:</strong></p>
+        <pre><code>timeout=30
+while [ $timeout -gt 0 ] && ! pgrep firefox > /dev/null; do
+    sleep 1
+    ((timeout--))
+done
+
+if pgrep firefox > /dev/null; then
+    echo "Firefox started"
+else
+    echo "Timeout waiting for firefox"
+fi</code></pre>
+
+        <p><strong>Check and restart if not running:</strong></p>
+        <pre><code>if ! pgrep nginx > /dev/null; then
+    echo "nginx not running, starting..."
+    sudo systemctl start nginx
+fi</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+<!-- Card 27 -->
+<div class="card">
+    <div class="front">
+        How do you isolate a process from the rest of the system? What about running in a different namespace? Container-like isolation without Docker?
+    </div>
+    <div class="back">
+        <strong>Linux namespaces:</strong>
+
+        <p><strong>unshare command (create new namespaces):</strong></p>
+        <pre><code>unshare --fork --pid --mount-proc bash
+# Creates new PID and mount namespace
+# ps aux now shows only processes in this namespace</code></pre>
+
+        <p><strong>Different namespace types:</strong></p>
+        <pre><code>unshare --net bash                 # New network namespace (no network)
+unshare --uts bash                 # New hostname namespace
+unshare --ipc bash                 # New IPC namespace
+unshare --user bash                # New user namespace
+unshare --fork --pid --mount-proc --net bash  # Multiple namespaces</code></pre>
+
+        <p><strong>Why namespaces:</strong> Process isolation without full virtualization. Basis of containers (Docker, etc.)</p>
+
+        <p><strong>Example - isolated network:</strong></p>
+        <pre><code># Start shell with no network
+unshare --net bash
+ip addr                            # Only loopback interface
+ping google.com                    # Network unreachable</code></pre>
+
+        <p><strong>Enter existing namespace:</strong></p>
+        <pre><code>nsenter -t PID -n bash             # Enter network namespace
+nsenter -t PID -p bash             # Enter PID namespace
+nsenter -t PID -m bash             # Enter mount namespace
+nsenter --all -t PID bash          # Enter all namespaces</code></pre>
+
+        <p><strong>Filesystem isolation (chroot):</strong></p>
+        <pre><code>sudo chroot /path/to/new/root /bin/bash
+# Process sees /path/to/new/root as /
+# Can't access files outside</code></pre>
+
+        <p><strong>Systemd isolation:</strong></p>
+        <pre><code>systemd-run --user --scope \
+  -p PrivateNetwork=yes \
+  -p PrivateTmp=yes \
+  -p ProtectHome=yes \
+  command
+# Isolated network, temp, and home directories</code></pre>
+
+        <p><strong>View namespaces:</strong></p>
+        <pre><code>ls -l /proc/$$/ns/                 # Your namespaces
+lsns                               # List all namespaces
+lsns -p PID                        # Namespaces for specific process</code></pre>
+    </div>
+    <div class="tags">cs linux processes EN</div>
+</div>
+
+</body>
+</html>

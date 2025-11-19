@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux File System Hierarchy Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 1.1em;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .back {
+            color: #555;
+        }
+        .back strong {
+            color: #2c3e50;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.95em;
+            color: #c7254e;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #333;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ecf0f1;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Linux File System Hierarchy Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            What's stored in /etc? What type of files go there? Where do you look for configuration files for system services like SSH or Apache?
+        </div>
+        <div class="back">
+            <strong>/etc</strong> - System-wide configuration files
+
+            <p><strong>Why:</strong> "et cetera" - all config files for the system and installed software. Text files, human-editable.</p>
+
+            <p><strong>What's in /etc:</strong></p>
+            <ul>
+                <li><code>/etc/passwd</code> - User account information</li>
+                <li><code>/etc/shadow</code> - Encrypted passwords</li>
+                <li><code>/etc/group</code> - Group information</li>
+                <li><code>/etc/fstab</code> - Filesystem mount configuration</li>
+                <li><code>/etc/hosts</code> - Static hostname-to-IP mappings</li>
+                <li><code>/etc/hostname</code> - System hostname</li>
+                <li><code>/etc/resolv.conf</code> - DNS configuration</li>
+                <li><code>/etc/ssh/sshd_config</code> - SSH server config</li>
+                <li><code>/etc/nginx/</code> - Nginx web server config</li>
+                <li><code>/etc/apt/</code> - APT package manager config (Debian/Ubuntu)</li>
+                <li><code>/etc/systemd/</code> - systemd configuration</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Common tasks
+sudo nano /etc/ssh/sshd_config  # Configure SSH
+sudo nano /etc/fstab             # Configure auto-mount drives
+cat /etc/os-release              # Check distro version
+ls /etc/*.conf                   # List all .conf files</pre>
+
+            <div class="note"><strong>Best practice:</strong> Always backup config files before editing: <code>sudo cp /etc/file /etc/file.bak</code></div>
+        </div>
+        <div class="tags">cs linux filesystem EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            What's stored in /var? Where do you find system logs? What about mail, caches, and temporary application data?
+        </div>
+        <div class="back">
+            <strong>/var</strong> - Variable data that changes during system operation
+
+            <p><strong>Why:</strong> "Variable" - files that grow and change: logs, databases, caches, spool files. Separate from root to prevent filling up critical filesystems.</p>
+
+            <p><strong>What's in /var:</strong></p>
+            <ul>
+                <li><code>/var/log/</code> - Log files (syslog, auth.log, apache, nginx, etc.)</li>
+                <li><code>/var/cache/</code> - Application cache data</li>
+                <li><code>/var/tmp/</code> - Temporary files preserved between reboots</li>
+                <li><code>/var/spool/</code> - Spool directories (mail, print jobs, cron)</li>
+                <li><code>/var/mail/</code> - User mailboxes</li>
+                <li><code>/var/lib/</code> - State information for packages (databases, etc.)</li>
+                <li><code>/var/www/</code> - Web server document root (common location)</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <pre># View system logs
+sudo less /var/log/syslog         # System messages (Debian/Ubuntu)
+sudo less /var/log/messages       # System messages (RHEL/Fedora)
+sudo less /var/log/auth.log       # Authentication logs
+sudo journalctl                   # systemd journal (modern alternative)
+
+# Check disk usage (var can get large!)
+du -sh /var/*
+
+# Common log locations
+/var/log/apache2/access.log  # Apache web logs
+/var/log/nginx/access.log    # Nginx web logs
+/var/log/mysql/error.log     # MySQL errors
+/var/log/kern.log            # Kernel messages</pre>
+
+            <div class="note"><strong>/var vs /tmp:</strong> /var/tmp persists across reboots, /tmp is cleared</div>
+        </div>
+        <div class="tags">cs linux filesystem EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between /bin, /sbin, /usr/bin, and /usr/sbin? Where do user commands live? What about system administration commands?
+        </div>
+        <div class="back">
+            <strong>/bin</strong> - Essential user binaries (ls, cat, cp, bash)<br>
+            <strong>/sbin</strong> - Essential system binaries (fsck, init, reboot)<br>
+            <strong>/usr/bin</strong> - Non-essential user programs<br>
+            <strong>/usr/sbin</strong> - Non-essential system programs
+
+            <p><strong>Why:</strong> Historical separation: /bin and /sbin are essential for boot and recovery. /usr/* are for normal operation.</p>
+
+            <p><strong>What's where:</strong></p>
+
+            <p><strong>/bin (essential user commands):</strong></p>
+            <ul>
+                <li><code>ls, cp, mv, rm, cat, bash, sh, echo</code></li>
+                <li>Needed to boot and repair system</li>
+            </ul>
+
+            <p><strong>/sbin (essential system commands):</strong></p>
+            <ul>
+                <li><code>fsck, init, reboot, shutdown, ifconfig</code></li>
+                <li>Typically require root privileges</li>
+            </ul>
+
+            <p><strong>/usr/bin (user applications):</strong></p>
+            <ul>
+                <li><code>python, git, vim, gcc, make, wget</code></li>
+                <li>Most programs you install go here</li>
+            </ul>
+
+            <p><strong>/usr/sbin (system administration):</strong></p>
+            <ul>
+                <li><code>useradd, groupadd, sshd, apache2</code></li>
+                <li>System daemons and admin tools</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find which directory a command is in
+which python3    # /usr/bin/python3
+which ls         # /bin/ls
+type -a python   # Show all locations
+
+# Modern systems often symlink /bin → /usr/bin
+ls -l /bin  # May show: /bin -> usr/bin</pre>
+
+            <div class="note"><strong>Modern trend:</strong> Many distros now merge /bin into /usr/bin via symlinks for simplicity</div>
+        </div>
+        <div class="tags">cs linux filesystem EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            What's stored in /home vs /root? Where are user files kept? What about the root user's files? What's in /usr vs /usr/local?
+        </div>
+        <div class="back">
+            <strong>/home</strong> - Regular user home directories (/home/username)<br>
+            <strong>/root</strong> - Root user's home directory<br>
+            <strong>/usr</strong> - User programs (system-managed)<br>
+            <strong>/usr/local</strong> - Locally installed software (admin-managed)
+
+            <p><strong>Why:</strong> Separation keeps user data safe from system changes and vice versa.</p>
+
+            <p><strong>/home:</strong></p>
+            <ul>
+                <li><code>/home/alice/</code> - Alice's files</li>
+                <li><code>/home/bob/</code> - Bob's files</li>
+                <li>User configs: <code>~/.bashrc</code>, <code>~/.ssh/</code>, <code>~/.config/</code></li>
+                <li>Often on separate partition for easy backup</li>
+            </ul>
+
+            <p><strong>/root:</strong></p>
+            <ul>
+                <li>Root user's home (NOT /home/root!)</li>
+                <li>Root configs: <code>/root/.bashrc</code>, <code>/root/.ssh/</code></li>
+            </ul>
+
+            <p><strong>/usr vs /usr/local:</strong></p>
+            <ul>
+                <li><code>/usr</code> - Package manager installs here (apt, dnf, pacman)</li>
+                <li><code>/usr/local</code> - You compile/install here manually</li>
+                <li><code>/usr/local/bin</code> - Your custom scripts and programs</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Go to your home directory
+cd ~
+cd $HOME
+cd  # Just cd with no args
+
+# Go to another user's home (if you have permission)
+cd ~alice
+
+# Install to /usr/local (custom software)
+./configure --prefix=/usr/local
+make
+sudo make install
+
+# Add /usr/local/bin to PATH
+export PATH=/usr/local/bin:$PATH</pre>
+
+            <div class="note"><strong>Tilde expansion:</strong> ~ always means your home directory, regardless of where you are</div>
+        </div>
+        <div class="tags">cs linux filesystem EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            What's /tmp used for? What about /opt? What's /dev, /proc, and /sys? Where do you find device files and kernel information?
+        </div>
+        <div class="back">
+            <strong>/tmp</strong> - Temporary files (cleared on reboot)<br>
+            <strong>/opt</strong> - Optional/third-party software packages<br>
+            <strong>/dev</strong> - Device files (hardware interfaces)<br>
+            <strong>/proc</strong> - Process and kernel information (virtual filesystem)<br>
+            <strong>/sys</strong> - Kernel and hardware info (virtual filesystem)
+
+            <p><strong>/tmp (temporary files):</strong></p>
+            <ul>
+                <li>Cleared on reboot (or periodically)</li>
+                <li>World-writable but has sticky bit (users can only delete their own files)</li>
+                <li>Use for scratch space, download temp files</li>
+            </ul>
+
+            <p><strong>/opt (optional software):</strong></p>
+            <ul>
+                <li>Large third-party applications (Chrome, Slack, custom software)</li>
+                <li>Each app in its own directory: <code>/opt/google/chrome/</code></li>
+            </ul>
+
+            <p><strong>/dev (device files):</strong></p>
+            <ul>
+                <li><code>/dev/sda</code>, <code>/dev/sdb</code> - Hard drives</li>
+                <li><code>/dev/sda1</code> - First partition on first drive</li>
+                <li><code>/dev/null</code> - Discard output (black hole)</li>
+                <li><code>/dev/zero</code> - Infinite zeros</li>
+                <li><code>/dev/random</code>, <code>/dev/urandom</code> - Random data</li>
+                <li><code>/dev/tty</code> - Current terminal</li>
+            </ul>
+
+            <p><strong>/proc (process info - virtual):</strong></p>
+            <ul>
+                <li><code>/proc/cpuinfo</code> - CPU information</li>
+                <li><code>/proc/meminfo</code> - Memory information</li>
+                <li><code>/proc/PID/</code> - Info about process PID</li>
+                <li><code>/proc/sys/</code> - Kernel tunables</li>
+            </ul>
+
+            <p><strong>/sys (system/kernel - virtual):</strong></p>
+            <ul>
+                <li>Hardware and driver information</li>
+                <li><code>/sys/class/net/</code> - Network interfaces</li>
+                <li><code>/sys/block/</code> - Block devices</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Use /tmp for scratch work
+cp largefile.zip /tmp/
+cd /tmp && unzip largefile.zip
+
+# Discard output
+command > /dev/null 2>&1
+
+# Get random data
+head -c 16 /dev/urandom | base64  # Random password
+
+# Check CPU info
+cat /proc/cpuinfo
+lscpu  # Nicer output
+
+# Check memory
+cat /proc/meminfo
+free -h  # Nicer output
+
+# List disks and partitions
+ls /dev/sd*
+lsblk  # Better view</pre>
+        </div>
+        <div class="tags">cs linux filesystem EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            What's in /lib and /usr/lib? Where are shared libraries stored? What's /boot used for? What about /mnt and /media?
+        </div>
+        <div class="back">
+            <strong>/lib</strong> - Essential shared libraries for /bin and /sbin<br>
+            <strong>/usr/lib</strong> - Libraries for /usr/bin programs<br>
+            <strong>/boot</strong> - Boot loader files (kernel, initramfs)<br>
+            <strong>/mnt</strong> - Temporary mount point for administrators<br>
+            <strong>/media</strong> - Auto-mounted removable media (USB, CD/DVD)
+
+            <p><strong>/lib and /usr/lib (libraries):</strong></p>
+            <ul>
+                <li>Shared libraries (.so files - like Windows DLLs)</li>
+                <li><code>/lib</code> - Libraries for essential programs</li>
+                <li><code>/usr/lib</code> - Libraries for user programs</li>
+                <li><code>/usr/local/lib</code> - Libraries for locally compiled software</li>
+            </ul>
+
+            <p><strong>/boot (boot files):</strong></p>
+            <ul>
+                <li>Kernel images (<code>vmlinuz-*</code>)</li>
+                <li>Initial RAM disk (<code>initrd.img-*</code> or <code>initramfs-*</code>)</li>
+                <li>Boot loader config (<code>grub/</code>)</li>
+                <li>DO NOT fill this partition - system won't boot!</li>
+            </ul>
+
+            <p><strong>/mnt and /media (mount points):</strong></p>
+            <ul>
+                <li><code>/mnt</code> - Manual mounts by admin (NFS shares, extra drives)</li>
+                <li><code>/media</code> - Auto-mounted USB drives, CDs, etc.</li>
+                <li><code>/media/username/USBDrive/</code> - Typical USB mount location</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Check shared library dependencies
+ldd /bin/ls  # Shows which libraries ls needs
+
+# Boot partition usage (don't let it fill up!)
+df -h /boot
+
+# Clean old kernels to free /boot space
+sudo apt autoremove  # Debian/Ubuntu
+sudo dnf remove $(dnf repoquery --installonly --latest-limit=-2)  # Fedora
+
+# Mount drive manually
+sudo mount /dev/sdb1 /mnt/external
+
+# Check auto-mounted media
+ls /media/$USER/
+
+# Unmount
+sudo umount /mnt/external</pre>
+
+            <div class="note"><strong>Library path:</strong> LD_LIBRARY_PATH environment variable controls where to search for libraries</div>
+        </div>
+        <div class="tags">cs linux filesystem EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            How do you navigate the file system hierarchy quickly? What commands show where you are, where a program is located, or what type of file something is?
+        </div>
+        <div class="back">
+            <strong>Current directory:</strong> <code>pwd</code><br>
+            <strong>Find program:</strong> <code>which program</code> or <code>type program</code><br>
+            <strong>File type:</strong> <code>file filename</code><br>
+            <strong>Find file:</strong> <code>find / -name filename</code> or <code>locate filename</code>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Where am I?
+pwd  # Print working directory
+
+# Find where a command is
+which python3    # /usr/bin/python3
+type ls          # ls is aliased to `ls --color=auto'
+whereis python3  # Shows binary, source, and man page locations
+
+# What is this file?
+file /bin/ls           # ELF executable
+file document.pdf      # PDF document
+file image.jpg         # JPEG image data
+file /dev/sda          # block special
+
+# Find files
+find /etc -name "*.conf"        # All .conf files in /etc
+locate sshd_config              # Fast search (uses index)
+sudo updatedb                   # Update locate database
+
+# Navigate quickly
+cd -        # Go back to previous directory
+cd ~        # Go home
+cd /        # Go to root
+cd ../..    # Go up two levels
+
+# Show directory tree
+tree /etc/ssh           # Visual tree (install tree package)
+ls -R /etc/ssh          # Recursive list
+
+# Find recently modified files
+find /etc -mtime -1     # Modified in last 24 hours
+find /var/log -mmin -30 # Modified in last 30 minutes</pre>
+
+            <div class="note"><strong>Tip:</strong> Use tab completion heavily! Type first few letters and hit Tab to autocomplete paths</div>
+        </div>
+        <div class="tags">cs linux filesystem EN</div>
+    </div>
+
+</body>
+</html>

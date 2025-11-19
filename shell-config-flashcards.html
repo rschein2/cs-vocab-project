@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shell Environment & Configuration Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 1.1em;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .back {
+            color: #555;
+        }
+        .back strong {
+            color: #2c3e50;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.95em;
+            color: #c7254e;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #333;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ecf0f1;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shell Environment & Configuration Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between .bashrc and .bash_profile? When is each loaded? What about .profile?
+        </div>
+        <div class="back">
+            <strong>.bash_profile</strong> - Login shells (SSH, console login)<br>
+            <strong>.bashrc</strong> - Interactive non-login shells (new terminal window)<br>
+            <strong>.profile</strong> - Generic shell profile (any POSIX shell)
+
+            <p><strong>Why:</strong> Different shell startup scenarios load different files. Understanding this prevents "it works in one terminal but not another" issues.</p>
+
+            <p><strong>When they're loaded:</strong></p>
+
+            <p><strong>Login shell</strong> (SSH, Ctrl+Alt+F1-F6):</p>
+            <ul>
+                <li>Reads <code>~/.bash_profile</code> (or <code>~/.bash_login</code> or <code>~/.profile</code>)</li>
+                <li>Only reads ONE of these, in that order</li>
+                <li>Common pattern: <code>.bash_profile</code> sources <code>.bashrc</code></li>
+            </ul>
+
+            <p><strong>Non-login shell</strong> (new terminal tab, tmux):</p>
+            <ul>
+                <li>Reads <code>~/.bashrc</code></li>
+            </ul>
+
+            <p><strong>Best practice - .bash_profile:</strong></p>
+            <pre># Source .bashrc from .bash_profile
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+
+# Put environment variables here
+export PATH="$HOME/bin:$PATH"
+export EDITOR=vim</pre>
+
+            <p><strong>Best practice - .bashrc:</strong></p>
+            <pre># Interactive shell settings
+alias ll='ls -la'
+alias ..='cd ..'
+
+# Shell options
+shopt -s histappend  # Append to history, don't overwrite
+
+# Functions
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}</pre>
+
+            <div class="note"><strong>Quick test:</strong> <code>echo $-</code> - if output contains "i", it's interactive. Run <code>shopt login_shell</code> to check if it's a login shell.</div>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            What's the PATH variable? How do you add a directory to PATH? How do you check what's in your PATH? Why does order matter?
+        </div>
+        <div class="back">
+            <strong>PATH</strong> - Colon-separated list of directories where shell looks for commands
+
+            <p><strong>Why:</strong> When you type <code>python</code>, the shell searches PATH directories in order until it finds the executable.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># View current PATH
+echo $PATH
+# Output: /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+# Add directory to PATH (temporary)
+export PATH="$HOME/bin:$PATH"      # Add to beginning (highest priority)
+export PATH="$PATH:$HOME/scripts"  # Add to end (lowest priority)
+
+# Make permanent (add to ~/.bashrc or ~/.bash_profile)
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc  # Reload
+
+# Check which command will run
+which python3       # Shows first match in PATH
+type -a python3     # Shows ALL matches in PATH
+
+# Why order matters:
+# If /usr/local/bin/python and /usr/bin/python both exist,
+# the one in the directory that appears FIRST in PATH wins</pre>
+
+            <p><strong>Common PATH additions:</strong></p>
+            <ul>
+                <li><code>$HOME/bin</code> - Your personal scripts</li>
+                <li><code>$HOME/.local/bin</code> - User-installed Python packages</li>
+                <li><code>/usr/local/bin</code> - Manually compiled software</li>
+                <li><code>/opt/*/bin</code> - Third-party software</li>
+            </ul>
+
+            <div class="warning"><strong>Don't replace PATH!</strong> Use <code>PATH="new:$PATH"</code>, not <code>PATH="new"</code> or you'll break everything</div>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between a shell variable and an environment variable? How do you export a variable? How do you see all environment variables?
+        </div>
+        <div class="back">
+            <strong>Shell variable:</strong> Only in current shell<br>
+            <strong>Environment variable:</strong> Exported to child processes<br>
+            <strong>Export:</strong> <code>export VARNAME=value</code>
+
+            <p><strong>Why:</strong> Shell variables are local. Environment variables are inherited by programs you run.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Shell variable (local only)
+MY_VAR="hello"
+echo $MY_VAR  # Works
+
+# This script won't see MY_VAR
+./script.sh   # MY_VAR is empty inside script
+
+# Environment variable (exported)
+export MY_VAR="hello"
+./script.sh   # Now MY_VAR is available in script
+
+# One-line export and assign
+export PATH="/new/dir:$PATH"
+
+# View all environment variables
+env
+printenv
+
+# View specific variable
+echo $HOME
+printenv HOME
+
+# Unset variable
+unset MY_VAR</pre>
+
+            <p><strong>Common environment variables:</strong></p>
+            <ul>
+                <li><code>PATH</code> - Where to find commands</li>
+                <li><code>HOME</code> - Your home directory</li>
+                <li><code>USER</code> - Your username</li>
+                <li><code>SHELL</code> - Your default shell (/bin/bash)</li>
+                <li><code>EDITOR</code> - Default text editor</li>
+                <li><code>LANG</code> - Locale/language settings</li>
+                <li><code>PWD</code> - Current directory</li>
+                <li><code>OLDPWD</code> - Previous directory</li>
+            </ul>
+
+            <div class="note"><strong>Convention:</strong> Environment variables are UPPERCASE, shell variables are lowercase</div>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between an alias and a function in bash? When should you use each? How do you define them?
+        </div>
+        <div class="back">
+            <strong>Alias:</strong> Simple text replacement, no arguments<br>
+            <strong>Function:</strong> Can accept arguments, more flexible
+
+            <p><strong>Why:</strong> Aliases are quick shortcuts. Functions handle complex logic and parameters.</p>
+
+            <p><strong>Aliases:</strong></p>
+            <pre># Define alias (in ~/.bashrc)
+alias ll='ls -la'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias gs='git status'
+alias gp='git pull'
+alias grep='grep --color=auto'
+
+# List all aliases
+alias
+
+# Remove alias
+unalias ll
+
+# Limitations - can't use arguments:
+alias greet='echo "Hello"'  # Can't do: greet Alice</pre>
+
+            <p><strong>Functions (better for arguments):</strong></p>
+            <pre># Define function (in ~/.bashrc)
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Extract any archive
+extract() {
+    if [ -f "$1" ]; then
+        case "$1" in
+            *.tar.gz)  tar xzf "$1"   ;;
+            *.zip)     unzip "$1"     ;;
+            *.tar.bz2) tar xjf "$1"   ;;
+            *)         echo "Unknown format" ;;
+        esac
+    fi
+}
+
+# Find and kill process by name
+killport() {
+    kill $(lsof -t -i:$1)
+}
+
+# Usage
+mkcd my-new-dir
+extract archive.tar.gz
+killport 8080</pre>
+
+            <div class="note"><strong>When to use what:</strong> Alias for simple shortcuts. Function for anything with arguments or logic.</div>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            How do you reload your shell configuration without logging out? What's the difference between sourcing a file and executing it?
+        </div>
+        <div class="back">
+            <strong>Reload config:</strong> <code>source ~/.bashrc</code> or <code>. ~/.bashrc</code><br>
+            <strong>Source vs execute:</strong> Source runs in current shell, execute runs in subshell
+
+            <p><strong>Why:</strong> After editing config files, you need to reload them to see changes.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Reload .bashrc
+source ~/.bashrc
+. ~/.bashrc  # Same thing, shorter
+
+# Reload .bash_profile
+source ~/.bash_profile
+
+# Why sourcing matters:
+# If you execute (not source), changes won't affect current shell
+./mybashrc      # Runs in subshell, doesn't affect current shell
+source mybashrc # Runs in current shell, changes take effect
+
+# Example - setting PATH
+# In a script:
+export PATH="/new/dir:$PATH"
+
+# If you execute it:
+./script.sh
+echo $PATH  # PATH unchanged!
+
+# If you source it:
+source script.sh
+echo $PATH  # PATH updated!</pre>
+
+            <p><strong>Common reload workflows:</strong></p>
+            <pre># Edit config
+vim ~/.bashrc
+
+# Reload it
+source ~/.bashrc
+
+# Or in one step
+vim ~/.bashrc && source ~/.bashrc
+
+# Or just open a new terminal (lazy way)</pre>
+
+            <div class="note"><strong>Alias for convenience:</strong> <code>alias reload='source ~/.bashrc'</code></div>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            How do you customize your shell prompt? What's the PS1 variable? How do you add colors, git branch, or other information to your prompt?
+        </div>
+        <div class="back">
+            <strong>PS1 variable:</strong> Defines your primary prompt<br>
+            <strong>Common escapes:</strong> <code>\u</code> (user), <code>\h</code> (host), <code>\w</code> (working dir)
+
+            <p><strong>Why:</strong> A good prompt shows useful information at a glance: user, host, directory, git branch, exit status.</p>
+
+            <p><strong>Basic examples:</strong></p>
+            <pre># Default prompt
+PS1='\u@\h:\w\$ '
+# Shows: alice@laptop:~/projects$
+
+# Just directory and prompt
+PS1='\w\$ '
+# Shows: ~/projects$
+
+# Full path instead of abbreviated
+PS1='\u@\h:\W\$ '  # \W = basename only
+# Shows: alice@laptop:projects$
+
+# Add newline for readability
+PS1='\n\u@\h:\w\n\$ '
+# Shows:
+# alice@laptop:~/projects
+# $</pre>
+
+            <p><strong>With colors:</strong></p>
+            <pre># Green user@host, blue directory
+PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+
+# Color codes:
+# \[\033[01;32m\] - Green
+# \[\033[01;34m\] - Blue
+# \[\033[01;31m\] - Red
+# \[\033[00m\]    - Reset color</pre>
+
+            <p><strong>Advanced - show git branch:</strong></p>
+            <pre># Add to ~/.bashrc
+parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
+}
+
+PS1='\u@\h:\w$(parse_git_branch)\$ '
+# Shows: alice@laptop:~/project(main)$</pre>
+
+            <p><strong>Other useful escapes:</strong></p>
+            <ul>
+                <li><code>\t</code> - Current time (HH:MM:SS)</li>
+                <li><code>\d</code> - Date</li>
+                <li><code>\n</code> - Newline</li>
+                <li><code>\$</code> - $ for regular user, # for root</li>
+                <li><code>\!</code> - History number</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            How do you configure command history in bash? How do you increase history size, prevent duplicates, or make history shared across sessions?
+        </div>
+        <div class="back">
+            <strong>HISTSIZE:</strong> Number of commands in memory<br>
+            <strong>HISTFILESIZE:</strong> Number of commands in ~/.bash_history file<br>
+            <strong>HISTCONTROL:</strong> Control what's saved
+
+            <p><strong>Why:</strong> Default history is small (500 commands). Customizing it makes you more productive.</p>
+
+            <p><strong>Basic settings (add to ~/.bashrc):</strong></p>
+            <pre># Increase history size
+HISTSIZE=10000           # Commands in memory
+HISTFILESIZE=20000       # Commands in history file
+
+# Ignore duplicates and commands starting with space
+HISTCONTROL=ignoreboth
+
+# Or separately:
+# HISTCONTROL=ignoredups   # Ignore duplicate commands
+# HISTCONTROL=ignorespace  # Ignore commands starting with space
+# HISTCONTROL=ignoreboth   # Both
+
+# Ignore specific commands
+HISTIGNORE="ls:ll:cd:pwd:exit:clear"
+
+# Append to history instead of overwriting
+shopt -s histappend
+
+# Save history after each command (share across sessions)
+PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"</pre>
+
+            <p><strong>Useful history commands:</strong></p>
+            <pre># Search history
+history | grep docker
+
+# Re-run command by number
+!123
+
+# Re-run last command
+!!
+
+# Re-run last command starting with "git"
+!git
+
+# Search history interactively
+Ctrl+R  # Then type search term</pre>
+
+            <div class="note"><strong>Recommended setup:</strong> Large history size, ignoreboth, histappend. Never lose a useful command!</div>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            What are important environment variables for tools? What's EDITOR, VISUAL, PAGER? How do they affect command-line tools?
+        </div>
+        <div class="back">
+            <strong>EDITOR:</strong> Default editor for editing files<br>
+            <strong>VISUAL:</strong> Default visual editor (same as EDITOR usually)<br>
+            <strong>PAGER:</strong> Program for viewing long output (less, more)
+
+            <p><strong>Why:</strong> Many tools use these variables to know which program to launch.</p>
+
+            <p><strong>Common settings (add to ~/.bash_profile):</strong></p>
+            <pre># Set default editor
+export EDITOR=vim
+export VISUAL=vim
+
+# Set default pager
+export PAGER=less
+
+# Make less more friendly
+export LESS='-R -i -M -X -F'
+# -R: Raw control chars (colors)
+# -i: Ignore case in search
+# -M: Long prompt (more info)
+# -X: Don't clear screen on exit
+# -F: Quit if less than one screen</pre>
+
+            <p><strong>Who uses these variables:</strong></p>
+            <ul>
+                <li><code>git commit</code> - Opens $EDITOR for commit message</li>
+                <li><code>crontab -e</code> - Opens $EDITOR to edit cron jobs</li>
+                <li><code>visudo</code> - Uses $EDITOR (or VISUAL) for sudoers file</li>
+                <li><code>man</code> - Uses $PAGER to display manual pages</li>
+                <li><code>git log</code> - Uses $PAGER for long output</li>
+                <li><code>systemctl</code> - Uses $PAGER for long lists</li>
+            </ul>
+
+            <p><strong>Other useful environment variables:</strong></p>
+            <pre># Language and locale
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# Timezone
+export TZ=America/New_York
+
+# Node.js version manager
+export NVM_DIR="$HOME/.nvm"
+
+# Python virtual environment
+export WORKON_HOME="$HOME/.virtualenvs"
+
+# Go workspace
+export GOPATH="$HOME/go"
+export PATH="$PATH:$GOPATH/bin"</pre>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            What are shell options (shopt) and how do you configure them? What useful options exist for autocomplete, history, and behavior?
+        </div>
+        <div class="back">
+            <strong>shopt:</strong> Set shell options that change bash behavior<br>
+            <strong>View options:</strong> <code>shopt</code> (all) or <code>shopt option</code> (specific)<br>
+            <strong>Enable:</strong> <code>shopt -s option</code><br>
+            <strong>Disable:</strong> <code>shopt -u option</code>
+
+            <p><strong>Why:</strong> Shell options control bash features and behavior. Customizing them improves usability.</p>
+
+            <p><strong>Useful options (add to ~/.bashrc):</strong></p>
+            <pre># Append to history instead of overwriting
+shopt -s histappend
+
+# Autocorrect minor typos in cd
+shopt -s cdspell
+
+# Autocorrect during completion
+shopt -s dirspell
+
+# Update LINES and COLUMNS after each command
+shopt -s checkwinsize
+
+# Enable ** for recursive globbing
+shopt -s globstar
+# Now: ls **/*.txt finds all .txt files recursively
+
+# Prevent overwriting files with >
+# (Use >| to force)
+set -o noclobber
+
+# Enable extended pattern matching
+shopt -s extglob
+# Allows: !(pattern), ?(pattern), *(pattern), +(pattern), @(pattern)</pre>
+
+            <p><strong>Examples of what they do:</strong></p>
+            <pre># Without cdspell:
+cd /ect/ssh  # Error: No such directory
+
+# With cdspell:
+cd /ect/ssh  # Auto-corrects to /etc/ssh
+
+# Without globstar:
+ls */*.txt   # Only one level deep
+
+# With globstar:
+ls **/*.txt  # All .txt files in all subdirectories
+
+# Without noclobber:
+echo "oops" > important.txt  # Overwrites file!
+
+# With noclobber:
+echo "data" > important.txt  # Error: file exists
+echo "data" >| important.txt # OK, force overwrite</pre>
+
+            <div class="note"><strong>View all options:</strong> <code>shopt</code> shows all with on/off status</div>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            How do you organize your dotfiles? What's a common structure for managing .bashrc, .bash_profile, and other configs? How do you sync them across machines?
+        </div>
+        <div class="back">
+            <strong>Common approach:</strong> Git repository with dotfiles, symlinked to home directory
+
+            <p><strong>Why:</strong> Version control your configs. Easy to sync across machines, rollback changes, share with others.</p>
+
+            <p><strong>Typical dotfiles repository structure:</strong></p>
+            <pre>~/dotfiles/
+├── .bashrc
+├── .bash_profile
+├── .vimrc
+├── .gitconfig
+├── .tmux.conf
+├── .ssh/
+│   └── config
+├── scripts/
+│   └── setup.sh
+└── README.md</pre>
+
+            <p><strong>Setup process:</strong></p>
+            <pre># 1. Create dotfiles repo
+cd ~
+mkdir dotfiles
+cd dotfiles
+git init
+
+# 2. Move configs to repo
+mv ~/.bashrc ~/dotfiles/.bashrc
+mv ~/.bash_profile ~/dotfiles/.bash_profile
+
+# 3. Create symlinks
+ln -s ~/dotfiles/.bashrc ~/.bashrc
+ln -s ~/dotfiles/.bash_profile ~/.bash_profile
+
+# 4. Commit and push
+git add .
+git commit -m "Initial dotfiles"
+git remote add origin https://github.com/username/dotfiles.git
+git push -u origin main</pre>
+
+            <p><strong>On a new machine:</strong></p>
+            <pre># Clone dotfiles
+cd ~
+git clone https://github.com/username/dotfiles.git
+
+# Run setup script
+cd dotfiles
+./scripts/setup.sh
+
+# Or manually symlink
+ln -s ~/dotfiles/.bashrc ~/.bashrc
+ln -s ~/dotfiles/.bash_profile ~/.bash_profile
+source ~/.bashrc</pre>
+
+            <p><strong>Advanced: Modular config:</strong></p>
+            <pre># .bashrc can source multiple files
+# ~/dotfiles/.bashrc:
+for file in ~/dotfiles/bash/*.sh; do
+    source "$file"
+done
+
+# Structure:
+~/dotfiles/bash/
+├── aliases.sh
+├── functions.sh
+├── prompt.sh
+└── git.sh</pre>
+
+            <div class="note"><strong>Popular tools:</strong> GNU Stow, dotbot, chezmoi automate dotfile management. Or just use git + symlinks!</div>
+        </div>
+        <div class="tags">cs bash shell config EN</div>
+    </div>
+
+</body>
+</html>

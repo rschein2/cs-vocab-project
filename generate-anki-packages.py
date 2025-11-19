@@ -201,6 +201,15 @@ if __name__ == '__main__':
         ('git-flashcards.html', 'CS Vocab::Git', 'cs-vocab-git.apkg', 2059400110),
         ('tmux-flashcards.html', 'CS Vocab::tmux', 'cs-vocab-tmux.apkg', 2059400111),
         ('ssh-flashcards.html', 'CS Vocab::SSH', 'cs-vocab-ssh.apkg', 2059400112),
+        ('linux-shell-flashcards.html', 'CS Vocab::Linux Shell', 'cs-vocab-linux.apkg', 2059400113),
+        ('linux-utilities-flashcards.html', 'CS Vocab::Linux Utilities', 'cs-vocab-linux-utils.apkg', 2059400114),
+        ('linux-processes-flashcards.html', 'CS Vocab::Linux Processes', 'cs-vocab-processes.apkg', 2059400115),
+        ('readline-shortcuts-flashcards.html', 'CS Vocab::Readline Shortcuts', 'cs-vocab-readline.apkg', 2059400116),
+        ('shell-scripting-flashcards.html', 'CS Vocab::Shell Scripting', 'cs-vocab-scripting.apkg', 2059400117),
+        ('regex-flashcards.html', 'CS Vocab::Regex Patterns', 'cs-vocab-regex.apkg', 2059400118),
+        ('networking-flashcards.html', 'CS Vocab::Networking', 'cs-vocab-networking.apkg', 2059400119),
+        ('filesystem-flashcards.html', 'CS Vocab::File System Hierarchy', 'cs-vocab-filesystem.apkg', 2059400120),
+        ('shell-config-flashcards.html', 'CS Vocab::Shell Configuration', 'cs-vocab-shell-config.apkg', 2059400121),
     ]
 
     for html_file, deck_name, output_file, deck_id in deck_configs:
@@ -222,11 +231,20 @@ if __name__ == '__main__':
     print('Done! Import the .apkg files into Anki.')
     print()
     print('Individual packages:')
-    print('  - cs-vocab-git.apkg   (Git only)')
-    print('  - cs-vocab-tmux.apkg  (tmux only)')
-    print('  - cs-vocab-ssh.apkg   (SSH only)')
+    print('  - cs-vocab-git.apkg         (Git only)')
+    print('  - cs-vocab-tmux.apkg        (tmux only)')
+    print('  - cs-vocab-ssh.apkg         (SSH only)')
+    print('  - cs-vocab-linux.apkg       (Linux Shell only)')
+    print('  - cs-vocab-linux-utils.apkg (Linux Utilities only)')
+    print('  - cs-vocab-processes.apkg   (Linux Processes only)')
+    print('  - cs-vocab-readline.apkg    (Readline/Bash Shortcuts only)')
+    print('  - cs-vocab-scripting.apkg   (Shell Scripting only)')
+    print('  - cs-vocab-regex.apkg       (Regex Patterns only)')
+    print('  - cs-vocab-networking.apkg  (Networking only)')
+    print('  - cs-vocab-filesystem.apkg  (File System Hierarchy only)')
+    print('  - cs-vocab-shell-config.apkg (Shell Configuration only)')
     print()
     print('Combined package:')
-    print('  - cs-vocab-all.apkg   (All three topics)')
+    print('  - cs-vocab-all.apkg         (All topics)')
     print()
-    print('Import creates subdeck structure: CS Vocab → Git/tmux/SSH')
+    print('Import creates subdeck structure: CS Vocab → Git/tmux/SSH/Linux Shell/Linux Utilities/Linux Processes/Readline Shortcuts/Shell Scripting/Regex Patterns/Networking/File System Hierarchy/Shell Configuration')

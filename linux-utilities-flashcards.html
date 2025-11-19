@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Linux Utilities Flashcards - CS Vocabulary Project</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #9B59B6;
+        }
+        .card {
+            background-color: #fff;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .back {
+            color: #555;
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.85em;
+            color: #888;
+        }
+        .tags::before {
+            content: "Tags: ";
+            font-weight: 600;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Linux Utilities Flashcards - CS Vocabulary Project</h1>
+    <p><strong>28 cards</strong> covering essential Linux system utilities</p>
+    <p><strong>Tags:</strong> cs, linux, utilities, EN</p>
+
+    <h3>How to Import into Anki:</h3>
+    <ol>
+        <li><strong>Option 1 - Use .apkg file:</strong> Run <code>python3 generate-anki-packages.py</code> to create <code>cs-vocab-linux-utils.apkg</code></li>
+        <li><strong>Option 2 - Manual Import:</strong> Create a deck in Anki and manually copy/paste the front/back content from each card below</li>
+    </ol>
+
+    <p><em>Each card includes the question (sometimes with follow-up prompts), command(s), explanation of WHY, and 2-3 alternatives or related commands.</em></p>
+</div>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        How do you manage system services with systemd? Start a service? Enable it to start at boot? Check its status?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>systemctl start service</code> - start now</li>
+            <li><code>systemctl stop service</code> - stop now</li>
+            <li><code>systemctl restart service</code> - restart</li>
+            <li><code>systemctl enable service</code> - auto-start at boot</li>
+            <li><code>systemctl disable service</code> - don't auto-start</li>
+            <li><code>systemctl status service</code> - check current status</li>
+        </ul>
+
+        <p><strong>Why systemctl:</strong> Modern Linux uses systemd to manage services. These commands replace older init.d scripts.</p>
+
+        <p><strong>Common patterns:</strong></p>
+        <pre><code>sudo systemctl start nginx           # Start web server now
+sudo systemctl enable nginx          # Make it start at boot
+sudo systemctl restart ssh           # Restart SSH after config change
+systemctl status postgresql          # Is database running?
+sudo systemctl enable --now docker   # Enable AND start in one command</code></pre>
+
+        <p><strong>List services:</strong></p>
+        <pre><code>systemctl list-units --type=service       # All loaded services
+systemctl list-unit-files --type=service  # All available services
+systemctl list-units --state=failed       # Failed services</code></pre>
+
+        <p><strong>Why enable vs start:</strong></p>
+        <ul>
+            <li><code>start</code> - runs now, but won't survive reboot</li>
+            <li><code>enable</code> - starts at boot, but doesn't start now</li>
+            <li><code>enable --now</code> - both!</li>
+        </ul>
+
+        <p><strong>View logs for a service:</strong></p>
+        <pre><code>journalctl -u service-name -f</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        How do you view system logs? What about following logs in real-time? Filtering by service or time?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>journalctl</code>
+
+        <p><strong>Why journalctl:</strong> Systemd's logging system. Replaces reading text files in /var/log for many services.</p>
+
+        <p><strong>Common patterns:</strong></p>
+        <pre><code>journalctl                          # All logs (paged)
+journalctl -f                       # Follow logs in real-time (like tail -f)
+journalctl -u nginx                 # Logs for nginx service only
+journalctl -u nginx -f              # Follow nginx logs
+journalctl --since "1 hour ago"     # Last hour
+journalctl --since "2024-01-15"     # Since specific date
+journalctl --since today            # Today's logs
+journalctl -p err                   # Only errors (and worse)
+journalctl -k                       # Kernel messages only
+journalctl -b                       # Since last boot</code></pre>
+
+        <p><strong>Priority levels:</strong></p>
+        <ul>
+            <li><code>-p emerg</code> - System unusable</li>
+            <li><code>-p err</code> - Errors</li>
+            <li><code>-p warning</code> - Warnings</li>
+            <li><code>-p info</code> - Info messages</li>
+        </ul>
+
+        <p><strong>Useful combinations:</strong></p>
+        <pre><code>journalctl -u ssh -f --since "5 minutes ago"
+journalctl -p err -b                # All errors since boot
+journalctl -xe                      # Last entries with explanations</code></pre>
+
+        <p><strong>Disk usage:</strong></p>
+        <pre><code>journalctl --disk-usage             # How much space logs use
+sudo journalctl --vacuum-time=2weeks  # Keep only 2 weeks
+sudo journalctl --vacuum-size=1G      # Keep only 1GB</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        How do you connect to WiFi from the command line? List available networks? Disconnect?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>nmcli</code> (NetworkManager CLI)
+
+        <p><strong>Why nmcli:</strong> NetworkManager's command-line interface. Works on most modern Linux desktops.</p>
+
+        <p><strong>Common operations:</strong></p>
+        <pre><code>nmcli device wifi list              # List available WiFi networks
+nmcli device wifi connect "SSID" password "PASSWORD"
+nmcli connection up "Network Name"  # Connect to saved network
+nmcli connection down "Network Name" # Disconnect
+nmcli device disconnect wlan0       # Disconnect WiFi adapter</code></pre>
+
+        <p><strong>View connection status:</strong></p>
+        <pre><code>nmcli                               # General status
+nmcli connection show               # All saved connections
+nmcli device status                 # Network devices status
+nmcli connection show --active      # Active connections only</code></pre>
+
+        <p><strong>Show WiFi password:</strong></p>
+        <pre><code>nmcli connection show "Network" --show-secrets | grep psk</code></pre>
+
+        <p><strong>Delete saved network:</strong></p>
+        <pre><code>nmcli connection delete "Network Name"</code></pre>
+
+        <p><strong>Alternative (older systems):</strong></p>
+        <pre><code>iwctl                               # For iwd (iNet wireless daemon)
+# or
+wpa_supplicant                      # Lower-level WiFi tool</code></pre>
+
+        <p><strong>Enable/disable WiFi:</strong></p>
+        <pre><code>nmcli radio wifi off
+nmcli radio wifi on</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        How do you adjust screen brightness? What about getting current brightness level? Set to a specific percentage?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>brightnessctl</code> - modern, user-friendly</li>
+            <li><code>xrandr --output SCREEN --brightness 0.7</code> - X11 alternative</li>
+        </ul>
+
+        <p><strong>brightnessctl usage:</strong></p>
+        <pre><code>brightnessctl                       # Show current brightness
+brightnessctl set 50%               # Set to 50%
+brightnessctl set +10%              # Increase by 10%
+brightnessctl set 10%-              # Decrease by 10%
+brightnessctl set 500               # Set to absolute value
+brightnessctl -l                    # List devices</code></pre>
+
+        <p><strong>Why brightnessctl:</strong> Works with modern backlight systems, doesn't require X11, user-friendly.</p>
+
+        <p><strong>xrandr alternative:</strong></p>
+        <pre><code>xrandr --output eDP-1 --brightness 0.5   # 50% brightness
+xrandr --output eDP-1 --brightness 1.0   # Full brightness (default)</code></pre>
+
+        <p><strong>Find your screen name:</strong></p>
+        <pre><code>xrandr | grep " connected"</code></pre>
+
+        <p><strong>Manual file method (advanced):</strong></p>
+        <pre><code>cat /sys/class/backlight/*/brightness      # Current value
+cat /sys/class/backlight/*/max_brightness  # Max value
+echo 500 | sudo tee /sys/class/backlight/*/brightness  # Set value</code></pre>
+
+        <p><strong>Keyboard shortcuts:</strong> Often <code>Fn + F5/F6</code> or similar, handled by desktop environment.</p>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        How do you manage Bluetooth devices? Connect to a device? List paired devices? Turn Bluetooth on/off?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>bluetoothctl</code>
+
+        <p><strong>Why bluetoothctl:</strong> Interactive Bluetooth management tool that works across different Linux systems.</p>
+
+        <p><strong>Basic workflow:</strong></p>
+        <pre><code>bluetoothctl                        # Start interactive mode
+power on                            # Turn on Bluetooth
+scan on                             # Start scanning for devices
+# Wait for device to appear...
+pair AA:BB:CC:DD:EE:FF              # Pair with device
+connect AA:BB:CC:DD:EE:FF           # Connect to device
+trust AA:BB:CC:DD:EE:FF             # Auto-connect in future
+exit                                # Leave bluetoothctl</code></pre>
+
+        <p><strong>Non-interactive commands:</strong></p>
+        <pre><code>bluetoothctl power on
+bluetoothctl devices                # List known devices
+bluetoothctl paired-devices         # List paired devices
+bluetoothctl connect AA:BB:CC:DD:EE:FF
+bluetoothctl disconnect AA:BB:CC:DD:EE:FF</code></pre>
+
+        <p><strong>Remove/unpair device:</strong></p>
+        <pre><code>bluetoothctl remove AA:BB:CC:DD:EE:FF</code></pre>
+
+        <p><strong>Show Bluetooth status:</strong></p>
+        <pre><code>bluetoothctl show                   # Controller info
+rfkill list bluetooth               # Is Bluetooth blocked?</code></pre>
+
+        <p><strong>Unblock if disabled:</strong></p>
+        <pre><code>rfkill unblock bluetooth</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        How do you control audio volume? Mute/unmute? Switch audio output devices?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>pactl</code> - PulseAudio control (modern)</li>
+            <li><code>amixer</code> - ALSA mixer (older/simpler)</li>
+        </ul>
+
+        <p><strong>pactl (PulseAudio) - recommended:</strong></p>
+        <pre><code>pactl set-sink-volume @DEFAULT_SINK@ +5%    # Increase 5%
+pactl set-sink-volume @DEFAULT_SINK@ -5%    # Decrease 5%
+pactl set-sink-volume @DEFAULT_SINK@ 50%    # Set to 50%
+pactl set-sink-mute @DEFAULT_SINK@ toggle   # Toggle mute
+pactl list sinks                            # List audio outputs
+pactl list sources                          # List audio inputs (mics)</code></pre>
+
+        <p><strong>Set specific output device:</strong></p>
+        <pre><code>pactl list sinks short              # Get sink ID/name
+pactl set-default-sink SINK_NAME    # Set as default output</code></pre>
+
+        <p><strong>amixer (ALSA) alternative:</strong></p>
+        <pre><code>amixer set Master 5%+               # Increase volume
+amixer set Master 5%-               # Decrease volume
+amixer set Master 50%               # Set to 50%
+amixer set Master toggle            # Toggle mute
+amixer sget Master                  # Get current volume</code></pre>
+
+        <p><strong>Interactive TUI:</strong></p>
+        <pre><code>alsamixer                           # ncurses interface
+# Use arrow keys, M to mute, Esc to exit</code></pre>
+
+        <p><strong>Why PulseAudio vs ALSA:</strong> PulseAudio sits on top of ALSA, provides per-application volume, network audio, etc.</p>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        How do you install packages? Update all packages? Search for a package? What about different distros?
+    </div>
+    <div class="back">
+        <strong>Commands by distribution:</strong>
+
+        <p><strong>Debian/Ubuntu (apt):</strong></p>
+        <pre><code>sudo apt update                     # Refresh package list
+sudo apt upgrade                    # Upgrade all packages
+sudo apt install package-name       # Install package
+sudo apt remove package-name        # Remove package
+sudo apt search keyword             # Search for packages
+apt list --installed                # List installed packages</code></pre>
+
+        <p><strong>Fedora/RHEL (dnf):</strong></p>
+        <pre><code>sudo dnf update                     # Update all packages
+sudo dnf install package-name       # Install package
+sudo dnf remove package-name        # Remove package
+sudo dnf search keyword             # Search
+dnf list installed                  # List installed</code></pre>
+
+        <p><strong>Arch Linux (pacman):</strong></p>
+        <pre><code>sudo pacman -Syu                    # Update system
+sudo pacman -S package-name         # Install package
+sudo pacman -R package-name         # Remove package
+sudo pacman -Ss keyword             # Search
+pacman -Q                           # List installed</code></pre>
+
+        <p><strong>Why update before install:</strong></p>
+        <pre><code>sudo apt update && sudo apt install package
+# Update ensures you get the latest version</code></pre>
+
+        <p><strong>Clean up:</strong></p>
+        <pre><code>sudo apt autoremove                 # Remove unused dependencies
+sudo dnf autoremove
+sudo pacman -Rns $(pacman -Qdtq)   # Remove orphans (Arch)</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        How do you check battery status? See power statistics? What about laptop power profiles?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>upower -i /org/freedesktop/UPower/devices/battery_BAT0</code></li>
+            <li><code>acpi</code> - simpler alternative</li>
+        </ul>
+
+        <p><strong>Quick battery check:</strong></p>
+        <pre><code>acpi                                # Battery percentage and status
+acpi -V                             # Verbose (temp, cooling, etc.)</code></pre>
+
+        <p><strong>Detailed battery info:</strong></p>
+        <pre><code>upower -i $(upower -e | grep BAT)   # Full battery statistics
+upower -d                           # All power devices</code></pre>
+
+        <p><strong>What you see:</strong></p>
+        <ul>
+            <li>Battery percentage</li>
+            <li>Charging/discharging state</li>
+            <li>Time to empty/full</li>
+            <li>Battery health/capacity</li>
+            <li>Energy rate (watts)</li>
+        </ul>
+
+        <p><strong>Power profiles (TLP for battery optimization):</strong></p>
+        <pre><code>sudo tlp-stat -b                    # Battery info
+sudo tlp start                      # Enable power saving
+sudo systemctl enable tlp           # Enable at boot</code></pre>
+
+        <p><strong>Power management (systemd):</strong></p>
+        <pre><code>systemctl suspend                   # Suspend (sleep)
+systemctl hibernate                 # Hibernate (save to disk)
+systemctl hybrid-sleep              # Both</code></pre>
+
+        <p><strong>Monitor power usage:</strong></p>
+        <pre><code>powertop                            # Interactive power monitor
+# Press Tab to see different views</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        How do you manage displays and monitors? Change resolution? Set up multiple monitors? Rotate a screen?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>xrandr</code> (X11) or <code>wlr-randr</code> (Wayland)
+
+        <p><strong>Basic xrandr usage:</strong></p>
+        <pre><code>xrandr                              # List all displays and resolutions
+xrandr --output HDMI-1 --mode 1920x1080   # Set resolution
+xrandr --output HDMI-1 --rotate left      # Rotate screen
+xrandr --output HDMI-1 --off              # Turn off display
+xrandr --output HDMI-1 --auto             # Auto-detect best mode</code></pre>
+
+        <p><strong>Multiple monitor setup:</strong></p>
+        <pre><code># External monitor to the right of laptop screen
+xrandr --output eDP-1 --primary --output HDMI-1 --right-of eDP-1 --auto
+
+# Mirror displays
+xrandr --output HDMI-1 --same-as eDP-1
+
+# External only, disable laptop screen
+xrandr --output eDP-1 --off --output HDMI-1 --auto</code></pre>
+
+        <p><strong>Find display names:</strong></p>
+        <pre><code>xrandr | grep " connected"</code></pre>
+
+        <p><strong>Set refresh rate:</strong></p>
+        <pre><code>xrandr --output HDMI-1 --mode 1920x1080 --rate 144</code></pre>
+
+        <p><strong>Wayland alternative:</strong></p>
+        <pre><code>wlr-randr                           # List outputs
+wlr-randr --output HDMI-A-1 --mode 1920x1080@60</code></pre>
+
+        <p><strong>GUI tools:</strong></p>
+        <ul>
+            <li><code>arandr</code> - Graphical xrandr frontend</li>
+            <li>Settings app in your desktop environment</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        How do you list block devices and partitions? Mount a USB drive? Unmount safely?
+    </div>
+    <div class="back">
+        <strong>List devices:</strong> <code>lsblk</code>
+
+        <p><strong>Why lsblk is useful:</strong> Shows all block devices (drives, partitions) in a tree format with size, mount points.</p>
+
+        <p><strong>Example output:</strong></p>
+        <pre><code>NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda      8:0    0  500G  0 disk
+├─sda1   8:1    0  512M  0 part /boot
+└─sda2   8:2    0  499G  0 part /
+sdb      8:16   1   32G  0 disk
+└─sdb1   8:17   1   32G  0 part /media/usb</code></pre>
+
+        <p><strong>Mount USB drive:</strong></p>
+        <pre><code>lsblk                               # Find device (e.g., sdb1)
+sudo mkdir -p /mnt/usb              # Create mount point
+sudo mount /dev/sdb1 /mnt/usb       # Mount
+cd /mnt/usb                         # Access files</code></pre>
+
+        <p><strong>Unmount safely:</strong></p>
+        <pre><code>sudo umount /mnt/usb                # Unmount
+# or
+sudo umount /dev/sdb1               # By device name</code></pre>
+
+        <p><strong>Why safe unmounting matters:</strong> Ensures all data is written to disk before removal. Otherwise, risk data corruption.</p>
+
+        <p><strong>If device is busy:</strong></p>
+        <pre><code>lsof /mnt/usb                       # See what's using it
+sudo umount -l /mnt/usb             # Lazy unmount (waits until free)</code></pre>
+
+        <p><strong>Auto-mount at boot (edit /etc/fstab):</strong></p>
+        <pre><code>/dev/sdb1  /mnt/usb  ext4  defaults  0  2</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        How do you set up a cron job? Edit crontab? What about different schedules (hourly, daily, weekly)?
+    </div>
+    <div class="back">
+        <strong>Edit crontab:</strong> <code>crontab -e</code>
+
+        <p><strong>Why cron:</strong> Schedule commands to run automatically at specific times or intervals.</p>
+
+        <p><strong>Crontab syntax:</strong></p>
+        <pre><code># Min Hour Day Month Weekday Command
+  *    *    *    *      *     /path/to/command
+
+# Examples:
+0  2  *  *  *  /backup.sh              # Daily at 2 AM
+*/5  *  *  *  *  /check.sh              # Every 5 minutes
+0  */6  *  *  *  /update.sh             # Every 6 hours
+0  0  *  *  0  /weekly.sh               # Sundays at midnight
+0  0  1  *  *  /monthly.sh              # 1st of month at midnight</code></pre>
+
+        <p><strong>Manage crontabs:</strong></p>
+        <pre><code>crontab -e                          # Edit your crontab
+crontab -l                          # List current crontab
+crontab -r                          # Remove crontab (careful!)
+sudo crontab -u username -e         # Edit another user's crontab</code></pre>
+
+        <p><strong>Shorthand schedules:</strong></p>
+        <pre><code>@reboot    /script.sh               # Run at startup
+@hourly    /script.sh               # Once per hour (0 * * * *)
+@daily     /script.sh               # Once per day (0 0 * * *)
+@weekly    /script.sh               # Once per week (0 0 * * 0)
+@monthly   /script.sh               # Once per month (0 0 1 * *)</code></pre>
+
+        <p><strong>View cron logs:</strong></p>
+        <pre><code>grep CRON /var/log/syslog           # Debian/Ubuntu
+journalctl -u cron                  # Systemd systems</code></pre>
+
+        <p><strong>Debug cron jobs:</strong> Redirect output to a log file:</p>
+        <pre><code>0 2 * * * /script.sh >> /var/log/script.log 2>&1</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        How do you check system information? OS version? Kernel version? Hardware details?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+
+        <p><strong>Kernel and OS:</strong></p>
+        <pre><code>uname -a                            # All system info
+uname -r                            # Kernel version only
+uname -m                            # Architecture (x86_64, aarch64, etc.)
+hostnamectl                         # Hostname, OS, kernel (systemd)</code></pre>
+
+        <p><strong>Distribution info:</strong></p>
+        <pre><code>lsb_release -a                      # Distribution details
+cat /etc/os-release                 # OS info (works on most distros)
+cat /etc/*-release                  # Alternative</code></pre>
+
+        <p><strong>Hardware information:</strong></p>
+        <pre><code>lscpu                               # CPU details
+lsmem                               # Memory
+lspci                               # PCI devices (graphics, network cards)
+lsusb                               # USB devices
+lsblk                               # Block devices (drives)</code></pre>
+
+        <p><strong>Detailed hardware info:</strong></p>
+        <pre><code>sudo dmidecode                      # Everything (BIOS, RAM, etc.)
+sudo lshw                           # Comprehensive hardware list
+sudo lshw -short                    # Compact format
+inxi -F                             # User-friendly system info (if installed)</code></pre>
+
+        <p><strong>Memory and CPU usage:</strong></p>
+        <pre><code>free -h                             # RAM usage (human-readable)
+nproc                               # Number of CPU cores
+cat /proc/cpuinfo                   # Detailed CPU info
+cat /proc/meminfo                   # Detailed memory info</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        How do you create a new user? Set their password? Add them to a group? Delete a user?
+    </div>
+    <div class="back">
+        <strong>Create user:</strong> <code>sudo useradd username</code>
+
+        <p><strong>Better way (with home directory):</strong></p>
+        <pre><code>sudo useradd -m -s /bin/bash username
+# -m creates home directory
+# -s sets default shell</code></pre>
+
+        <p><strong>Set password:</strong></p>
+        <pre><code>sudo passwd username</code></pre>
+
+        <p><strong>Create user with one command (interactive):</strong></p>
+        <pre><code>sudo adduser username               # Debian/Ubuntu (user-friendly)
+# Prompts for password, full name, etc.</code></pre>
+
+        <p><strong>Add user to groups:</strong></p>
+        <pre><code>sudo usermod -aG sudo username      # Add to sudo group (grant admin)
+sudo usermod -aG docker username    # Add to docker group
+sudo usermod -aG wheel username     # Add to wheel group (RHEL/Fedora admin)</code></pre>
+
+        <p><strong>Why -aG:</strong></p>
+        <ul>
+            <li><code>-a</code> = append (don't remove from other groups)</li>
+            <li><code>-G</code> = supplementary groups</li>
+        </ul>
+
+        <p><strong>Delete user:</strong></p>
+        <pre><code>sudo userdel username               # Keep home directory
+sudo userdel -r username            # Delete with home directory</code></pre>
+
+        <p><strong>List users:</strong></p>
+        <pre><code>cat /etc/passwd                     # All users (system + human)
+cut -d: -f1 /etc/passwd | sort      # Just usernames</code></pre>
+
+        <p><strong>Change user password:</strong></p>
+        <pre><code>passwd                              # Change your own password</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        How do you manage the firewall? Open a port? Check firewall status? What about different firewall tools?
+    </div>
+    <div class="back">
+        <strong>Commands by tool:</strong>
+
+        <p><strong>UFW (Uncomplicated Firewall - Ubuntu/Debian):</strong></p>
+        <pre><code>sudo ufw status                     # Check status
+sudo ufw enable                     # Enable firewall
+sudo ufw allow 22                   # Open port 22 (SSH)
+sudo ufw allow 80/tcp               # Open port 80 TCP only
+sudo ufw allow ssh                  # Open SSH (by service name)
+sudo ufw deny 23                    # Block port 23
+sudo ufw delete allow 80            # Remove rule
+sudo ufw status numbered            # Show rules with numbers
+sudo ufw delete 3                   # Delete rule by number</code></pre>
+
+        <p><strong>firewalld (Fedora/RHEL/CentOS):</strong></p>
+        <pre><code>sudo firewall-cmd --state           # Check if running
+sudo firewall-cmd --list-all        # Show all rules
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --reload          # Apply permanent changes
+sudo firewall-cmd --add-service=http --permanent
+sudo firewall-cmd --remove-port=80/tcp --permanent</code></pre>
+
+        <p><strong>iptables (low-level, all distros):</strong></p>
+        <pre><code>sudo iptables -L                    # List rules
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+# More complex, usually use ufw/firewalld instead</code></pre>
+
+        <p><strong>Common ports:</strong></p>
+        <ul>
+            <li>22 - SSH</li>
+            <li>80 - HTTP</li>
+            <li>443 - HTTPS</li>
+            <li>3000 - Many dev servers</li>
+            <li>5432 - PostgreSQL</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        How do you check network connectivity? Test if a host is reachable? Trace the route to a host? See open ports?
+    </div>
+    <div class="back">
+        <strong>Basic connectivity:</strong> <code>ping hostname</code>
+
+        <p><strong>Common network diagnostics:</strong></p>
+        <pre><code>ping google.com                     # Test connectivity
+ping -c 4 google.com                # Send only 4 packets
+traceroute google.com               # Trace route to host
+tracepath google.com                # Alternative (no root needed)
+mtr google.com                      # Continuous traceroute + ping</code></pre>
+
+        <p><strong>Check open ports and connections:</strong></p>
+        <pre><code>ss -tuln                            # All listening TCP/UDP ports (modern)
+netstat -tuln                       # Same thing (older command)
+ss -tunap                           # Include process names (-p)
+lsof -i :80                         # What's using port 80?</code></pre>
+
+        <p><strong>Flags explained:</strong></p>
+        <ul>
+            <li><code>-t</code> = TCP</li>
+            <li><code>-u</code> = UDP</li>
+            <li><code>-l</code> = listening</li>
+            <li><code>-n</code> = numeric (don't resolve names)</li>
+            <li><code>-a</code> = all connections</li>
+            <li><code>-p</code> = process</li>
+        </ul>
+
+        <p><strong>DNS lookup:</strong></p>
+        <pre><code>nslookup google.com                 # Basic DNS query
+dig google.com                      # Detailed DNS info
+host google.com                     # Simple DNS lookup</code></pre>
+
+        <p><strong>Check local network configuration:</strong></p>
+        <pre><code>ip addr                             # IP addresses (modern)
+ip route                            # Routing table
+ifconfig                            # Network interfaces (older)</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        How do you set the system time and date? Configure timezone? Use network time sync (NTP)?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>timedatectl</code> (systemd)
+
+        <p><strong>View current time/date settings:</strong></p>
+        <pre><code>timedatectl                         # Show current settings
+date                                # Just show current date/time</code></pre>
+
+        <p><strong>Set timezone:</strong></p>
+        <pre><code>timedatectl list-timezones          # List all timezones
+timedatectl set-timezone America/New_York
+timedatectl set-timezone Europe/London
+timedatectl set-timezone UTC</code></pre>
+
+        <p><strong>Enable NTP (network time sync):</strong></p>
+        <pre><code>timedatectl set-ntp true            # Enable automatic time sync
+systemctl status systemd-timesyncd  # Check sync service status</code></pre>
+
+        <p><strong>Manually set date/time (if NTP disabled):</strong></p>
+        <pre><code>sudo timedatectl set-time "2024-01-15 14:30:00"
+sudo timedatectl set-time "14:30:00"  # Time only</code></pre>
+
+        <p><strong>Why NTP is recommended:</strong> Keeps your clock accurate automatically. Important for logs, certificates, scheduled tasks.</p>
+
+        <p><strong>Old way (non-systemd):</strong></p>
+        <pre><code>sudo date -s "2024-01-15 14:30:00"  # Set date/time
+sudo hwclock --systohc              # Sync to hardware clock
+ntpdate pool.ntp.org                # Sync with NTP server</code></pre>
+
+        <p><strong>Show hardware clock:</strong></p>
+        <pre><code>sudo hwclock --show</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        How do you take a screenshot? What about selecting a region? Recording the screen?
+    </div>
+    <div class="back">
+        <strong>Screenshot commands (depends on environment):</strong>
+
+        <p><strong>GNOME/many desktops:</strong></p>
+        <pre><code>gnome-screenshot                    # Full screen
+gnome-screenshot -a                 # Select area
+gnome-screenshot -w                 # Current window
+gnome-screenshot -d 5               # Delay 5 seconds</code></pre>
+
+        <p><strong>Command-line (works everywhere):</strong></p>
+        <pre><code>scrot                               # Full screen
+scrot -s                            # Select region
+scrot -u                            # Current window
+scrot -d 5                          # 5 second delay
+scrot ~/Pictures/screenshot.png     # Save to specific location</code></pre>
+
+        <p><strong>Wayland screenshot:</strong></p>
+        <pre><code>grim                                # Full screen
+grim -g "$(slurp)"                  # Select region (with slurp)</code></pre>
+
+        <p><strong>ImageMagick (powerful):</strong></p>
+        <pre><code>import screenshot.png               # Click to select region
+import -window root screenshot.png  # Full screen</code></pre>
+
+        <p><strong>Screen recording:</strong></p>
+        <pre><code>ffmpeg -f x11grab -s 1920x1080 -i :0.0 output.mp4
+# Or use GUI tools:
+simplescreenrecorder
+obs-studio                          # OBS (streaming/recording)</code></pre>
+
+        <p><strong>Keyboard shortcuts (usually):</strong></p>
+        <ul>
+            <li><code>Print Screen</code> - full screenshot</li>
+            <li><code>Shift + Print Screen</code> - select area</li>
+            <li><code>Alt + Print Screen</code> - current window</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        How do you manage clipboard content? Copy text to clipboard from terminal? Paste clipboard contents?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>xclip</code> - X11 clipboard</li>
+            <li><code>wl-copy / wl-paste</code> - Wayland clipboard</li>
+        </ul>
+
+        <p><strong>xclip (X11) usage:</strong></p>
+        <pre><code>echo "text" | xclip                 # Copy to primary selection
+echo "text" | xclip -selection clipboard  # Copy to clipboard (Ctrl+V)
+xclip -o                            # Paste from primary
+xclip -selection clipboard -o       # Paste from clipboard
+cat file.txt | xclip -selection clipboard  # Copy file to clipboard</code></pre>
+
+        <p><strong>Aliases for convenience:</strong></p>
+        <pre><code>alias pbcopy='xclip -selection clipboard'
+alias pbpaste='xclip -selection clipboard -o'
+# Then use:
+echo "hi" | pbcopy
+pbpaste</code></pre>
+
+        <p><strong>Wayland alternative:</strong></p>
+        <pre><code>echo "text" | wl-copy              # Copy to clipboard
+wl-paste                            # Paste from clipboard
+cat file.txt | wl-copy              # Copy file contents</code></pre>
+
+        <p><strong>Primary vs Clipboard selection:</strong></p>
+        <ul>
+            <li><strong>Primary</strong> - middle-click paste (text you select)</li>
+            <li><strong>Clipboard</strong> - Ctrl+C / Ctrl+V (explicit copy)</li>
+        </ul>
+
+        <p><strong>Copy command output:</strong></p>
+        <pre><code>ls -la | xclip -selection clipboard
+pwd | pbcopy                        # Copy current directory</code></pre>
+
+        <p><strong>View clipboard manager:</strong></p>
+        <pre><code>clipmenu                            # If installed (clipboard history)</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        How do you check which kernel modules are loaded? Load a module? Unload a module? What about persistent loading?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+
+        <p><strong>List loaded modules:</strong></p>
+        <pre><code>lsmod                               # List all loaded modules
+lsmod | grep wifi                   # Search for specific module</code></pre>
+
+        <p><strong>Load a module:</strong></p>
+        <pre><code>sudo modprobe module-name           # Load module
+sudo modprobe -r module-name        # Remove/unload module
+sudo modprobe -v module-name        # Verbose (see what happens)</code></pre>
+
+        <p><strong>Why modprobe vs insmod:</strong> <code>modprobe</code> handles dependencies automatically. Always use modprobe unless you know what you're doing.</p>
+
+        <p><strong>Module information:</strong></p>
+        <pre><code>modinfo module-name                 # Show module details
+modinfo iwlwifi                     # WiFi driver info</code></pre>
+
+        <p><strong>Load module at boot:</strong></p>
+        <pre><code># Add to /etc/modules or /etc/modules-load.d/module.conf
+echo "module-name" | sudo tee -a /etc/modules</code></pre>
+
+        <p><strong>Blacklist a module (prevent loading):</strong></p>
+        <pre><code># Create file /etc/modprobe.d/blacklist.conf
+echo "blacklist module-name" | sudo tee -a /etc/modprobe.d/blacklist.conf
+sudo update-initramfs -u            # Rebuild initramfs</code></pre>
+
+        <p><strong>Common modules:</strong></p>
+        <ul>
+            <li><code>bluetooth</code> - Bluetooth support</li>
+            <li><code>snd_*</code> - Sound drivers</li>
+            <li><code>iwlwifi</code> - Intel WiFi</li>
+            <li><code>nouveau</code> - NVIDIA open driver</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        How do you check system uptime? Memory usage? CPU load? What about system resource monitoring?
+    </div>
+    <div class="back">
+        <strong>Quick checks:</strong>
+
+        <p><strong>Uptime and load:</strong></p>
+        <pre><code>uptime                              # System uptime + load average
+# Output: 10:30:45 up 5 days, 3:20, 2 users, load average: 0.5, 0.8, 1.2
+w                                   # Who's logged in + uptime</code></pre>
+
+        <p><strong>Load average explained:</strong> 1 minute, 5 minute, 15 minute averages. On single-core: >1.0 means overloaded. On 4-core: >4.0 is overloaded.</p>
+
+        <p><strong>Memory usage:</strong></p>
+        <pre><code>free -h                             # RAM usage (human-readable)
+free -m                             # In megabytes
+# Shows: total, used, free, available</code></pre>
+
+        <p><strong>Detailed resource monitoring:</strong></p>
+        <pre><code>vmstat                              # Virtual memory stats
+vmstat 2                            # Update every 2 seconds
+iostat                              # CPU and I/O stats
+sar                                 # System activity reporter</code></pre>
+
+        <p><strong>Real-time monitoring:</strong></p>
+        <pre><code>top                                 # Interactive process viewer
+htop                                # Better version (colored, mouse)
+glances                             # Comprehensive system monitor
+btop                                # Modern, beautiful monitor</code></pre>
+
+        <p><strong>Check temperature:</strong></p>
+        <pre><code>sensors                             # CPU/GPU temperatures (lm-sensors)
+watch -n 1 sensors                  # Update every second</code></pre>
+
+        <p><strong>Install monitoring tools:</strong></p>
+        <pre><code>sudo apt install htop glances lm-sensors</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        How do you configure the system locale and language? List available locales? Generate new ones?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>localectl</code> (systemd)
+
+        <p><strong>View current locale:</strong></p>
+        <pre><code>localectl                           # Show current settings
+locale                              # Show all locale variables
+echo $LANG                          # Current language</code></pre>
+
+        <p><strong>Set system locale:</strong></p>
+        <pre><code>sudo localectl set-locale LANG=en_US.UTF-8
+sudo localectl set-locale LANG=es_ES.UTF-8</code></pre>
+
+        <p><strong>List available locales:</strong></p>
+        <pre><code>localectl list-locales              # All installed locales
+locale -a                           # Alternative</code></pre>
+
+        <p><strong>Generate new locale (Debian/Ubuntu):</strong></p>
+        <pre><code>sudo locale-gen en_US.UTF-8
+sudo locale-gen es_ES.UTF-8
+sudo update-locale LANG=en_US.UTF-8</code></pre>
+
+        <p><strong>Non-systemd systems:</strong></p>
+        <pre><code># Edit /etc/locale.gen, uncomment desired locales
+sudo locale-gen
+# Edit /etc/default/locale
+LANG="en_US.UTF-8"</code></pre>
+
+        <p><strong>Temporary locale change:</strong></p>
+        <pre><code>LANG=es_ES.UTF-8 command            # Run command with Spanish locale
+export LANG=es_ES.UTF-8             # Change for current session</code></pre>
+
+        <p><strong>Why UTF-8 is important:</strong> Supports all Unicode characters (emoji, international text, etc.). Always use UTF-8 unless you have specific reasons not to.</p>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        How do you manage the hostname? Change it temporarily? Permanently? What about pretty hostname?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>hostnamectl</code> (systemd)
+
+        <p><strong>View hostname:</strong></p>
+        <pre><code>hostname                            # Show current hostname
+hostnamectl                         # Detailed hostname info</code></pre>
+
+        <p><strong>Change hostname:</strong></p>
+        <pre><code>sudo hostnamectl set-hostname new-hostname
+sudo hostnamectl set-hostname "My Computer" --pretty  # Pretty name
+sudo hostnamectl set-hostname myserver --static       # Static name</code></pre>
+
+        <p><strong>Three types of hostname:</strong></p>
+        <ul>
+            <li><strong>Static</strong> - permanent hostname (saved in /etc/hostname)</li>
+            <li><strong>Pretty</strong> - human-friendly name with spaces</li>
+            <li><strong>Transient</strong> - temporary, from DHCP/network</li>
+        </ul>
+
+        <p><strong>Temporary change (until reboot):</strong></p>
+        <pre><code>sudo hostname temp-name</code></pre>
+
+        <p><strong>Manual method (non-systemd):</strong></p>
+        <pre><code>echo "new-hostname" | sudo tee /etc/hostname
+sudo hostnamectl set-hostname new-hostname
+# or edit /etc/hostname and reboot</code></pre>
+
+        <p><strong>Update /etc/hosts:</strong></p>
+        <pre><code>sudo nano /etc/hosts
+# Change:
+127.0.0.1   localhost
+127.0.1.1   new-hostname</code></pre>
+
+        <p><strong>Why change hostname:</strong> Identify machines on network, better than "ubuntu-desktop" or random string.</p>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        How do you list PCI devices? USB devices? What about getting detailed hardware information?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+
+        <p><strong>PCI devices (graphics cards, network cards, etc.):</strong></p>
+        <pre><code>lspci                               # List all PCI devices
+lspci | grep -i vga                 # Find graphics card
+lspci | grep -i network             # Find network card
+lspci -v                            # Verbose details
+lspci -nn                           # Show vendor/device IDs</code></pre>
+
+        <p><strong>USB devices:</strong></p>
+        <pre><code>lsusb                               # List USB devices
+lsusb -v                            # Verbose
+lsusb -t                            # Tree view (shows USB hubs)</code></pre>
+
+        <p><strong>Why these are useful:</strong> Identify hardware for driver issues, check if device is detected, find device IDs.</p>
+
+        <p><strong>Block devices (drives):</strong></p>
+        <pre><code>lsblk                               # List block devices
+lsblk -f                            # Show filesystems
+blkid                               # Show UUIDs (for /etc/fstab)</code></pre>
+
+        <p><strong>Network devices:</strong></p>
+        <pre><code>ip link show                        # Network interfaces
+lshw -class network                 # Detailed network hardware</code></pre>
+
+        <p><strong>Comprehensive hardware info:</strong></p>
+        <pre><code>sudo lshw                           # Everything
+sudo lshw -short                    # Compact format
+sudo lshw -html > hardware.html     # Generate HTML report
+inxi -Fxz                           # User-friendly overview</code></pre>
+
+        <p><strong>Specific hardware:</strong></p>
+        <pre><code>lscpu                               # CPU info
+lsmem                               # Memory modules</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        How do you enable numlock on boot? What about other keyboard settings like repeat rate?
+    </div>
+    <div class="back">
+        <strong>Numlock on boot:</strong>
+
+        <p><strong>For console (TTY):</strong></p>
+        <pre><code>sudo apt install numlockx           # Install tool
+# Add to /etc/rc.local or startup script:
+numlockx on</code></pre>
+
+        <p><strong>For X11/display manager:</strong></p>
+        <pre><code># LightDM (add to /etc/lightdm/lightdm.conf):
+[Seat:*]
+greeter-setup-script=/usr/bin/numlockx on
+
+# GNOME (using dconf):
+gsettings set org.gnome.settings-daemon.peripherals.keyboard remember-numlock-state true</code></pre>
+
+        <p><strong>Keyboard repeat rate:</strong></p>
+        <pre><code>xset r rate 200 30              # Delay 200ms, repeat 30/sec
+# Make permanent: add to ~/.xinitrc or ~/.xprofile</code></pre>
+
+        <p><strong>Check current settings:</strong></p>
+        <pre><code>xset q                          # Query X settings
+# Look for "auto repeat delay" and "repeat rate"</code></pre>
+
+        <p><strong>Disable/enable key repeat:</strong></p>
+        <pre><code>xset r off                      # Disable key repeat
+xset r on                       # Enable key repeat</code></pre>
+
+        <p><strong>Remap keys (advanced):</strong></p>
+        <pre><code>xmodmap -e "keysym Caps_Lock = Escape"  # Caps Lock → Escape
+setxkbmap -option caps:escape           # Same thing (better method)</code></pre>
+
+        <p><strong>Wayland alternative:</strong></p>
+        <pre><code># Settings vary by compositor (sway, GNOME, KDE)</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        How do you check which graphics driver is in use? Switch between integrated and dedicated GPU? What about NVIDIA specific commands?
+    </div>
+    <div class="back">
+        <strong>Check current driver:</strong>
+
+        <p><strong>General:</strong></p>
+        <pre><code>lspci | grep -i vga                 # Identify GPU
+lsmod | grep -i nvidia              # Check if NVIDIA driver loaded
+lsmod | grep -i nouveau             # Check if open driver loaded
+glxinfo | grep "OpenGL renderer"    # Which GPU is rendering</code></pre>
+
+        <p><strong>NVIDIA specific:</strong></p>
+        <pre><code>nvidia-smi                          # NVIDIA GPU stats
+nvidia-settings                     # GUI control panel
+cat /proc/driver/nvidia/version     # Driver version</code></pre>
+
+        <p><strong>AMD specific:</strong></p>
+        <pre><code>lspci -k | grep -A 3 -i "VGA"       # See driver in use
+radeontop                           # AMD GPU monitor (if installed)</code></pre>
+
+        <p><strong>Intel specific:</strong></p>
+        <pre><code>intel_gpu_top                       # Intel GPU monitor
+</code></pre>
+
+        <p><strong>Switch between GPUs (laptops with hybrid graphics):</strong></p>
+        <pre><code># NVIDIA Prime (Ubuntu/Debian):
+sudo prime-select nvidia            # Use NVIDIA
+sudo prime-select intel             # Use Intel
+sudo prime-select query             # Check current
+
+# Using environment variable for single application:
+DRI_PRIME=1 application             # Run on dedicated GPU
+__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia app</code></pre>
+
+        <p><strong>Install NVIDIA drivers:</strong></p>
+        <pre><code>ubuntu-drivers devices              # List available drivers
+sudo ubuntu-drivers autoinstall     # Auto-install recommended
+sudo apt install nvidia-driver-535  # Specific version</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 26 -->
+<div class="card">
+    <div class="front">
+        How do you manage swap space? Create a swap file? Enable/disable swap? Check swap usage?
+    </div>
+    <div class="back">
+        <strong>Check swap:</strong>
+
+        <p><strong>View swap usage:</strong></p>
+        <pre><code>swapon --show                       # Show swap devices
+free -h                             # Shows swap in memory overview
+cat /proc/swaps                     # Swap file/partition details</code></pre>
+
+        <p><strong>Create swap file:</strong></p>
+        <pre><code>sudo fallocate -l 2G /swapfile      # Create 2GB file (fast)
+# or
+sudo dd if=/dev/zero of=/swapfile bs=1G count=2  # Alternative
+
+sudo chmod 600 /swapfile            # Set permissions
+sudo mkswap /swapfile               # Format as swap
+sudo swapon /swapfile               # Enable swap</code></pre>
+
+        <p><strong>Make swap permanent (add to /etc/fstab):</strong></p>
+        <pre><code>echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab</code></pre>
+
+        <p><strong>Enable/disable swap:</strong></p>
+        <pre><code>sudo swapon /swapfile               # Enable
+sudo swapoff /swapfile              # Disable
+sudo swapoff -a                     # Disable all swap
+sudo swapon -a                      # Enable all swap in fstab</code></pre>
+
+        <p><strong>Remove swap file:</strong></p>
+        <pre><code>sudo swapoff /swapfile
+sudo rm /swapfile
+# Remove from /etc/fstab</code></pre>
+
+        <p><strong>Adjust swappiness (how aggressively to use swap):</strong></p>
+        <pre><code>cat /proc/sys/vm/swappiness         # Current value (default 60)
+sudo sysctl vm.swappiness=10        # Less aggressive (prefer RAM)
+# Make permanent: add to /etc/sysctl.conf
+vm.swappiness=10</code></pre>
+
+        <p><strong>Why swap matters:</strong> Prevents OOM (out of memory) kills, enables hibernation, but slower than RAM.</p>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 27 -->
+<div class="card">
+    <div class="front">
+        How do you check which process is using the most memory? CPU? What about finding processes using specific files?
+    </div>
+    <div class="back">
+        <strong>Top memory/CPU users:</strong>
+
+        <p><strong>Interactive monitoring:</strong></p>
+        <pre><code>top                                 # Press M to sort by memory
+                                    # Press P to sort by CPU
+htop                                # F6 to sort, prettier UI</code></pre>
+
+        <p><strong>One-liner memory hogs:</strong></p>
+        <pre><code>ps aux --sort=-%mem | head -10      # Top 10 by memory
+ps aux --sort=-%cpu | head -10      # Top 10 by CPU</code></pre>
+
+        <p><strong>Specific process memory:</strong></p>
+        <pre><code>pmap -x PID                         # Memory map of process
+cat /proc/PID/status | grep VmRSS   # Actual RAM used
+smem -r                             # Memory usage sorted (if installed)</code></pre>
+
+        <p><strong>Find processes using a file:</strong></p>
+        <pre><code>lsof filename                       # Which processes have file open
+lsof /path/to/directory             # Processes using directory
+lsof -c chrome                      # All files chrome has open
+lsof -u username                    # Files opened by user
+lsof -i :80                         # Processes using port 80</code></pre>
+
+        <p><strong>Find process using deleted files (disk space leak):</strong></p>
+        <pre><code>lsof | grep deleted                 # Files deleted but still in use
+# These still consume disk space until process exits!</code></pre>
+
+        <p><strong>Find what's using disk I/O:</strong></p>
+        <pre><code>sudo iotop                          # Interactive I/O monitor
+sudo iotop -o                       # Show only active I/O</code></pre>
+
+        <p><strong>Network connections:</strong></p>
+        <pre><code>lsof -i                             # All network connections
+lsof -i TCP                         # TCP only</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+<!-- Card 28 -->
+<div class="card">
+    <div class="front">
+        How do you enable/disable services from starting at boot? What about socket activation? Mask a service?
+    </div>
+    <div class="back">
+        <strong>Boot management:</strong>
+
+        <p><strong>Enable/disable auto-start:</strong></p>
+        <pre><code>sudo systemctl enable service       # Start at boot
+sudo systemctl disable service      # Don't start at boot
+sudo systemctl is-enabled service   # Check if enabled</code></pre>
+
+        <p><strong>Why enable doesn't start now:</strong> Separation of concerns. <code>enable</code> = boot behavior, <code>start</code> = right now.</p>
+
+        <p><strong>Mask a service (prevent starting):</strong></p>
+        <pre><code>sudo systemctl mask service         # Cannot be started (symlinked to /dev/null)
+sudo systemctl unmask service       # Undo masking</code></pre>
+
+        <p><strong>Why mask vs disable:</strong> <code>disable</code> prevents auto-start, but you can still manually start. <code>mask</code> prevents all starting.</p>
+
+        <p><strong>Socket activation:</strong></p>
+        <pre><code>sudo systemctl enable sshd.socket   # Enable SSH socket
+sudo systemctl start sshd.socket    # Start listening
+# Service only starts when connection arrives (on-demand)</code></pre>
+
+        <p><strong>List enabled services:</strong></p>
+        <pre><code>systemctl list-unit-files --state=enabled
+systemctl list-unit-files --type=service --state=enabled</code></pre>
+
+        <p><strong>Show service file location:</strong></p>
+        <pre><code>systemctl cat service               # Show service file contents
+systemctl show service              # Show all properties</code></pre>
+
+        <p><strong>Reload after editing service file:</strong></p>
+        <pre><code>sudo systemctl daemon-reload        # Reload systemd configuration
+sudo systemctl restart service      # Apply changes</code></pre>
+    </div>
+    <div class="tags">cs linux utilities EN</div>
+</div>
+
+</body>
+</html>

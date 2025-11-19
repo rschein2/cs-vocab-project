@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Linux Shell Flashcards - CS Vocabulary Project</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #F39C12;
+        }
+        .card {
+            background-color: #fff;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .back {
+            color: #555;
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.85em;
+            color: #888;
+        }
+        .tags::before {
+            content: "Tags: ";
+            font-weight: 600;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Linux Shell Flashcards - CS Vocabulary Project</h1>
+    <p><strong>30 cards</strong> covering essential Linux command line workflows</p>
+    <p><strong>Tags:</strong> cs, linux, shell, EN</p>
+
+    <h3>How to Import into Anki:</h3>
+    <ol>
+        <li><strong>Option 1 - Use .apkg file:</strong> Run <code>python3 generate-anki-packages.py</code> to create <code>cs-vocab-linux.apkg</code></li>
+        <li><strong>Option 2 - Manual Import:</strong> Create a deck in Anki and manually copy/paste the front/back content from each card below</li>
+    </ol>
+
+    <p><em>Each card includes the question (sometimes with follow-up prompts), command(s), explanation of WHY, and 2-3 alternatives or related commands.</em></p>
+</div>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        How do you list files in a directory? What if you want to see hidden files? What about detailed information?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>ls</code> - basic listing</li>
+            <li><code>ls -a</code> - include hidden files (starting with .)</li>
+            <li><code>ls -l</code> - long format (detailed: permissions, owner, size, date)</li>
+            <li><code>ls -la</code> - both hidden files AND details</li>
+        </ul>
+
+        <p><strong>Why each flag:</strong></p>
+        <ul>
+            <li><code>-a</code> = <strong>a</strong>ll files (including .hidden)</li>
+            <li><code>-l</code> = <strong>l</strong>ong format</li>
+            <li><code>-h</code> = <strong>h</strong>uman-readable sizes (1.5G instead of 1572864000)</li>
+        </ul>
+
+        <p><strong>Common combinations:</strong></p>
+        <pre><code>ls -lh        # Detailed with readable sizes
+ls -lah       # Everything, detailed, readable
+ls -lt        # Sorted by modification time (newest first)
+ls -lS        # Sorted by size (largest first)
+ls -ltr       # Oldest first (reverse time sort)</code></pre>
+
+        <p><strong>Pro tip:</strong> <code>ll</code> is often aliased to <code>ls -la</code> on many systems!</p>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        How do you search for text inside files? What if you want line numbers? Case-insensitive search?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>grep "pattern" file</code> - basic search</li>
+            <li><code>grep -n "pattern" file</code> - show line numbers</li>
+            <li><code>grep -i "pattern" file</code> - case-insensitive</li>
+            <li><code>grep -r "pattern" directory/</code> - recursive (search all files in dir)</li>
+        </ul>
+
+        <p><strong>Why grep is essential:</strong> Fast text searching in files and command output. Pipe anything to grep to filter it.</p>
+
+        <p><strong>Powerful combinations:</strong></p>
+        <pre><code>grep -rn "TODO" .              # Find all TODOs with line numbers
+grep -ri "error" /var/log/     # Case-insensitive error search in logs
+grep -v "pattern" file         # Inverted (-v): show lines NOT matching
+grep -c "pattern" file         # Count matches
+grep -A 3 "pattern" file       # Show 3 lines After match
+grep -B 3 "pattern" file       # Show 3 lines Before match
+grep -C 3 "pattern" file       # Show 3 lines of Context (before and after)</code></pre>
+
+        <p><strong>With pipes:</strong></p>
+        <pre><code>ps aux | grep python           # Find python processes
+history | grep ssh             # Find ssh commands in history</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        How do you find files by name? What if you only remember part of the name? What about finding by size or type?
+    </div>
+    <div class="back">
+        <strong>Basic command:</strong> <code>find /path -name "filename"</code>
+
+        <p><strong>By name (various patterns):</strong></p>
+        <pre><code>find . -name "*.txt"              # All .txt files (case-sensitive)
+find . -iname "*.TXT"             # Case-insensitive
+find /home -name "config*"        # Files starting with "config"</code></pre>
+
+        <p><strong>By type:</strong></p>
+        <pre><code>find . -type f                    # Only files
+find . -type d                    # Only directories
+find . -type l                    # Only symbolic links</code></pre>
+
+        <p><strong>By size:</strong></p>
+        <pre><code>find . -size +100M                # Files larger than 100MB
+find . -size -1k                  # Files smaller than 1KB
+find /var/log -size +1G           # Find large log files</code></pre>
+
+        <p><strong>By time:</strong></p>
+        <pre><code>find . -mtime -7                  # Modified in last 7 days
+find . -mtime +30                 # Modified more than 30 days ago
+find . -atime -1                  # Accessed in last 24 hours</code></pre>
+
+        <p><strong>Execute commands on results:</strong></p>
+        <pre><code>find . -name "*.log" -delete      # Delete all .log files
+find . -type f -exec chmod 644 {} \;  # Change permissions</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        How do you change file permissions? What's the numeric method? What about symbolic?
+    </div>
+    <div class="back">
+        <strong>Numeric method:</strong> <code>chmod 644 file</code>
+
+        <p><strong>Common permission numbers:</strong></p>
+        <ul>
+            <li><code>644</code> - Files (owner read/write, others read only)</li>
+            <li><code>755</code> - Directories and executables (owner all, others read/execute)</li>
+            <li><code>600</code> - Private files (owner only, like SSH keys)</li>
+            <li><code>700</code> - Private directories (owner only)</li>
+        </ul>
+
+        <p><strong>How numbers work:</strong> Read=4, Write=2, Execute=1</p>
+        <pre><code>7 = 4+2+1 = rwx (read, write, execute)
+6 = 4+2   = rw- (read, write)
+5 = 4+1   = r-x (read, execute)
+4 = 4     = r-- (read only)</code></pre>
+        <p>Three digits: owner, group, others</p>
+
+        <p><strong>Symbolic method:</strong></p>
+        <pre><code>chmod u+x file       # Add execute for user (owner)
+chmod g-w file       # Remove write for group
+chmod o+r file       # Add read for others
+chmod a+x file       # Add execute for all (a=all)
+chmod u=rwx,g=rx,o=r file  # Set exact permissions</code></pre>
+
+        <p><strong>Recursive:</strong></p>
+        <pre><code>chmod -R 755 directory/    # Apply to directory and all contents</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        How do you see running processes? What if you want to filter for a specific program? How do you see resource usage in real-time?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>ps aux</code> - snapshot of all processes</li>
+            <li><code>ps aux | grep program</code> - filter for specific program</li>
+            <li><code>top</code> - real-time, interactive process viewer</li>
+            <li><code>htop</code> - better version of top (if installed)</li>
+        </ul>
+
+        <p><strong>Understanding ps aux:</strong></p>
+        <ul>
+            <li><code>a</code> - all users' processes</li>
+            <li><code>u</code> - user-oriented format (shows owner)</li>
+            <li><code>x</code> - include processes without controlling terminal</li>
+        </ul>
+
+        <p><strong>Common patterns:</strong></p>
+        <pre><code>ps aux | grep python          # Find all Python processes
+ps aux | grep -v grep         # Remove grep itself from results
+ps -ef | grep username        # All processes for specific user</code></pre>
+
+        <p><strong>Top tips:</strong></p>
+        <ul>
+            <li>Press <code>q</code> to quit top</li>
+            <li>Press <code>k</code> to kill a process in top</li>
+            <li>Press <code>M</code> to sort by memory usage</li>
+            <li>Press <code>P</code> to sort by CPU usage</li>
+        </ul>
+
+        <p><strong>Modern alternative:</strong></p>
+        <pre><code>htop    # Better UI, mouse support, easier navigation</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        How do you check disk space? What about seeing which directories are using the most space?
+    </div>
+    <div class="back">
+        <strong>Disk space by filesystem:</strong> <code>df -h</code>
+
+        <p><strong>Why df:</strong> Shows available space on each mounted filesystem. <code>-h</code> makes sizes human-readable (GB, MB instead of bytes).</p>
+
+        <p><strong>Directory space usage:</strong> <code>du -h directory/</code>
+
+        <p><strong>Common du patterns:</strong></p>
+        <pre><code>du -sh directory/              # Summary of total size (-s = summary)
+du -h --max-depth=1 .          # Size of immediate subdirectories only
+du -sh *                       # Size of each item in current directory
+du -sh * | sort -h             # Sorted by size</code></pre>
+
+        <p><strong>Find largest directories:</strong></p>
+        <pre><code>du -h / | sort -rh | head -10  # Top 10 largest directories on system
+du -sh ~/.* | sort -h          # Find large hidden directories in home</code></pre>
+
+        <p><strong>Why this matters:</strong> When a disk fills up, these commands help you find what's taking space.</p>
+
+        <p><strong>Watch disk usage:</strong></p>
+        <pre><code>df -h .                        # Space on current filesystem
+df -i                          # Inode usage (sometimes runs out before space!)</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        How do you create a compressed archive? How about extracting one? What if you just want to see the contents without extracting?
+    </div>
+    <div class="back">
+        <strong>Create archive:</strong> <code>tar -czf archive.tar.gz directory/</code>
+
+        <strong>Extract archive:</strong> <code>tar -xzf archive.tar.gz</code>
+
+        <strong>List contents:</strong> <code>tar -tzf archive.tar.gz</code>
+
+        <p><strong>Understanding the flags:</strong></p>
+        <ul>
+            <li><code>-c</code> = <strong>c</strong>reate archive</li>
+            <li><code>-x</code> = e<strong>x</strong>tract archive</li>
+            <li><code>-t</code> = lis<strong>t</strong> contents</li>
+            <li><code>-z</code> = compress with g<strong>z</strong>ip</li>
+            <li><code>-f</code> = <strong>f</strong>ilename follows (must be last flag!)</li>
+            <li><code>-v</code> = <strong>v</strong>erbose (show progress)</li>
+        </ul>
+
+        <p><strong>Mnemonic:</strong> "e<strong>X</strong>tract <strong>Z</strong>e <strong>F</strong>ile" = <code>xzf</code></p>
+
+        <p><strong>Common variations:</strong></p>
+        <pre><code>tar -czf backup.tar.gz folder/       # Create compressed archive
+tar -xzf backup.tar.gz               # Extract to current directory
+tar -xzf backup.tar.gz -C /path/     # Extract to specific directory
+tar -czvf backup.tar.gz folder/      # Verbose (show files being added)</code></pre>
+
+        <p><strong>Other compression formats:</strong></p>
+        <pre><code>tar -cjf archive.tar.bz2 folder/     # bzip2 (better compression, slower)
+tar -xjf archive.tar.bz2             # Extract bzip2</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        How do you download a file from a URL? What if you want to resume an interrupted download? What about downloading recursively?
+    </div>
+    <div class="back">
+        <strong>Basic download:</strong>
+        <ul>
+            <li><code>curl -O https://example.com/file.zip</code></li>
+            <li><code>wget https://example.com/file.zip</code></li>
+        </ul>
+
+        <p><strong>curl vs wget:</strong></p>
+        <ul>
+            <li><code>curl</code> - output to stdout by default, more flexible</li>
+            <li><code>wget</code> - saves to file by default, better for recursive downloads</li>
+        </ul>
+
+        <p><strong>curl options:</strong></p>
+        <pre><code>curl -O url                    # Save with original filename (-O = uppercase O)
+curl -o newname.zip url        # Save with custom name
+curl -L url                    # Follow redirects (often needed!)
+curl -C - url                  # Resume interrupted download</code></pre>
+
+        <p><strong>wget options:</strong></p>
+        <pre><code>wget url                       # Simple download
+wget -c url                    # Continue/resume interrupted download
+wget -r url                    # Recursive (download entire site)
+wget -r -np -k url            # Mirror a website (no parent, convert links)
+wget -b url                    # Background download
+wget --limit-rate=200k url     # Limit bandwidth</code></pre>
+
+        <p><strong>Check if a URL is accessible:</strong></p>
+        <pre><code>curl -I https://example.com    # Get headers only (check status)</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        How do you view the last 10 lines of a file? What if you want to watch a file as it grows (like a log file)? What about the first 10 lines?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>tail file</code> - last 10 lines</li>
+            <li><code>tail -f file</code> - follow mode (watch as file grows)</li>
+            <li><code>head file</code> - first 10 lines</li>
+        </ul>
+
+        <p><strong>Why tail -f is crucial:</strong> Essential for watching log files in real-time. You see new lines as they're written.</p>
+
+        <p><strong>Tail options:</strong></p>
+        <pre><code>tail -n 20 file          # Last 20 lines (-n = number)
+tail -n +10 file         # Everything starting FROM line 10
+tail -f /var/log/syslog  # Watch system log in real-time
+tail -f file | grep ERROR # Watch for errors only</code></pre>
+
+        <p><strong>Head options:</strong></p>
+        <pre><code>head -n 20 file          # First 20 lines
+head -c 100 file         # First 100 bytes</code></pre>
+
+        <p><strong>Common pattern - see middle of file:</strong></p>
+        <pre><code>head -n 50 file | tail -n 10    # Lines 41-50
+sed -n '10,20p' file             # Lines 10-20 (alternative)</code></pre>
+
+        <p><strong>Multiple files:</strong></p>
+        <pre><code>tail -f file1 file2      # Watch multiple files simultaneously</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        How do you count lines in a file? What about words? Characters? Multiple files?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>wc file</code>
+
+        <p><strong>Output:</strong> Three numbers: lines, words, characters</p>
+
+        <p><strong>Specific counts:</strong></p>
+        <pre><code>wc -l file               # Lines only
+wc -w file               # Words only
+wc -c file               # Bytes/characters only
+wc -m file               # Character count (multi-byte aware)</code></pre>
+
+        <p><strong>Why each flag:</strong></p>
+        <ul>
+            <li><code>-l</code> = <strong>l</strong>ines</li>
+            <li><code>-w</code> = <strong>w</strong>ords</li>
+            <li><code>-c</code> = <strong>c</strong>haracters (bytes)</li>
+        </ul>
+
+        <p><strong>Common uses:</strong></p>
+        <pre><code>wc -l *.txt              # Count lines in all text files
+ls -1 | wc -l            # Count files in directory
+cat file | wc -l         # Count lines in command output
+grep "error" log | wc -l # Count how many errors in log</code></pre>
+
+        <p><strong>Multiple files:</strong></p>
+        <pre><code>wc -l file1 file2 file3  # Shows count for each + total</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        How do you redirect command output to a file? What if you want to append instead of overwrite? What about redirecting errors separately?
+    </div>
+    <div class="back">
+        <strong>Basic redirection:</strong>
+        <ul>
+            <li><code>command > file</code> - overwrite file with output</li>
+            <li><code>command >> file</code> - append output to file</li>
+        </ul>
+
+        <p><strong>Why this matters:</strong> Saving command output, creating logs, chaining operations.</p>
+
+        <p><strong>Streams explained:</strong></p>
+        <ul>
+            <li><code>1</code> = stdout (standard output)</li>
+            <li><code>2</code> = stderr (standard error)</li>
+            <li><code>0</code> = stdin (standard input)</li>
+        </ul>
+
+        <p><strong>Error redirection:</strong></p>
+        <pre><code>command 2> errors.txt           # Save only errors
+command > output.txt 2>&1       # Save both output and errors to same file
+command &> all.txt              # Shorthand for above (bash)
+command > out.txt 2> err.txt    # Separate files for output and errors</code></pre>
+
+        <p><strong>Discarding output:</strong></p>
+        <pre><code>command > /dev/null             # Discard stdout
+command 2> /dev/null            # Discard stderr
+command &> /dev/null            # Discard everything (silence command)</code></pre>
+
+        <p><strong>Tee - write to file AND see output:</strong></p>
+        <pre><code>command | tee file.txt          # Show on screen and save to file
+command | tee -a file.txt       # Append instead of overwrite</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        How do you kill a process? What if you know the process name but not the PID? What about killing all processes with a certain name?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>kill PID</code> - terminate process by ID</li>
+            <li><code>killall process-name</code> - kill all processes with that name</li>
+            <li><code>pkill pattern</code> - kill processes matching pattern</li>
+        </ul>
+
+        <p><strong>Kill signals:</strong></p>
+        <pre><code>kill PID              # Default: SIGTERM (graceful shutdown)
+kill -9 PID           # SIGKILL (force kill, cannot be ignored)
+kill -15 PID          # SIGTERM (same as default)
+kill -1 PID           # SIGHUP (reload config)
+kill -2 PID           # SIGINT (like Ctrl+C)</code></pre>
+
+        <p><strong>Why different signals:</strong></p>
+        <ul>
+            <li><code>SIGTERM</code> (15) - asks nicely, allows cleanup</li>
+            <li><code>SIGKILL</code> (9) - forces immediate termination, no cleanup</li>
+        </ul>
+
+        <p><strong>Finding the PID first:</strong></p>
+        <pre><code>ps aux | grep python          # Find PID manually
+pgrep python                  # Get PIDs matching name
+pidof firefox                 # Get PID of running program</code></pre>
+
+        <p><strong>One-liners:</strong></p>
+        <pre><code>kill $(pgrep python)          # Kill all python processes
+pkill -f "python script.py"   # Kill by full command line
+killall -9 firefox            # Force kill all firefox processes</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        How do you create a symbolic link? What about a hard link? What's the difference?
+    </div>
+    <div class="back">
+        <strong>Symbolic (soft) link:</strong> <code>ln -s /path/to/target linkname</code>
+
+        <strong>Hard link:</strong> <code>ln /path/to/target linkname</code>
+
+        <p><strong>Difference:</strong></p>
+        <ul>
+            <li><strong>Symbolic link</strong> - Like a shortcut, points to the path. Breaks if target is moved/deleted.</li>
+            <li><strong>Hard link</strong> - Another name for the same file data. Original can be deleted, link still works.</li>
+        </ul>
+
+        <p><strong>Symbolic link examples:</strong></p>
+        <pre><code>ln -s /usr/local/bin/python3.11 /usr/local/bin/python
+ln -s ~/Documents/project ~/Desktop/project-shortcut
+ln -s ../config.yml config.yml  # Relative path works too</code></pre>
+
+        <p><strong>Why symbolic links are more common:</strong></p>
+        <ul>
+            <li>Work across filesystems</li>
+            <li>Can link to directories</li>
+            <li>Show you what they point to with <code>ls -l</code></li>
+        </ul>
+
+        <p><strong>Check what a link points to:</strong></p>
+        <pre><code>ls -l linkname           # Shows: linkname -> target
+readlink linkname        # Shows just the target path</code></pre>
+
+        <p><strong>Remove a link:</strong></p>
+        <pre><code>rm linkname             # Removes link only, not target
+unlink linkname         # Same thing</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        How do you find where a command is located? What if you want to see all locations? What about finding out if it's an alias, builtin, or external program?
+    </div>
+    <div class="back">
+        <strong>Commands:</strong>
+        <ul>
+            <li><code>which command</code> - show path to executable</li>
+            <li><code>whereis command</code> - show binary, source, and manual pages</li>
+            <li><code>type command</code> - show if alias, builtin, or external</li>
+        </ul>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code>which python             # /usr/bin/python
+which -a python          # Show all python executables in PATH
+whereis python           # python: /usr/bin/python /usr/lib/python...
+type cd                  # cd is a shell builtin
+type ls                  # ls is aliased to 'ls --color=auto'</code></pre>
+
+        <p><strong>Why each is useful:</strong></p>
+        <ul>
+            <li><code>which</code> - Quick check of which version you're using</li>
+            <li><code>whereis</code> - More comprehensive (includes man pages location)</li>
+            <li><code>type</code> - Tells you the command type (builtin, alias, function, file)</li>
+        </ul>
+
+        <p><strong>Common use cases:</strong></p>
+        <pre><code>which python3            # Which Python am I using?
+type -a python           # Show all definitions (alias, then file)
+whereis gcc              # Find compiler and man pages</code></pre>
+
+        <p><strong>PATH troubleshooting:</strong></p>
+        <pre><code>echo $PATH               # See directories that are searched
+which nonexistent        # Returns nothing if not found</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        How do you sort lines in a file? What about sorting numerically? Reverse order? Removing duplicates?
+    </div>
+    <div class="back">
+        <strong>Basic sort:</strong> <code>sort file</code>
+
+        <p><strong>Common options:</strong></p>
+        <pre><code>sort file                # Alphabetical sort
+sort -r file             # Reverse order
+sort -n file             # Numeric sort (1, 2, 10 not 1, 10, 2)
+sort -h file             # Human-readable numbers (1K, 1M, 1G)
+sort -u file             # Unique (remove duplicates while sorting)
+sort -k 2 file           # Sort by 2nd column/field</code></pre>
+
+        <p><strong>Why each flag:</strong></p>
+        <ul>
+            <li><code>-r</code> = <strong>r</strong>everse</li>
+            <li><code>-n</code> = <strong>n</strong>umeric</li>
+            <li><code>-h</code> = <strong>h</strong>uman-readable (understands K, M, G)</li>
+            <li><code>-u</code> = <strong>u</strong>nique</li>
+            <li><code>-k</code> = <strong>k</strong>ey (which field to sort by)</li>
+        </ul>
+
+        <p><strong>Common patterns:</strong></p>
+        <pre><code>du -sh * | sort -h           # Sort directories by size
+ps aux | sort -k 3 -rn       # Sort processes by CPU (column 3)
+sort -u file                 # Remove duplicate lines</code></pre>
+
+        <p><strong>Sort and save:</strong></p>
+        <pre><code>sort file > sorted.txt       # Save to new file
+sort -o file file            # Sort in-place (safe even with same filename)</code></pre>
+
+        <p><strong>Combine with uniq:</strong></p>
+        <pre><code>sort file | uniq             # Remove adjacent duplicates
+sort file | uniq -c          # Count occurrences of each line
+sort file | uniq -d          # Show only duplicates</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        How do you make a directory? What if you need to create nested directories that don't exist yet? What about creating with specific permissions?
+    </div>
+    <div class="back">
+        <strong>Basic command:</strong> <code>mkdir dirname</code>
+
+        <p><strong>Create parent directories:</strong> <code>mkdir -p path/to/nested/directory</code>
+
+        <p><strong>Why -p is essential:</strong> Without it, mkdir fails if parent directories don't exist. With <code>-p</code>, it creates the entire path.</p>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code>mkdir mydir                      # Simple directory
+mkdir dir1 dir2 dir3             # Multiple directories at once
+mkdir -p ~/projects/web/css      # Create full path even if ~/projects doesn't exist
+mkdir -p parent/{child1,child2}  # Create parent with two subdirectories</code></pre>
+
+        <p><strong>With specific permissions:</strong></p>
+        <pre><code>mkdir -m 755 dirname             # Create with rwxr-xr-x permissions
+mkdir -m 700 ~/.ssh              # Private directory (owner only)</code></pre>
+
+        <p><strong>Common pitfall:</strong></p>
+        <pre><code>mkdir path/to/dir                # Fails if 'path' or 'to' don't exist
+mkdir -p path/to/dir             # Success! Creates all intermediate directories</code></pre>
+
+        <p><strong>Creating complex structures:</strong></p>
+        <pre><code>mkdir -p project/{src,tests,docs}            # Brace expansion
+mkdir -p app/{frontend,backend}/{src,tests}  # Nested structure</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        How do you copy a file? What about copying a directory? Preserving permissions? Showing progress?
+    </div>
+    <div class="back">
+        <strong>Basic copy:</strong> <code>cp source destination</code>
+
+        <p><strong>Directory copy:</strong> <code>cp -r source_dir/ dest_dir/</code>
+
+        <p><strong>Common options:</strong></p>
+        <pre><code>cp file1 file2               # Copy file
+cp file /path/to/dir/        # Copy file to directory
+cp -r dir1/ dir2/            # Copy directory recursively
+cp -a source/ dest/          # Archive mode (preserve all attributes)
+cp -i file dest              # Interactive (prompt before overwrite)
+cp -v file dest              # Verbose (show what's being copied)
+cp -u source dest            # Update (only copy if newer)</code></pre>
+
+        <p><strong>Why each flag:</strong></p>
+        <ul>
+            <li><code>-r</code> = <strong>r</strong>ecursive (required for directories)</li>
+            <li><code>-a</code> = <strong>a</strong>rchive (preserves permissions, timestamps, links)</li>
+            <li><code>-i</code> = <strong>i</strong>nteractive (safety check)</li>
+            <li><code>-v</code> = <strong>v</strong>erbose</li>
+            <li><code>-u</code> = <strong>u</strong>pdate (only if source is newer)</li>
+        </ul>
+
+        <p><strong>Preserve attributes:</strong></p>
+        <pre><code>cp -a source dest            # Best for backups (preserves everything)
+cp -p source dest            # Preserve mode, ownership, timestamps</code></pre>
+
+        <p><strong>Multiple files:</strong></p>
+        <pre><code>cp file1 file2 file3 /destination/dir/
+cp *.txt /backup/</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        How do you remove a file? What about removing a directory? Force removal without prompts? Safely remove with confirmation?
+    </div>
+    <div class="back">
+        <strong>Remove file:</strong> <code>rm file</code>
+
+        <strong>Remove directory:</strong> <code>rm -r directory/</code>
+
+        <p><strong>Common options:</strong></p>
+        <pre><code>rm file                      # Remove file
+rm -r directory/             # Remove directory and contents recursively
+rm -f file                   # Force (no prompts, ignore nonexistent files)
+rm -rf directory/            # Force recursive (DANGEROUS!)
+rm -i file                   # Interactive (prompt for each file)
+rm -I files*                 # Prompt once before removing >3 files</code></pre>
+
+        <p><strong>⚠️ DANGER ZONE:</strong></p>
+        <pre><code>rm -rf /                     # Destroys entire system (DON'T RUN!)
+rm -rf *                     # Deletes everything in current directory
+rm -rf ~/                    # Deletes your entire home directory</code></pre>
+
+        <p><strong>Safe practices:</strong></p>
+        <pre><code>rm -i file                   # Always prompts
+alias rm='rm -i'             # Make rm interactive by default
+ls directory/ && rm -r directory/  # List first to verify</code></pre>
+
+        <p><strong>Remove empty directory:</strong></p>
+        <pre><code>rmdir dirname                # Only works if directory is empty (safer)</code></pre>
+
+        <p><strong>Remove specific patterns:</strong></p>
+        <pre><code>rm *.log                     # All log files
+rm -i *.txt                  # Prompt for each txt file
+find . -name "*.tmp" -delete # Find and delete (safer)</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        How do you search your command history? What if you want to re-run a previous command? What about searching interactively?
+    </div>
+    <div class="back">
+        <strong>View history:</strong> <code>history</code>
+
+        <strong>Search history:</strong> <code>history | grep keyword</code>
+
+        <strong>Interactive search:</strong> <code>Ctrl+R</code> then start typing
+
+        <p><strong>Re-running commands:</strong></p>
+        <pre><code>!!                           # Run last command
+!123                         # Run command number 123 from history
+!ssh                         # Run most recent command starting with "ssh"
+!?keyword                    # Run most recent command containing "keyword"</code></pre>
+
+        <p><strong>History shortcuts:</strong></p>
+        <pre><code>Ctrl+R                       # Reverse search (interactive, press again for next match)
+Ctrl+G                       # Cancel search
+history 20                   # Show last 20 commands
+history | tail -n 20         # Same thing</code></pre>
+
+        <p><strong>Modify and re-run:</strong></p>
+        <pre><code>^old^new                     # Replace "old" with "new" in last command
+fc                           # Edit last command in $EDITOR before running
+!!:s/old/new                 # Substitute in last command</code></pre>
+
+        <p><strong>History file:</strong></p>
+        <pre><code>cat ~/.bash_history          # View history file directly
+history -c                   # Clear session history
+history -d 123               # Delete specific history entry</code></pre>
+
+        <p><strong>Pro tip:</strong> Ctrl+R is one of the most time-saving shortcuts!</p>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        How do you check what type of file something is? What if the extension is misleading?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>file filename</code>
+
+        <p><strong>Why file is useful:</strong> Determines file type by examining contents, not extension. Extensions can lie, file doesn't.</p>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code>file document.txt            # ASCII text
+file image.jpg               # JPEG image data, JFIF standard
+file program                 # ELF 64-bit executable
+file archive.tar.gz          # gzip compressed data
+file script.sh               # Bash shell script, ASCII text
+file /dev/sda                # block special file
+file unknown                 # data (binary, can't identify)</code></pre>
+
+        <p><strong>Use cases:</strong></p>
+        <ul>
+            <li>Verify downloaded files are what they claim</li>
+            <li>Find file type when extension is wrong or missing</li>
+            <li>Identify unknown files before opening</li>
+        </ul>
+
+        <p><strong>Multiple files:</strong></p>
+        <pre><code>file *                       # Check all files in directory
+file *.jpg                   # Check if all JPGs are actually JPGs</code></pre>
+
+        <p><strong>Following symlinks:</strong></p>
+        <pre><code>file -L symlink              # Check target of symlink, not the link itself</code></pre>
+
+        <p><strong>Detailed output:</strong></p>
+        <pre><code>file -i filename             # Show MIME type (useful for web serving)</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        How do you change the owner of a file? What about changing the group? What if you need to do both at once?
+    </div>
+    <div class="back">
+        <strong>Change owner:</strong> <code>chown user file</code>
+
+        <strong>Change group:</strong> <code>chgrp group file</code>
+
+        <strong>Change both:</strong> <code>chown user:group file</code>
+
+        <p><strong>Common patterns:</strong></p>
+        <pre><code>chown alice file             # Change owner to alice
+chown alice:developers file  # Change owner to alice, group to developers
+chown :developers file       # Change group only (leave owner)
+chown -R alice directory/    # Recursive (all files in directory)</code></pre>
+
+        <p><strong>Why you need sudo:</strong></p>
+        <p>Usually requires root/sudo because you're changing ownership to someone else:</p>
+        <pre><code>sudo chown root:root file    # Make file owned by root
+sudo chown $USER file        # Take ownership as current user</code></pre>
+
+        <p><strong>Copy ownership from another file:</strong></p>
+        <pre><code>chown --reference=file1 file2  # Make file2 have same ownership as file1</code></pre>
+
+        <p><strong>Common use case - web server:</strong></p>
+        <pre><code>sudo chown -R www-data:www-data /var/www/html/
+# Make web server user own the web files</code></pre>
+
+        <p><strong>See current ownership:</strong></p>
+        <pre><code>ls -l file                   # Shows: -rw-r--r-- 1 alice developers ...</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        How do you run a command in the background? What if you need to bring it to foreground? How do you see all background jobs?
+    </div>
+    <div class="back">
+        <strong>Run in background:</strong> <code>command &</code>
+
+        <strong>Send running process to background:</strong> <code>Ctrl+Z</code> then <code>bg</code>
+
+        <strong>Bring to foreground:</strong> <code>fg</code>
+
+        <p><strong>Job control commands:</strong></p>
+        <pre><code>command &                # Run in background from start
+Ctrl+Z                   # Suspend current process (stops it)
+bg                       # Resume suspended process in background
+fg                       # Bring background process to foreground
+jobs                     # List all background jobs</code></pre>
+
+        <p><strong>Why this matters:</strong> Run long processes without tying up your terminal.</p>
+
+        <p><strong>Working with job numbers:</strong></p>
+        <pre><code>jobs                     # Lists: [1]+ Running  command1 &
+                         #        [2]- Running  command2 &
+fg %1                    # Bring job 1 to foreground
+bg %2                    # Resume job 2 in background
+kill %1                  # Kill job 1</code></pre>
+
+        <p><strong>Workflow example:</strong></p>
+        <pre><code>./long-running-script    # Oops, forgot to background it!
+Ctrl+Z                   # [1]+ Stopped
+bg                       # [1]+ ./long-running-script &
+jobs                     # Verify it's running in background</code></pre>
+
+        <p><strong>Disconnect-proof:</strong></p>
+        <pre><code>nohup command &          # Runs even after you logout
+disown                   # Detach job from shell (won't get SIGHUP)</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        How do you create a command alias? What if you want it permanent across sessions? How do you see all defined aliases?
+    </div>
+    <div class="back">
+        <strong>Create alias:</strong> <code>alias name='command'</code>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code>alias ll='ls -la'
+alias ..='cd ..'
+alias grep='grep --color=auto'
+alias update='sudo apt update && sudo apt upgrade'
+alias ports='netstat -tuln'</code></pre>
+
+        <p><strong>Why aliases are useful:</strong> Turn long commands into short ones. Build custom shortcuts for your workflow.</p>
+
+        <p><strong>Make permanent:</strong> Add to <code>~/.bashrc</code> or <code>~/.zshrc</code></p>
+        <pre><code># Edit your shell config file
+nano ~/.bashrc
+
+# Add aliases
+alias ll='ls -la'
+alias gs='git status'
+
+# Reload config
+source ~/.bashrc</code></pre>
+
+        <p><strong>See all aliases:</strong></p>
+        <pre><code>alias                    # List all defined aliases
+alias ll                 # Show definition of specific alias</code></pre>
+
+        <p><strong>Remove alias:</strong></p>
+        <pre><code>unalias ll               # Remove for current session
+# For permanent removal, delete from ~/.bashrc</code></pre>
+
+        <p><strong>Use original command (bypass alias):</strong></p>
+        <pre><code>\ls                      # Run real ls, not alias
+command ls               # Same thing</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        How do you set an environment variable? What if you want it available to child processes? How about permanent across logins?
+    </div>
+    <div class="back">
+        <strong>Set for current session:</strong> <code>VARNAME=value</code>
+
+        <strong>Export to child processes:</strong> <code>export VARNAME=value</code>
+
+        <p><strong>Difference:</strong></p>
+        <pre><code>VAR=hello               # Only in current shell
+export VAR=hello        # Available to all child processes/commands</code></pre>
+
+        <p><strong>Common environment variables:</strong></p>
+        <pre><code>export PATH="/usr/local/bin:$PATH"    # Add to PATH
+export EDITOR=vim                      # Set default editor
+export LANG=en_US.UTF-8                # Set locale
+export JAVA_HOME=/usr/lib/jvm/java-11  # Java location</code></pre>
+
+        <p><strong>View variables:</strong></p>
+        <pre><code>echo $PATH               # Show PATH variable
+env                      # Show all environment variables
+printenv PATH            # Show specific variable</code></pre>
+
+        <p><strong>Make permanent:</strong> Add to <code>~/.bashrc</code> or <code>~/.bash_profile</code></p>
+        <pre><code># In ~/.bashrc
+export PATH="$HOME/bin:$PATH"
+export EDITOR=nvim
+
+# Reload
+source ~/.bashrc</code></pre>
+
+        <p><strong>Temporary for one command:</strong></p>
+        <pre><code>VAR=value command        # VAR only set for this command
+DEBUG=1 ./script.sh      # Run script with DEBUG variable</code></pre>
+
+        <p><strong>Unset variable:</strong></p>
+        <pre><code>unset VARNAME</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        How do you extract specific columns from text? What if columns are separated by a custom delimiter? What about reordering columns?
+    </div>
+    <div class="back">
+        <strong>Command:</strong> <code>cut -f 1,3 file</code>
+
+        <p><strong>Common options:</strong></p>
+        <pre><code>cut -f 1 file                # Extract field 1 (tab-separated by default)
+cut -f 1,3 file              # Extract fields 1 and 3
+cut -f 1-3 file              # Extract fields 1 through 3
+cut -d ',' -f 2 file         # Extract field 2 from CSV
+cut -d ':' -f 1,7 /etc/passwd  # Extract username and shell
+cut -c 1-5 file              # Extract characters 1-5 from each line</code></pre>
+
+        <p><strong>Why each flag:</strong></p>
+        <ul>
+            <li><code>-f</code> = <strong>f</strong>ields (columns)</li>
+            <li><code>-d</code> = <strong>d</strong>elimiter (what separates fields)</li>
+            <li><code>-c</code> = <strong>c</strong>haracters (positions)</li>
+        </ul>
+
+        <p><strong>Real-world examples:</strong></p>
+        <pre><code>cut -d ':' -f 1 /etc/passwd           # All usernames
+ps aux | tr -s ' ' | cut -d ' ' -f 2  # All PIDs
+echo "hello:world:test" | cut -d ':' -f 2  # Output: world</code></pre>
+
+        <p><strong>With pipes:</strong></p>
+        <pre><code>cat data.csv | cut -d ',' -f 1,3     # Extract columns from CSV
+ls -l | cut -d ' ' -f 1              # Extract permissions only</code></pre>
+
+        <p><strong>Alternative - awk is more powerful:</strong></p>
+        <pre><code>awk -F, '{print $1, $3}' file        # More flexible than cut</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 26 -->
+<div class="card">
+    <div class="front">
+        How do you replace text in a file? What if you want to do it in-place? What about only replacing the first occurrence on each line?
+    </div>
+    <div class="back">
+        <strong>Basic sed:</strong> <code>sed 's/old/new/' file</code>
+
+        <p><strong>Common patterns:</strong></p>
+        <pre><code>sed 's/old/new/' file           # Replace first occurrence on each line
+sed 's/old/new/g' file          # Replace all occurrences (g = global)
+sed 's/old/new/i' file          # Case-insensitive
+sed 's/old/new/gi' file         # Case-insensitive, all occurrences
+sed 's/old/new/2' file          # Replace only 2nd occurrence per line</code></pre>
+
+        <p><strong>In-place editing:</strong></p>
+        <pre><code>sed -i 's/old/new/g' file       # Modify file directly
+sed -i.bak 's/old/new/g' file   # Create backup first (.bak extension)</code></pre>
+
+        <p><strong>Why the syntax:</strong></p>
+        <ul>
+            <li><code>s</code> = <strong>s</strong>ubstitute</li>
+            <li><code>/old/new/</code> = pattern / replacement / flags</li>
+            <li><code>g</code> = <strong>g</strong>lobal (all occurrences)</li>
+            <li><code>i</code> = case-<strong>i</strong>nsensitive</li>
+        </ul>
+
+        <p><strong>Advanced examples:</strong></p>
+        <pre><code>sed '1,10s/old/new/' file       # Only lines 1-10
+sed '/pattern/s/old/new/' file  # Only lines matching pattern
+sed '/^#/d' file                # Delete lines starting with #
+sed -n '5,10p' file             # Print only lines 5-10
+sed '3d' file                   # Delete line 3</code></pre>
+
+        <p><strong>Multiple replacements:</strong></p>
+        <pre><code>sed -e 's/foo/bar/' -e 's/hello/world/' file
+sed 's/foo/bar/; s/hello/world/' file</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 27 -->
+<div class="card">
+    <div class="front">
+        How do you print specific columns from structured text? What if you want to do calculations? Filter rows based on conditions?
+    </div>
+    <div class="back">
+        <strong>Basic awk:</strong> <code>awk '{print $1}' file</code>
+
+        <p><strong>Why awk is powerful:</strong> Treats input as fields (columns). Can do math, conditionals, and complex transformations.</p>
+
+        <p><strong>Common patterns:</strong></p>
+        <pre><code>awk '{print $1}' file               # Print first column
+awk '{print $1, $3}' file           # Print columns 1 and 3
+awk '{print $NF}' file              # Print last column
+awk -F: '{print $1}' /etc/passwd    # Custom delimiter (-F)
+awk '{print $1 + $2}' file          # Sum columns 1 and 2</code></pre>
+
+        <p><strong>Conditionals:</strong></p>
+        <pre><code>awk '$3 > 100' file                 # Print lines where column 3 > 100
+awk '$1 == "error"' file            # Print lines where column 1 equals "error"
+awk 'NR > 1' file                   # Skip first line (header)
+awk 'length($0) > 80' file          # Lines longer than 80 characters</code></pre>
+
+        <p><strong>Built-in variables:</strong></p>
+        <ul>
+            <li><code>$1, $2, $3</code> = columns 1, 2, 3</li>
+            <li><code>$0</code> = entire line</li>
+            <li><code>$NF</code> = last column</li>
+            <li><code>NR</code> = current line number</li>
+            <li><code>NF</code> = number of fields</li>
+        </ul>
+
+        <p><strong>Real-world examples:</strong></p>
+        <pre><code>ps aux | awk '$3 > 10.0'            # Processes using >10% CPU
+df -h | awk '$5 > 80'               # Filesystems >80% full
+awk '{sum+=$1} END {print sum}' file  # Sum all values in column 1</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 28 -->
+<div class="card">
+    <div class="front">
+        How do you build and execute commands from stdin? What if you want to handle spaces in filenames? Execute commands in parallel?
+    </div>
+    <div class="back">
+        <strong>Basic xargs:</strong> <code>command | xargs other-command</code>
+
+        <p><strong>Why xargs:</strong> Converts stdin into arguments for another command. Essential for piping filenames to commands that don't accept stdin.</p>
+
+        <p><strong>Common patterns:</strong></p>
+        <pre><code>find . -name "*.txt" | xargs rm     # Delete all .txt files
+echo "file1 file2" | xargs cat      # Cat multiple files
+ls | xargs -I {} mv {} {}.bak       # Rename all files with .bak</code></pre>
+
+        <p><strong>Handle spaces in filenames:</strong></p>
+        <pre><code>find . -name "*.txt" -print0 | xargs -0 rm
+# -print0 uses null separator, -0 tells xargs to expect it</code></pre>
+
+        <p><strong>Interactive mode (safety):</strong></p>
+        <pre><code>find . -name "*.log" | xargs -p rm  # Prompt before each execution</code></pre>
+
+        <p><strong>Parallel execution:</strong></p>
+        <pre><code>cat urls.txt | xargs -P 4 -n 1 curl -O
+# -P 4 = run 4 jobs in parallel
+# -n 1 = pass 1 argument to each invocation</code></pre>
+
+        <p><strong>Placeholder replacement:</strong></p>
+        <pre><code>ls *.jpg | xargs -I {} convert {} {}.png
+# -I {} defines placeholder, {} is replaced with each argument</code></pre>
+
+        <p><strong>Practical examples:</strong></p>
+        <pre><code>grep -rl "TODO" . | xargs sed -i 's/TODO/DONE/'
+find . -type f -empty | xargs -r rm  # -r = don't run if no input</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 29 -->
+<div class="card">
+    <div class="front">
+        How do you monitor a command's execution and resource usage? What if you want to time how long something takes? Get detailed statistics?
+    </div>
+    <div class="back">
+        <strong>Simple timing:</strong> <code>time command</code>
+
+        <p><strong>Detailed statistics:</strong> <code>/usr/bin/time -v command</code>
+
+        <p><strong>Output explained:</strong></p>
+        <pre><code>$ time ls
+real    0m0.003s    # Wall clock time (total elapsed)
+user    0m0.001s    # CPU time in user mode
+sys     0m0.002s    # CPU time in kernel mode</code></pre>
+
+        <p><strong>Why use /usr/bin/time instead of time:</strong></p>
+        <pre><code>time command                # Shell builtin (limited info)
+/usr/bin/time -v command    # Full program (detailed stats)</code></pre>
+
+        <p><strong>Detailed statistics include:</strong></p>
+        <ul>
+            <li>Maximum memory usage</li>
+            <li>Page faults</li>
+            <li>I/O operations</li>
+            <li>Context switches</li>
+        </ul>
+
+        <p><strong>Example output:</strong></p>
+        <pre><code>/usr/bin/time -v ./program
+    Maximum resident set size (kbytes): 4096
+    User time (seconds): 1.23
+    System time (seconds): 0.45
+    Percent of CPU this job got: 97%
+    ...</code></pre>
+
+        <p><strong>Save timing to file:</strong></p>
+        <pre><code>time command 2> timing.txt   # Redirect timing output</code></pre>
+
+        <p><strong>Format output:</strong></p>
+        <pre><code>/usr/bin/time -f "Time: %E Memory: %M KB" command</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+<!-- Card 30 -->
+<div class="card">
+    <div class="front">
+        How do you check if a previous command succeeded or failed? What if you want to run a command only if the previous one succeeded? Or only if it failed?
+    </div>
+    <div class="back">
+        <strong>Check exit status:</strong> <code>echo $?</code>
+
+        <p><strong>Exit codes:</strong></p>
+        <ul>
+            <li><code>0</code> = success</li>
+            <li><code>1-255</code> = various error conditions</li>
+        </ul>
+
+        <p><strong>Conditional execution:</strong></p>
+        <pre><code>command1 && command2        # Run command2 only if command1 succeeds
+command1 || command2        # Run command2 only if command1 fails
+command1 ; command2         # Run command2 regardless</code></pre>
+
+        <p><strong>Why this is powerful:</strong></p>
+        <pre><code>mkdir project && cd project  # Only cd if mkdir succeeded
+make || echo "Build failed!"
+./configure && make && sudo make install  # Chain of operations</code></pre>
+
+        <p><strong>Examples:</strong></p>
+        <pre><code>$ ls nonexistent
+ls: cannot access 'nonexistent': No such file or directory
+$ echo $?
+2
+
+$ ls /
+... files listed ...
+$ echo $?
+0</code></pre>
+
+        <p><strong>In scripts:</strong></p>
+        <pre><code>if command; then
+    echo "Success"
+else
+    echo "Failed with status $?"
+fi</code></pre>
+
+        <p><strong>Combining operators:</strong></p>
+        <pre><code>command1 && command2 || command3
+# If command1 succeeds, run command2
+# If command1 OR command2 fails, run command3</code></pre>
+
+        <p><strong>Pro tip:</strong></p>
+        <pre><code>cd directory || exit 1       # Exit script if cd fails (safety)</code></pre>
+    </div>
+    <div class="tags">cs linux shell EN</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Patterns Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 1.1em;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .back {
+            color: #555;
+        }
+        .back strong {
+            color: #2c3e50;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.95em;
+            color: #c7254e;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #333;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ecf0f1;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Regex Patterns Flashcards</h1>
+    <p><strong>Works in:</strong> grep, sed, awk, vim, Python, JavaScript, and most programming languages</p>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            How do you match the beginning and end of a line in regex? What are the anchor characters?
+        </div>
+        <div class="back">
+            <strong>Beginning:</strong> <code>^</code><br>
+            <strong>End:</strong> <code>$</code>
+
+            <p><strong>Why:</strong> Anchors don't match characters, they match positions. Essential for exact line matching.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Match lines starting with "Error"
+grep '^Error' logfile.txt
+
+# Match lines ending with ".txt"
+grep '\.txt$' files.txt
+
+# Match empty lines
+grep '^$' file.txt
+
+# Match lines that are EXACTLY "hello"
+grep '^hello$' file.txt
+
+# Match lines starting with # (comments)
+grep '^#' config.txt</pre>
+
+            <div class="note"><strong>Important:</strong> <code>^</code> and <code>$</code> match line boundaries, not string boundaries (use \A and \Z for string boundaries in some languages)</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            How do you match "any character" in regex? What about matching a literal dot (period)? How do you escape special characters?
+        </div>
+        <div class="back">
+            <strong>Any character:</strong> <code>.</code> (dot)<br>
+            <strong>Literal dot:</strong> <code>\.</code> (backslash escapes it)<br>
+            <strong>Escape special chars:</strong> <code>\</code> (backslash)
+
+            <p><strong>Why:</strong> Dot matches any single character except newline. Backslash escapes special regex characters.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Match any 3-letter word
+grep '^...$'
+
+# Match dates like 2024-01-15
+grep '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+
+# Match filenames with extension
+grep 'file\.txt'  # Literal dot
+grep 'file.txt'   # Matches "fileXtxt" too!
+
+# Special characters that need escaping
+# . * + ? [ ] ( ) { } ^ $ | \
+grep '\$100'  # Literal dollar sign
+grep '\[info\]'  # Literal brackets</pre>
+
+            <p><strong>Special chars to escape:</strong> <code>. * + ? [ ] ( ) { } ^ $ | \</code></p>
+
+            <div class="warning"><strong>Gotcha:</strong> <code>.</code> matches ANYTHING - always escape it for literal dots!</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            How do you match a character from a specific set (like any digit, or any vowel)? What about matching any character EXCEPT certain ones?
+        </div>
+        <div class="back">
+            <strong>Character class:</strong> <code>[abc]</code> - matches a, b, or c<br>
+            <strong>Range:</strong> <code>[a-z]</code> or <code>[0-9]</code><br>
+            <strong>Negation:</strong> <code>[^abc]</code> - matches anything BUT a, b, or c
+
+            <p><strong>Why:</strong> Character classes let you match from a set of characters. <code>^</code> inside <code>[]</code> negates it.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Match any digit
+grep '[0-9]' file.txt
+
+# Match any lowercase letter
+grep '[a-z]' file.txt
+
+# Match any vowel
+grep '[aeiou]' file.txt
+
+# Match any hex digit
+grep '[0-9a-fA-F]' file.txt
+
+# Match anything that's NOT a digit
+grep '[^0-9]' file.txt
+
+# Match anything that's NOT whitespace
+grep '[^ \t]' file.txt
+
+# Multiple ranges
+grep '[a-zA-Z0-9_]' file.txt  # Alphanumeric + underscore</pre>
+
+            <div class="note"><strong>Inside [ ]:</strong> Most special chars are literal (no need to escape). Only <code>^</code>, <code>-</code>, <code>]</code>, and <code>\</code> are special</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            What are the predefined character classes in regex? How do you match digits, word characters, or whitespace?
+        </div>
+        <div class="back">
+            <strong>Common classes (in extended regex/PCRE):</strong>
+            <ul>
+                <li><code>\d</code> - Digit [0-9]</li>
+                <li><code>\D</code> - Non-digit [^0-9]</li>
+                <li><code>\w</code> - Word character [a-zA-Z0-9_]</li>
+                <li><code>\W</code> - Non-word character</li>
+                <li><code>\s</code> - Whitespace (space, tab, newline)</li>
+                <li><code>\S</code> - Non-whitespace</li>
+            </ul>
+
+            <p><strong>Why:</strong> Shortcuts for common patterns. Uppercase versions negate them.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Match phone numbers: 123-456-7890
+grep '\d\d\d-\d\d\d-\d\d\d\d'
+grep -E '\d{3}-\d{3}-\d{4}'  # Better with quantifiers
+
+# Match variable names (word chars)
+grep '\w+' file.txt
+
+# Match non-whitespace sequences
+grep '\S+' file.txt
+
+# Split on whitespace
+sed 's/\s\+/ /g'  # Replace multiple spaces with single space</pre>
+
+            <div class="warning"><strong>Note:</strong> Basic grep doesn't support \d, \w, \s. Use <code>grep -E</code> (extended) or <code>grep -P</code> (Perl regex) for these</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            How do you match "zero or more" of something? "One or more"? "Zero or one"? What are the quantifier symbols?
+        </div>
+        <div class="back">
+            <strong>Quantifiers:</strong>
+            <ul>
+                <li><code>*</code> - Zero or more</li>
+                <li><code>+</code> - One or more</li>
+                <li><code>?</code> - Zero or one (optional)</li>
+                <li><code>{n}</code> - Exactly n times</li>
+                <li><code>{n,m}</code> - Between n and m times</li>
+                <li><code>{n,}</code> - At least n times</li>
+            </ul>
+
+            <p><strong>Why:</strong> Quantifiers specify how many times a pattern repeats.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Match "color" or "colour"
+grep 'colou\?r'
+
+# Match one or more digits
+grep -E '\d+' file.txt
+
+# Match optional sign before number
+grep -E '-\?[0-9]+'
+
+# Match 3 digits exactly
+grep -E '\d{3}'
+
+# Match 2-4 letters
+grep -E '[a-z]{2,4}'
+
+# Match at least 8 characters
+grep -E '.{8,}'
+
+# Match zero or more spaces
+grep ' *'
+
+# Match file extensions (.txt, .md, etc.)
+grep -E '\.[a-z]{2,4}$'</pre>
+
+            <div class="note"><strong>Greedy by default:</strong> Quantifiers match as much as possible. Add <code>?</code> for non-greedy: <code>*?</code>, <code>+?</code>, <code>??</code></div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            How do you group parts of a regex pattern? How do you capture groups for later use? What's the syntax for alternation (OR)?
+        </div>
+        <div class="back">
+            <strong>Grouping:</strong> <code>(pattern)</code><br>
+            <strong>Alternation (OR):</strong> <code>pattern1|pattern2</code><br>
+            <strong>Non-capturing group:</strong> <code>(?:pattern)</code>
+
+            <p><strong>Why:</strong> Groups let you apply quantifiers to multiple characters and capture matches for backreferences.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Match "cat" or "dog"
+grep -E 'cat|dog'
+
+# Match "gray" or "grey"
+grep -E 'gr(a|e)y'
+
+# Match repeated words: "the the"
+grep -E '\b(\w+)\s+\1\b'
+
+# Match dates: 2024-01-15 or 2024/01/15
+grep -E '\d{4}[-/]\d{2}[-/]\d{2}'
+
+# Match file.txt or file.md
+grep -E 'file\.(txt|md)'
+
+# Capture groups in sed
+sed -E 's/([0-9]+)-([0-9]+)/\2-\1/'  # Swap numbers
+
+# Non-capturing group (don't save match)
+grep -E '(?:http|https)://\w+'</pre>
+
+            <div class="note"><strong>Backreferences:</strong> <code>\1</code>, <code>\2</code>, etc. refer to captured groups (1st, 2nd, etc.)</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between greedy and non-greedy (lazy) matching? How do you make a quantifier non-greedy? When would you use each?
+        </div>
+        <div class="back">
+            <strong>Greedy (default):</strong> Matches as much as possible<br>
+            <strong>Non-greedy (lazy):</strong> Matches as little as possible<br>
+            <strong>Make non-greedy:</strong> Add <code>?</code> after quantifier: <code>*?</code>, <code>+?</code>, <code>??</code>
+
+            <p><strong>Why:</strong> Greedy can over-match. Non-greedy stops at first valid match.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Greedy: match HTML tags
+echo '&lt;div&gt;text&lt;/div&gt;&lt;span&gt;more&lt;/span&gt;' | grep -oE '&lt;.*&gt;'
+# Matches: &lt;div&gt;text&lt;/div&gt;&lt;span&gt;more&lt;/span&gt;  (entire string!)
+
+# Non-greedy: match individual tags
+echo '&lt;div&gt;text&lt;/div&gt;&lt;span&gt;more&lt;/span&gt;' | grep -oP '&lt;.*?&gt;'
+# Matches: &lt;div&gt;, &lt;/div&gt;, &lt;span&gt;, &lt;/span&gt;  (separately)
+
+# Extract content between quotes
+echo '"hello" and "world"' | grep -oP '\".*?\"'
+# Non-greedy: "hello" and "world" (two matches)
+# Greedy would match: "hello" and "world" (one match, entire string)
+
+# When to use greedy: Match entire expressions
+grep -E '\(.*\)'  # Match entire parenthetical expression
+
+# When to use non-greedy: Match minimal patterns
+grep -P '\(.*?\)'  # Match each parenthetical separately</pre>
+
+            <div class="warning"><strong>Gotcha:</strong> Non-greedy requires <code>-P</code> (Perl regex) in grep. Not available in basic/extended regex.</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            How do you match word boundaries in regex? What's the difference between \b and ^/$ anchors? When would you use word boundaries?
+        </div>
+        <div class="back">
+            <strong>Word boundary:</strong> <code>\b</code><br>
+            <strong>Non-word boundary:</strong> <code>\B</code>
+
+            <p><strong>Why:</strong> <code>\b</code> matches positions between word and non-word characters. Prevents partial matches.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Match whole word "cat" (not "catch" or "scat")
+grep -E '\bcat\b' file.txt
+
+# Without \b, matches "cat" anywhere
+grep 'cat' file.txt  # Matches: cat, catch, scat, concatenate
+
+# Match "the" as whole word
+grep -E '\bthe\b' file.txt  # the
+grep 'the' file.txt         # the, them, other, weather
+
+# Match variable names starting with "var"
+grep -E '\bvar\w+\b'  # Matches: var, varName, variable
+                       # Not: myvar, newvar
+
+# Replace whole words
+sed -E 's/\bcolor\b/colour/g'  # color → colour (not in "colorful")
+
+# Match numbers as whole tokens
+grep -E '\b[0-9]+\b'  # 123, 456 (not in "abc123def")</pre>
+
+            <div class="note"><strong>Word chars:</strong> <code>\b</code> works with <code>\w</code> (letters, digits, underscore). Transition from \w to \W or vice versa</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            How do you match email addresses with regex? What about URLs? What are common patterns for these?
+        </div>
+        <div class="back">
+            <strong>Email (simple):</strong> <code>[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}</code><br>
+            <strong>URL (simple):</strong> <code>https?://[^\s]+</code>
+
+            <p><strong>Why:</strong> These are common patterns but validation is complex. Simple versions work for most cases.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Email (simple pattern)
+grep -E '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+
+# More complete email
+grep -E '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+# URL with http or https
+grep -E 'https?://[a-zA-Z0-9./_-]+' file.txt
+
+# URL with optional www
+grep -E 'https?://(www\.)?[a-zA-Z0-9.-]+\.[a-z]{2,}' file.txt
+
+# IPv4 address
+grep -E '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b'
+
+# Phone number: (123) 456-7890 or 123-456-7890
+grep -E '\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
+
+# Hexadecimal color: #fff or #ffffff
+grep -E '#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})\b'
+
+# Date: YYYY-MM-DD
+grep -E '\b\d{4}-\d{2}-\d{2}\b'</pre>
+
+            <div class="warning"><strong>Warning:</strong> Perfect email/URL validation is very complex. These patterns work for ~95% of cases</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between BRE (Basic Regular Expressions) and ERE (Extended Regular Expressions)? How do you use each with grep? What characters need escaping in each?
+        </div>
+        <div class="back">
+            <strong>BRE:</strong> <code>grep</code> (default) - requires escaping <code>? + { } ( ) |</code><br>
+            <strong>ERE:</strong> <code>grep -E</code> or <code>egrep</code> - these chars are special without escaping<br>
+            <strong>PCRE:</strong> <code>grep -P</code> - Perl-compatible (most features)
+
+            <p><strong>Why:</strong> BRE is older/limited. ERE is more modern. PCRE has most features (lookahead, non-greedy, etc.).</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># BRE (basic) - need to escape
+grep 'cat\|dog' file.txt        # Alternation needs \|
+grep '\(abc\)\+' file.txt       # Grouping and + need escape
+
+# ERE (extended) - no escaping for these
+grep -E 'cat|dog' file.txt      # Alternation
+grep -E '(abc)+' file.txt       # Grouping and +
+grep -E '[0-9]{2,4}' file.txt   # Quantifiers
+
+# PCRE (Perl) - most features
+grep -P '\d+' file.txt          # \d for digits
+grep -P '(?:non-capture)' file.txt  # Non-capturing groups
+grep -P 'lazy.*?match' file.txt # Non-greedy
+grep -P '(?=lookahead)' file.txt    # Lookahead
+
+# Literal matching in BRE
+grep 'file\.txt' file.txt       # . always needs escape
+grep '\$100' file.txt           # $ needs escape</pre>
+
+            <div class="note"><strong>Recommendation:</strong> Use <code>grep -E</code> for most work. Use <code>grep -P</code> when you need advanced features</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">
+            How do you use regex with sed for substitution? How do you use capture groups in the replacement? What about global replacement?
+        </div>
+        <div class="back">
+            <strong>Basic substitution:</strong> <code>sed 's/pattern/replacement/'</code><br>
+            <strong>Global (all matches):</strong> <code>sed 's/pattern/replacement/g'</code><br>
+            <strong>Capture groups:</strong> <code>\1</code>, <code>\2</code>, etc. in replacement
+
+            <p><strong>Why:</strong> sed is powerful for find-and-replace with regex. Capture groups let you reuse parts of the match.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Simple replacement (first match per line)
+sed 's/cat/dog/' file.txt
+
+# Global replacement (all matches)
+sed 's/cat/dog/g' file.txt
+
+# Use capture groups to swap
+echo "John Doe" | sed -E 's/(\w+) (\w+)/\2, \1/'
+# Output: Doe, John
+
+# Extract and reformat dates
+sed -E 's/([0-9]{4})-([0-9]{2})-([0-9]{2})/\2\/\3\/\1/g'
+# 2024-01-15 → 01/15/2024
+
+# Remove HTML tags
+sed 's/<[^>]*>//g' file.html
+
+# Add quotes around words
+sed -E 's/\b(\w+)\b/"\1"/g'
+
+# Case-insensitive replacement
+sed 's/error/ERROR/gi' file.txt
+
+# In-place editing
+sed -i 's/old/new/g' file.txt  # Linux
+sed -i '' 's/old/new/g' file.txt  # macOS</pre>
+
+            <div class="note"><strong>Extended regex in sed:</strong> Use <code>sed -E</code> (or <code>sed -r</code> on Linux) for ERE features</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">
+            How do you make regex case-insensitive? What flag do you use in grep, sed, and other tools?
+        </div>
+        <div class="back">
+            <strong>grep:</strong> <code>grep -i</code><br>
+            <strong>sed:</strong> <code>s/pattern/replacement/i</code> or <code>I</code> flag<br>
+            <strong>awk:</strong> Use <code>tolower()</code> or <code>IGNORECASE=1</code>
+
+            <p><strong>Why:</strong> Case-insensitive matching is common for user input, search, etc.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># grep: case-insensitive search
+grep -i 'error' logfile.txt  # Matches: error, Error, ERROR
+
+# sed: case-insensitive replacement
+sed 's/error/ERROR/i' file.txt
+sed 's/error/ERROR/gi' file.txt  # Global + case-insensitive
+
+# awk: case-insensitive
+awk 'tolower($0) ~ /error/' file.txt
+awk 'BEGIN{IGNORECASE=1} /error/' file.txt
+
+# Regex in pattern (some flavors)
+grep -E '(?i)error' file.txt  # Not in standard grep!
+grep -P '(?i)error' file.txt  # Perl regex supports (?i)
+
+# Case-insensitive in character class
+grep '[Ee][Rr][Rr][Oo][Rr]' file.txt  # Tedious!
+grep -i 'error' file.txt               # Much better</pre>
+
+            <div class="note"><strong>Best practice:</strong> Use tool flags (<code>-i</code>) rather than manually specifying case in pattern</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">
+            How do you match newlines or multi-line patterns in regex? What about matching across multiple lines? What options enable this?
+        </div>
+        <div class="back">
+            <strong>Newline character:</strong> <code>\n</code> (in extended/Perl regex)<br>
+            <strong>Multi-line mode:</strong> Tool-dependent (sed uses <code>N</code>, grep uses <code>-z</code>, etc.)<br>
+            <strong>Dot matches newline:</strong> PCRE <code>s</code> modifier or <code>(?s)</code>
+
+            <p><strong>Why:</strong> By default, regex works line-by-line. Multi-line patterns require special handling.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># grep: match literal newlines with -z (null-separated)
+grep -z 'pattern1.*pattern2' file.txt
+
+# grep with -P: match across lines
+grep -Pz 'function\s+\w+\s*\{.*?\}' file.js
+
+# sed: read next line into pattern space
+sed -n '/start/{N;/end/p}' file.txt
+
+# perl: enable multi-line mode
+perl -0777 -pe 's/old\npattern/new pattern/g' file.txt
+
+# awk: multi-line records
+awk 'BEGIN{RS=""} /pattern/' file.txt  # Paragraph mode
+
+# Match . including newlines (Perl/PCRE)
+grep -Pz '(?s)start.*end' file.txt  # (?s) makes . match \n
+
+# Match start/end of string vs line
+# ^$ = line boundaries
+# \A\Z = string boundaries (Perl/PCRE)</pre>
+
+            <div class="warning"><strong>Complexity:</strong> Multi-line regex is tricky. Consider using awk, perl, or programming languages for complex cases</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">
+            What are lookahead and lookbehind assertions? How do you match a pattern only if it's followed by (or preceded by) another pattern without including it in the match?
+        </div>
+        <div class="back">
+            <strong>Positive lookahead:</strong> <code>(?=pattern)</code> - match if followed by pattern<br>
+            <strong>Negative lookahead:</strong> <code>(?!pattern)</code> - match if NOT followed by pattern<br>
+            <strong>Positive lookbehind:</strong> <code>(?&lt;=pattern)</code> - match if preceded by pattern<br>
+            <strong>Negative lookbehind:</strong> <code>(?&lt;!pattern)</code> - match if NOT preceded by pattern
+
+            <p><strong>Why:</strong> Lookarounds assert conditions without consuming characters. Only in Perl/PCRE regex (<code>grep -P</code>).</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Match "foo" only if followed by "bar"
+grep -P 'foo(?=bar)' file.txt
+# Matches: "foo" in "foobar" but not "foobaz"
+
+# Match "foo" only if NOT followed by "bar"
+grep -P 'foo(?!bar)' file.txt
+# Matches: "foo" in "foobaz" but not "foobar"
+
+# Match numbers followed by "dollars"
+grep -oP '\d+(?= dollars)' file.txt
+# "50 dollars" → matches "50" (not " dollars")
+
+# Match "USD" preceded by a number
+grep -oP '(?&lt;=\d )\w+' file.txt
+# "50 USD" → matches "USD"
+
+# Password validation: at least one uppercase, one lowercase, one digit
+grep -P '^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$'
+
+# Match word not preceded by "not "
+grep -P '(?&lt;!not )\w+' file.txt</pre>
+
+            <div class="warning"><strong>Not in standard grep!</strong> Requires <code>grep -P</code> (Perl regex). Not available in BRE/ERE</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">
+            How do you test and debug regex patterns? What tools help you visualize matches? What's a good workflow for building complex patterns?
+        </div>
+        <div class="back">
+            <strong>Test with grep -o:</strong> Show only matching parts<br>
+            <strong>Online tools:</strong> regex101.com, regexr.com (visual testing)<br>
+            <strong>Build incrementally:</strong> Start simple, add complexity step by step
+
+            <p><strong>Why:</strong> Regex is hard to read. Testing each part helps catch errors early.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Show only matches (not full lines)
+grep -o 'pattern' file.txt
+
+# Show matches with line numbers
+grep -n 'pattern' file.txt
+
+# Count matches
+grep -c 'pattern' file.txt
+
+# Highlight matches in color
+grep --color=always 'pattern' file.txt
+
+# Test incrementally
+echo "test@example.com" | grep -oP '\w+'        # Match words
+echo "test@example.com" | grep -oP '\w+@'       # Add @
+echo "test@example.com" | grep -oP '\w+@\w+'    # Add domain
+echo "test@example.com" | grep -oP '\w+@\w+\.'  # Add dot
+# ... build up the full email pattern
+
+# Debug: Use echo to test
+echo "2024-01-15" | sed -E 's/([0-9]+)-([0-9]+)-([0-9]+)/\1\/\2\/\3/'
+
+# Perl one-liner for testing
+perl -ne 'print if /pattern/' file.txt</pre>
+
+            <div class="note"><strong>Online tools:</strong> regex101.com shows matches, capture groups, and explains each part. Highly recommended!</div>
+        </div>
+        <div class="tags">cs regex patterns EN</div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readline/Bash Shortcuts Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 1.1em;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .back {
+            color: #555;
+        }
+        .back strong {
+            color: #2c3e50;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.95em;
+            color: #c7254e;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ecf0f1;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+        .tip {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Readline/Bash Shortcuts Flashcards</h1>
+    <p><strong>These shortcuts work in:</strong> Bash, Zsh, Python REPL, MySQL/PostgreSQL clients, and most CLI tools using GNU Readline</p>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            You're typing a long command and need to jump to the beginning of the line. How do you move there instantly? What about jumping to the end?
+        </div>
+        <div class="back">
+            <strong>Beginning:</strong> <code>Ctrl+A</code><br>
+            <strong>End:</strong> <code>Ctrl+E</code>
+
+            <p><strong>Why:</strong> These are the most essential navigation shortcuts. Instead of holding down the left/right arrow keys (slow!), you jump instantly.</p>
+
+            <p><strong>Memory trick:</strong> Think "A" for the <strong>A</strong>lphabet start, "E" for <strong>E</strong>nd</p>
+
+            <p><strong>Related:</strong></p>
+            <ul>
+                <li><code>Home</code> / <code>End</code> keys do the same thing</li>
+                <li>Works in most terminal-based editors and REPLs</li>
+            </ul>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            You typed a long path and need to fix a typo in the middle. How do you jump forward or backward by whole words instead of one character at a time?
+        </div>
+        <div class="back">
+            <strong>Forward one word:</strong> <code>Alt+F</code> (or <code>Esc</code> then <code>F</code>)<br>
+            <strong>Backward one word:</strong> <code>Alt+B</code> (or <code>Esc</code> then <code>B</code>)
+
+            <p><strong>Why:</strong> Much faster than using arrow keys. Especially useful for long commands with multiple arguments or paths.</p>
+
+            <p><strong>Example:</strong> In <code>git commit -m "fix typo in README.md"</code>, you can quickly jump between "git", "commit", "-m", etc.</p>
+
+            <p><strong>Note:</strong> On macOS, you might need to enable "Use Option as Meta key" in Terminal preferences. Or use <code>Esc</code> then the letter instead.</p>
+
+            <div class="tip"><strong>Single character movement:</strong> <code>Ctrl+F</code> (forward) / <code>Ctrl+B</code> (backward)</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            You've typed most of a command but realize you don't need anything after the cursor. How do you delete everything from the cursor to the end of the line? What about deleting from the cursor to the beginning?
+        </div>
+        <div class="back">
+            <strong>Delete to end of line:</strong> <code>Ctrl+K</code> (think: <strong>K</strong>ill)<br>
+            <strong>Delete to beginning of line:</strong> <code>Ctrl+U</code>
+
+            <p><strong>Why:</strong> These are "kill" commands - they cut the text and store it in the "kill ring" (like a clipboard). You can paste it back with <code>Ctrl+Y</code> (yank).</p>
+
+            <p><strong>Example workflow:</strong></p>
+            <pre>$ git commit -m "wrong message here"
+# Press Ctrl+U to clear the whole line
+$ git status  # type something else</pre>
+
+            <p><strong>Pro tip:</strong> The killed text is saved! You can yank it back with <code>Ctrl+Y</code> if you change your mind.</p>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            You need to delete just the previous word (not the whole line). What's the shortcut? What if you want to delete the next word forward?
+        </div>
+        <div class="back">
+            <strong>Delete previous word:</strong> <code>Ctrl+W</code><br>
+            <strong>Delete next word:</strong> <code>Alt+D</code>
+
+            <p><strong>Why:</strong> Perfect for fixing mistakes without clearing the entire command. Deletes from cursor back to the previous space.</p>
+
+            <p><strong>Example:</strong></p>
+            <pre>$ git commit -m "typo heer"
+# Cursor is at end, press Ctrl+W to delete "heer"
+$ git commit -m "here"</pre>
+
+            <p><strong>Word boundaries:</strong> Deletes up to spaces, slashes, or special characters</p>
+
+            <div class="note"><strong>Difference from Ctrl+U:</strong> Ctrl+W deletes one word at a time, Ctrl+U deletes from cursor to line start</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            You just deleted some text with Ctrl+K or Ctrl+W and want to paste it back. What's the shortcut? Can you paste multiple times?
+        </div>
+        <div class="back">
+            <strong>Paste (yank) deleted text:</strong> <code>Ctrl+Y</code>
+
+            <p><strong>Why:</strong> All the "kill" commands (<code>Ctrl+K</code>, <code>Ctrl+U</code>, <code>Ctrl+W</code>, <code>Alt+D</code>) save text to the "kill ring". <code>Ctrl+Y</code> yanks it back.</p>
+
+            <p><strong>Example workflow:</strong></p>
+            <pre># Copy part of a long command to reuse it
+$ docker run --name myapp -p 8080:8080 myimage
+# Press Ctrl+A, then Ctrl+K to kill the whole line
+$ docker ps  # Check something
+$ docker run [Ctrl+Y]  # Yanks back the original command!</pre>
+
+            <p><strong>Multiple yanks:</strong> Yes! Press <code>Ctrl+Y</code> multiple times to paste the same text repeatedly</p>
+
+            <div class="tip"><strong>Think "Y" for Yank</strong> - Emacs terminology for paste</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            You want to clear the terminal screen without typing "clear". What's the keyboard shortcut? Does it preserve your current command?
+        </div>
+        <div class="back">
+            <strong>Clear screen:</strong> <code>Ctrl+L</code>
+
+            <p><strong>Why:</strong> Much faster than typing <code>clear</code> and pressing Enter. Your current typed command stays intact (unlike <code>clear</code> which requires starting over).</p>
+
+            <p><strong>What it does:</strong></p>
+            <ul>
+                <li>Clears the visible terminal output</li>
+                <li>Preserves whatever you've typed on the current line</li>
+                <li>Keeps your shell history intact</li>
+            </ul>
+
+            <p><strong>Example:</strong> You've typed a long command but the screen is cluttered with output - press <code>Ctrl+L</code> to clean it up while keeping your command.</p>
+
+            <div class="note"><strong>vs typing "clear":</strong> Ctrl+L is instant and doesn't lose what you're typing</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            You remember running a command recently but can't remember the exact syntax. How do you search backward through your command history interactively? How do you exit the search?
+        </div>
+        <div class="back">
+            <strong>Reverse history search:</strong> <code>Ctrl+R</code><br>
+            <strong>Exit search:</strong> <code>Ctrl+G</code> (cancel) or <code>Enter</code> (execute) or <code>Esc</code> (edit)
+
+            <p><strong>Why:</strong> This is one of the most powerful shortcuts! Instead of pressing Up arrow 50 times, just start typing part of the command.</p>
+
+            <p><strong>How it works:</strong></p>
+            <ol>
+                <li>Press <code>Ctrl+R</code> - you'll see <code>(reverse-i-search)</code></li>
+                <li>Start typing any part of the command (e.g., "docker")</li>
+                <li>It shows the most recent match</li>
+                <li>Press <code>Ctrl+R</code> again to cycle through older matches</li>
+                <li>Press <code>Enter</code> to run it, or <code>Esc</code> to edit it first</li>
+            </ol>
+
+            <p><strong>Example:</strong> Search for "docker run" - just type <code>Ctrl+R</code> then "docker" and it finds your last docker command</p>
+
+            <div class="tip"><strong>Forward search:</strong> <code>Ctrl+S</code> (but often conflicts with terminal flow control)</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            You just made a mistake editing your command. How do you undo the last change? Can you undo multiple times?
+        </div>
+        <div class="back">
+            <strong>Undo:</strong> <code>Ctrl+_</code> (Ctrl+Shift+Minus) or <code>Ctrl+X Ctrl+U</code>
+
+            <p><strong>Why:</strong> Just like undo in a text editor! Works for deletions, insertions, and other edits. Can undo multiple times.</p>
+
+            <p><strong>What can be undone:</strong></p>
+            <ul>
+                <li>Deleted text (Ctrl+W, Ctrl+K, etc.)</li>
+                <li>Typed characters</li>
+                <li>Yanked text (Ctrl+Y)</li>
+                <li>Transpose operations</li>
+            </ul>
+
+            <p><strong>Example:</strong> You accidentally press <code>Ctrl+W</code> too many times - just press <code>Ctrl+_</code> to undo the deletions one by one.</p>
+
+            <div class="note"><strong>Keyboard note:</strong> On some keyboards, <code>Ctrl+_</code> is <code>Ctrl+Shift+-</code> (the underscore key)</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            You typed two characters in the wrong order (like "sl" instead of "ls"). How do you quickly swap them? What about swapping two words?
+        </div>
+        <div class="back">
+            <strong>Transpose characters:</strong> <code>Ctrl+T</code><br>
+            <strong>Transpose words:</strong> <code>Alt+T</code>
+
+            <p><strong>Why:</strong> Common typo fix! Instead of deleting and retyping, just swap them.</p>
+
+            <p><strong>Character transpose:</strong></p>
+            <pre>$ sl -la
+# Cursor after "l", press Ctrl+T
+$ ls -la  # Fixed!</pre>
+
+            <p><strong>Word transpose:</strong></p>
+            <pre>$ git add commit -m "msg"
+# Cursor after "commit", press Alt+T
+$ git commit add -m "msg"</pre>
+
+            <p><strong>Behavior:</strong> Swaps character before cursor with character at cursor (or last two chars at end of line)</p>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            You want to navigate through your command history one command at a time. What are the keyboard shortcuts? What's the difference from using the Up/Down arrow keys?
+        </div>
+        <div class="back">
+            <strong>Previous command:</strong> <code>Ctrl+P</code> (or <code>Up arrow</code>)<br>
+            <strong>Next command:</strong> <code>Ctrl+N</code> (or <code>Down arrow</code>)
+
+            <p><strong>Why:</strong> <code>Ctrl+P</code>/<code>Ctrl+N</code> keep your hands on the home row (more ergonomic for touch typists). Arrow keys work too.</p>
+
+            <p><strong>Think:</strong> P = <strong>P</strong>revious, N = <strong>N</strong>ext</p>
+
+            <p><strong>Related history shortcuts:</strong></p>
+            <ul>
+                <li><code>!!</code> - Repeat last command (e.g., <code>sudo !!</code>)</li>
+                <li><code>!$</code> - Last argument of previous command</li>
+                <li><code>!^</code> - First argument of previous command</li>
+                <li><code>!*</code> - All arguments of previous command</li>
+            </ul>
+
+            <div class="tip"><strong>Difference:</strong> None functionally! It's personal preference. Use arrow keys or Ctrl+P/N.</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">
+            You want to repeat the last command. How do you do it quickly? What if you want to run the last command with sudo?
+        </div>
+        <div class="back">
+            <strong>Repeat last command:</strong> <code>!!</code><br>
+            <strong>Repeat with sudo:</strong> <code>sudo !!</code>
+
+            <p><strong>Why:</strong> Incredibly common pattern. You run a command that needs root permissions - just add sudo to the previous command.</p>
+
+            <p><strong>Example:</strong></p>
+            <pre>$ apt update
+Permission denied
+$ sudo !!
+# Expands to: sudo apt update</pre>
+
+            <p><strong>Other bang patterns:</strong></p>
+            <ul>
+                <li><code>!$</code> - Last argument: <code>mkdir /tmp/test</code> then <code>cd !$</code> → <code>cd /tmp/test</code></li>
+                <li><code>!^</code> - First argument</li>
+                <li><code>!*</code> - All arguments</li>
+                <li><code>!string</code> - Most recent command starting with "string"</li>
+            </ul>
+
+            <div class="note"><strong>Safety tip:</strong> Use <code>:p</code> to preview first: <code>sudo !!:p</code> shows what would run</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">
+            You want to reuse the last argument from the previous command. How do you insert it without retyping? What about using the first argument instead?
+        </div>
+        <div class="back">
+            <strong>Last argument:</strong> <code>!$</code> or <code>Alt+.</code> (Alt+period)<br>
+            <strong>First argument:</strong> <code>!^</code>
+
+            <p><strong>Why:</strong> Super common workflow! You just created a directory and want to cd into it, or operated on a file and want to edit it.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>$ mkdir /var/www/myapp
+$ cd !$
+# Same as: cd /var/www/myapp
+
+$ cat /etc/nginx/nginx.conf
+$ sudo vim !$
+# Same as: sudo vim /etc/nginx/nginx.conf</pre>
+
+            <p><strong>Alt+. is even better:</strong> Press repeatedly to cycle through last arguments of previous commands!</p>
+
+            <div class="tip"><strong>All arguments:</strong> <code>!*</code> inserts all arguments from previous command</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">
+            You want to change the case of a word. How do you uppercase the current word? What about lowercase or capitalize?
+        </div>
+        <div class="back">
+            <strong>Uppercase word:</strong> <code>Alt+U</code><br>
+            <strong>Lowercase word:</strong> <code>Alt+L</code><br>
+            <strong>Capitalize word:</strong> <code>Alt+C</code>
+
+            <p><strong>Why:</strong> Useful for fixing case in filenames, environment variables, or SQL commands without retyping.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre>$ export path=/usr/bin
+# Cursor on "path", press Alt+U
+$ export PATH=/usr/bin  # Fixed!
+
+$ SELECT * FROM Users
+# Cursor on "Users", press Alt+L
+$ SELECT * FROM users  # Lowercase</pre>
+
+            <p><strong>Which word:</strong> Operates on the word under or after the cursor (from cursor to end of word)</p>
+
+            <div class="note"><strong>macOS:</strong> Might need to enable Option as Meta key in terminal settings</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">
+            You started typing a command but realize you need to run something else first. How do you temporarily save the current line, run another command, then get it back?
+        </div>
+        <div class="back">
+            <strong>Save and clear line:</strong> <code>Ctrl+U</code> (kill line), run other command, then <code>Ctrl+Y</code> (yank back)
+
+            <p><strong>Why:</strong> Lets you "park" a command while you check something, without losing your work.</p>
+
+            <p><strong>Better method:</strong></p>
+            <pre># Type a long command
+$ docker run --name web -p 8080:8080 --env-file .env myimage
+# Ctrl+U to clear and save it
+$ docker ps  # Check running containers
+$ [Ctrl+Y]  # Paste it back!
+$ docker run --name web -p 8080:8080 --env-file .env myimage</pre>
+
+            <p><strong>Alternative:</strong> Use a comment!</p>
+            <pre># Add # to start, press Enter, it's saved in history
+$ #docker run --name web -p 8080:8080 myimage
+$ docker ps
+$ [Up arrow twice] # Get it back, delete the #</pre>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">
+            You want to stop the current command from running without closing the terminal. What's the shortcut? What about suspending a running program to resume later?
+        </div>
+        <div class="back">
+            <strong>Interrupt/kill current command:</strong> <code>Ctrl+C</code><br>
+            <strong>Suspend (pause):</strong> <code>Ctrl+Z</code>
+
+            <p><strong>Why:</strong> <code>Ctrl+C</code> sends SIGINT to terminate the process. <code>Ctrl+Z</code> sends SIGTSTP to suspend it (you can resume with <code>fg</code> or run in background with <code>bg</code>).</p>
+
+            <p><strong>Example - Suspend workflow:</strong></p>
+            <pre>$ vim myfile.txt
+# Press Ctrl+Z to suspend vim
+[1]+ Stopped    vim myfile.txt
+$ ls  # Do something else
+$ fg  # Resume vim (brings it to foreground)</pre>
+
+            <p><strong>Related:</strong></p>
+            <ul>
+                <li><code>Ctrl+D</code> - Send EOF (end of input), closes shell if line is empty</li>
+                <li><code>fg</code> - Resume suspended job in foreground</li>
+                <li><code>bg</code> - Resume suspended job in background</li>
+                <li><code>jobs</code> - List suspended/background jobs</li>
+            </ul>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">
+            You're in the middle of typing a command but want to quickly open it in your default editor ($EDITOR) to edit it more comfortably. What's the shortcut?
+        </div>
+        <div class="back">
+            <strong>Edit command in $EDITOR:</strong> <code>Ctrl+X Ctrl+E</code>
+
+            <p><strong>Why:</strong> For very long or complex commands (like multi-line scripts), it's easier to edit in vim/nano/emacs with full editing capabilities.</p>
+
+            <p><strong>Workflow:</strong></p>
+            <ol>
+                <li>Start typing a long command</li>
+                <li>Press <code>Ctrl+X Ctrl+E</code></li>
+                <li>Your editor opens with the command</li>
+                <li>Edit it, save, and quit</li>
+                <li>Command runs automatically (or appears in your prompt if you cancel)</li>
+            </ol>
+
+            <p><strong>Example use case:</strong></p>
+            <pre># Typing a complex find/xargs command
+$ find . -name "*.log" -mtime +30 -exec ...
+# Ctrl+X Ctrl+E opens in vim/nano to edit comfortably</pre>
+
+            <div class="note"><strong>Editor:</strong> Uses $EDITOR or $VISUAL environment variable (usually vim, nano, emacs)</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">
+            You want to insert a comment in your command line that gets saved in history but doesn't execute. Why would you do this? How?
+        </div>
+        <div class="back">
+            <strong>Comment trick:</strong> Start line with <code>#</code>, or press <code>Alt+#</code> to insert # at the beginning
+
+            <p><strong>Why:</strong> Save a command for later without executing it! Great for complex commands you're building or want to remember.</p>
+
+            <p><strong>Example:</strong></p>
+            <pre>$ #TODO: docker run --name web -p 8080:8080 myimage
+# Press Enter - nothing happens, but it's in history!
+$ history | tail -1
+  523  #TODO: docker run --name web -p 8080:8080 myimage
+# Later, press Ctrl+R and search for "TODO"</pre>
+
+            <p><strong>Alt+# shortcut:</strong> Automatically adds # to the beginning of your current line and executes it (saves to history)</p>
+
+            <p><strong>Use cases:</strong></p>
+            <ul>
+                <li>Save a complex command you're building</li>
+                <li>Document what you were trying to do</li>
+                <li>Create command templates to reuse later</li>
+            </ul>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">
+            You want to see all available keyboard shortcuts in your current shell. What command shows you a complete list? How do you search for a specific key binding?
+        </div>
+        <div class="back">
+            <strong>List all key bindings:</strong> <code>bind -P</code> (Bash) or <code>bindkey</code> (Zsh)<br>
+            <strong>Show specific binding:</strong> <code>bind -p | grep 'command-name'</code>
+
+            <p><strong>Why:</strong> Readline has dozens of shortcuts! This shows everything available and what they do.</p>
+
+            <p><strong>Example output:</strong></p>
+            <pre>$ bind -P | grep '^beginning-of-line'
+beginning-of-line can be invoked via "\C-a", "\eOH", "\e[1~", "\e[H".</pre>
+
+            <p><strong>Useful searches:</strong></p>
+            <ul>
+                <li><code>bind -P | grep kill</code> - All kill commands</li>
+                <li><code>bind -P | grep yank</code> - Paste commands</li>
+                <li><code>bind -P | grep history</code> - History shortcuts</li>
+            </ul>
+
+            <p><strong>Custom bindings:</strong> Add to <code>~/.inputrc</code> to customize or add new shortcuts</p>
+
+            <div class="tip"><strong>See what a key does:</strong> <code>bind -q command-name</code> shows which keys trigger it</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 19 -->
+    <div class="card">
+        <div class="front">
+            You want to customize Readline shortcuts or behavior (like case-insensitive tab completion). What configuration file do you edit? Do the changes apply to all Readline programs?
+        </div>
+        <div class="back">
+            <strong>Config file:</strong> <code>~/.inputrc</code>
+
+            <p><strong>Why:</strong> This file controls Readline behavior for ALL programs that use it: Bash, Python REPL, MySQL client, etc.</p>
+
+            <p><strong>Useful settings:</strong></p>
+            <pre># Case-insensitive tab completion
+set completion-ignore-case on
+
+# Show all completions immediately (no bell)
+set show-all-if-ambiguous on
+
+# Use visible bell instead of beep
+set bell-style visible
+
+# Vi mode instead of Emacs (advanced)
+set editing-mode vi</pre>
+
+            <p><strong>Custom key bindings:</strong></p>
+            <pre># Make Ctrl+/ undo (easier than Ctrl+_)
+"\C-/": undo
+
+# Alt+h deletes previous word (alternative to Ctrl+W)
+"\eh": backward-kill-word</pre>
+
+            <p><strong>Reload config:</strong> <code>bind -f ~/.inputrc</code> or restart terminal</p>
+
+            <div class="note"><strong>Applies to:</strong> Any program using GNU Readline library</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 20 -->
+    <div class="card">
+        <div class="front">
+            Your terminal is showing garbled characters or seems frozen. What shortcuts can help? How do you reset the terminal display?
+        </div>
+        <div class="back">
+            <strong>Unfreeze terminal:</strong> <code>Ctrl+Q</code><br>
+            <strong>Reset terminal:</strong> <code>reset</code> or <code>Ctrl+L</code> then type <code>stty sane</code>
+
+            <p><strong>Why this happens:</strong> You might have accidentally pressed <code>Ctrl+S</code> (freezes output) or displayed binary data (garbles the terminal).</p>
+
+            <p><strong>Common scenarios:</strong></p>
+
+            <p><strong>1. Frozen terminal (can't type):</strong></p>
+            <ul>
+                <li>Cause: Accidentally pressed <code>Ctrl+S</code> (XOFF flow control)</li>
+                <li>Fix: Press <code>Ctrl+Q</code> (XON) to unfreeze</li>
+            </ul>
+
+            <p><strong>2. Garbled display:</strong></p>
+            <ul>
+                <li>Cause: Displayed binary file (like <code>cat image.png</code>)</li>
+                <li>Fix: Type <code>reset</code> (blindly if needed) or <code>stty sane</code></li>
+            </ul>
+
+            <p><strong>Prevention:</strong> Disable flow control: add <code>stty -ixon</code> to <code>~/.bashrc</code></p>
+
+            <div class="tip"><strong>Quick clean:</strong> Close and reopen the terminal tab if reset doesn't work</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 21 -->
+    <div class="card">
+        <div class="front">
+            How do tab completion and these shortcuts interact? What happens if you try to complete a word and there are multiple matches? How do you cycle through completions?
+        </div>
+        <div class="back">
+            <strong>Tab completion:</strong> <code>Tab</code> (complete) or <code>Tab Tab</code> (show all)<br>
+            <strong>Cycle through matches:</strong> <code>Alt+*</code> (insert all) or configure <code>menu-complete</code>
+
+            <p><strong>Default behavior:</strong></p>
+            <ul>
+                <li><code>Tab</code> once: completes if unique, or completes common prefix</li>
+                <li><code>Tab</code> twice: shows all possible matches</li>
+            </ul>
+
+            <p><strong>Example:</strong></p>
+            <pre>$ cd Doc[Tab]
+# If only "Documents/" exists → completes to Documents/
+# If "Documents/" and "Downloads/" exist → shows both
+
+$ git ch[Tab][Tab]
+checkout  cherry  cherry-pick  check-attr</pre>
+
+            <p><strong>Advanced - Menu completion (cycles through):</strong></p>
+            <pre># Add to ~/.inputrc
+TAB: menu-complete
+"\e[Z": menu-complete-backward  # Shift+Tab goes backward</pre>
+
+            <p><strong>Insert all matches:</strong> <code>Alt+*</code> inserts all completions at once</p>
+
+            <div class="tip"><strong>Completion and editing:</strong> After tab completion, use Ctrl+W/K/U to edit the completed text</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+    <!-- Card 22 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between Emacs mode and Vi mode in Readline? How do you switch between them? Which one are these shortcuts for?
+        </div>
+        <div class="back">
+            <strong>Default mode:</strong> Emacs (these shortcuts)<br>
+            <strong>Switch to Vi mode:</strong> <code>set -o vi</code> or in <code>~/.inputrc</code>: <code>set editing-mode vi</code><br>
+            <strong>Switch back to Emacs:</strong> <code>set -o emacs</code>
+
+            <p><strong>Emacs mode (default):</strong></p>
+            <ul>
+                <li>All the shortcuts in this deck (Ctrl+A, Ctrl+E, Ctrl+K, etc.)</li>
+                <li>Always in "insert" mode</li>
+                <li>More intuitive for most users</li>
+            </ul>
+
+            <p><strong>Vi mode:</strong></p>
+            <ul>
+                <li>Modal editing like Vim (insert mode vs normal mode)</li>
+                <li>Press <code>Esc</code> to enter normal mode, then use h/j/k/l, w/b, dd, etc.</li>
+                <li>Great if you're a heavy Vim user</li>
+            </ul>
+
+            <p><strong>Check current mode:</strong> <code>set -o | grep emacs</code></p>
+
+            <div class="note"><strong>Learning curve:</strong> Emacs mode is easier to start with; Vi mode is powerful if you know Vim</div>
+        </div>
+        <div class="tags">cs readline bash shortcuts EN</div>
+    </div>
+
+</body>
+</html>
