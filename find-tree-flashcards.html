@@ -918,5 +918,344 @@ done</pre>
         <div class="tags">cs linux find tree EN</div>
     </div>
 
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You need to find and delete all .DS_Store files in your project. How do you find and delete files safely? What if you want to confirm before deleting each one?
+    </div>
+    <div class="back">
+        <strong>Find and delete:</strong> <code>find . -name ".DS_Store" -delete</code><br>
+        <strong>Preview first:</strong> <code>find . -name ".DS_Store"</code><br>
+        <strong>Confirm each:</strong> <code>find . -name ".DS_Store" -exec rm -i {} \;</code>
+
+        <p><strong>Why:</strong> <code>-delete</code> removes files found. Always test without <code>-delete</code> first! <code>-i</code> prompts before each deletion for safety.</p>
+
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>find . -name ".DS_Store" -print0 | xargs -0 rm</code> (faster for many files)</li>
+            <li><code>find . -name ".DS_Store" -type f -delete</code> (ensure files only)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find delete EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You want to find files that are taking up the most space in a directory. How do you find largest files? How do you sort by size?
+    </div>
+    <div class="back">
+        <strong>10 largest files:</strong> <code>find . -type f -exec ls -lh {} \; | sort -k5 -hr | head -10</code><br>
+        <strong>Simpler with du:</strong> <code>find . -type f -exec du -h {} \; | sort -rh | head -10</code>
+
+        <p><strong>Why:</strong> <code>-exec du -h {}</code> shows human-readable size for each file. <code>sort -rh</code> sorts by human-readable numbers descending. <code>head -10</code> shows top 10.</p>
+
+        <p><strong>Better alternatives:</strong></p>
+        <ul>
+            <li><code>du -ah . | sort -rh | head -20</code> (includes directories)</li>
+            <li><code>ncdu .</code> (interactive disk usage browser)</li>
+            <li><code>find . -type f -size +100M</code> (files over 100MB)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find size EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        You need to copy all .jpg files from nested directories to one folder. How do you find and copy files? How do you preserve directory structure?
+    </div>
+    <div class="back">
+        <strong>Copy to one folder:</strong> <code>find . -name "*.jpg" -exec cp {} /destination/ \;</code><br>
+        <strong>Preserve structure with rsync:</strong> <code>find . -name "*.jpg" -print0 | rsync -av --files-from=- --from0 . /destination/</code>
+
+        <p><strong>Why:</strong> <code>-exec cp {} /dest/</code> copies each found file. All files end up flat in destination. rsync can preserve paths if needed.</p>
+
+        <p><strong>Watch for name collisions:</strong></p>
+        <ul>
+            <li>Flat copy overwrites files with same name!</li>
+            <li><code>find . -name "*.jpg" | xargs -I {} cp {} /dest/</code> (xargs version)</li>
+            <li><code>rsync -av --include='*.jpg' --exclude='*' . /dest/</code> (preserve structure)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find copy EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        You need to change permissions on all scripts in a directory tree. How do you find and chmod files? What about finding files by current permissions?
+    </div>
+    <div class="back">
+        <strong>Make all .sh files executable:</strong> <code>find . -name "*.sh" -exec chmod +x {} \;</code><br>
+        <strong>Find by permission:</strong> <code>find . -perm 644</code> (exact) or <code>find . -perm -644</code> (at least)
+
+        <p><strong>Why:</strong> <code>-exec chmod +x {}</code> makes each found file executable. <code>-perm 644</code> finds files with exact permissions. <code>-perm -644</code> finds files with at least those bits set.</p>
+
+        <p><strong>Security scenarios:</strong></p>
+        <ul>
+            <li><code>find . -perm -002 -type f</code> (world-writable files - security risk!)</li>
+            <li><code>find . -perm /u+w,g+w -type f</code> (writable by owner OR group)</li>
+            <li><code>find . -type d -exec chmod 755 {} \;</code> (fix directory permissions)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find permissions EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        You need to find files modified today or in the last week. How do you find files by modification date? How about files older than 30 days?
+    </div>
+    <div class="back">
+        <strong>Modified today:</strong> <code>find . -mtime 0</code><br>
+        <strong>Last 7 days:</strong> <code>find . -mtime -7</code><br>
+        <strong>Older than 30 days:</strong> <code>find . -mtime +30</code>
+
+        <p><strong>Why:</strong> <code>-mtime 0</code> = today (last 24 hours). <code>-mtime -7</code> = less than 7 days ago. <code>-mtime +30</code> = more than 30 days ago. Time is in 24-hour periods.</p>
+
+        <p><strong>More precise timing:</strong></p>
+        <ul>
+            <li><code>find . -mmin -60</code> (modified in last 60 minutes)</li>
+            <li><code>find . -newermt "2024-01-01"</code> (newer than specific date)</li>
+            <li><code>find . -mtime +30 -name "*.log" -delete</code> (delete old logs)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find time EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        You want to find files that contain specific text. How do you search file contents while finding files? How do you search only certain file types?
+    </div>
+    <div class="back">
+        <strong>Find files containing text:</strong> <code>find . -type f -exec grep -l "password" {} \;</code><br>
+        <strong>Only .txt files:</strong> <code>find . -name "*.txt" -exec grep -l "TODO" {} \;</code>
+
+        <p><strong>Why:</strong> <code>grep -l</code> lists filenames containing match (not the matches themselves). Combine find with grep to search specific file types or locations.</p>
+
+        <p><strong>Better alternatives:</strong></p>
+        <ul>
+            <li><code>grep -r "pattern" .</code> (simpler for recursive search)</li>
+            <li><code>find . -name "*.py" -print0 | xargs -0 grep "def main"</code> (faster)</li>
+            <li><code>rg "pattern" --type py</code> (ripgrep - much faster!)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find grep EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        You need to find broken symbolic links in your system. How do you find broken symlinks? How do you remove them?
+    </div>
+    <div class="back">
+        <strong>Find broken symlinks:</strong> <code>find . -type l -xtype l</code><br>
+        <strong>Find and remove:</strong> <code>find . -type l -xtype l -delete</code>
+
+        <p><strong>Why:</strong> <code>-type l</code> finds symbolic links. <code>-xtype l</code> tests if the target is a symlink that doesn't exist (broken). Combination finds only broken links.</p>
+
+        <p><strong>Preview before deleting:</strong></p>
+        <ul>
+            <li><code>find . -type l -xtype l -ls</code> (list broken links with details)</li>
+            <li><code>find . -type l ! -exec test -e {} \; -print</code> (alternative method)</li>
+            <li><code>symlinks -r .</code> (requires symlinks tool)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find symlinks EN</div>
+</div>
+
+<!-- Card 26 -->
+<div class="card">
+    <div class="front">
+        You want to exclude certain directories from find results. How do you skip directories? How do you exclude multiple patterns?
+    </div>
+    <div class="back">
+        <strong>Skip directory:</strong> <code>find . -path ./node_modules -prune -o -name "*.js" -print</code><br>
+        <strong>Multiple excludes:</strong> <code>find . \( -path ./node_modules -o -path ./.git \) -prune -o -name "*.js" -print</code>
+
+        <p><strong>Why:</strong> <code>-prune</code> tells find not to descend into directory. <code>-o</code> (OR) connects conditions. Pattern: "prune these OR find these".</p>
+
+        <p><strong>Simpler syntax (GNU find):</strong></p>
+        <ul>
+            <li><code>find . -name "*.js" ! -path "./node_modules/*"</code></li>
+            <li><code>find . -name "*.py" ! -path "*/.venv/*" ! -path "*/__pycache__/*"</code></li>
+            <li><code>fd "*.js" --exclude node_modules</code> (fd tool - simpler!)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find prune EN</div>
+</div>
+
+<!-- Card 27 -->
+<div class="card">
+    <div class="front">
+        You need to find files owned by a specific user or group. How do you find by owner? How do you find files with no owner?
+    </div>
+    <div class="back">
+        <strong>Find by user:</strong> <code>find / -user username 2>/dev/null</code><br>
+        <strong>Find by group:</strong> <code>find / -group groupname 2>/dev/null</code><br>
+        <strong>No owner:</strong> <code>find / -nouser -o -nogroup</code>
+
+        <p><strong>Why:</strong> <code>-user</code> and <code>-group</code> filter by ownership. <code>-nouser</code> finds files whose owner doesn't exist (common after user deletion). <code>2>/dev/null</code> hides permission errors.</p>
+
+        <p><strong>Use cases:</strong></p>
+        <ul>
+            <li><code>find /home -user olduser -exec chown newuser {} \;</code> (change ownership)</li>
+            <li><code>find / -nouser -delete</code> (clean up orphaned files)</li>
+            <li><code>find . -user root</code> (find files owned by root in your directory)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find ownership EN</div>
+</div>
+
+<!-- Card 28 -->
+<div class="card">
+    <div class="front">
+        You want to compare two directory trees and find differences. How do you find files in one directory but not another? How do you find files that exist in both?
+    </div>
+    <div class="back">
+        <strong>Files only in dir1:</strong> <code>comm -23 <(find dir1 -type f | sort) <(find dir2 -type f | sort)</code><br>
+        <strong>Better with diff:</strong> <code>diff -rq dir1 dir2</code>
+
+        <p><strong>Why:</strong> <code>comm</code> compares sorted lists. <code>-23</code> suppresses lines in both or only in second file. <code>diff -rq</code> compares recursively, quiet (just names).</p>
+
+        <p><strong>Finding differences:</strong></p>
+        <ul>
+            <li><code>diff -r dir1 dir2</code> (show actual differences)</li>
+            <li><code>rsync -avn dir1/ dir2/</code> (dry-run sync shows what would change)</li>
+            <li><code>find dir1 -type f -exec basename {} \; | sort > list1.txt</code> (save lists)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find diff EN</div>
+</div>
+
+<!-- Card 30 -->
+<div class="card">
+    <div class="front">
+        You need to find files but limit search depth. How do you search only current directory? How do you limit to 2 levels deep?
+    </div>
+    <div class="back">
+        <strong>Current directory only:</strong> <code>find . -maxdepth 1 -name "*.txt"</code><br>
+        <strong>2 levels deep:</strong> <code>find . -maxdepth 2 -name "*.conf"</code>
+
+        <p><strong>Why:</strong> <code>-maxdepth 1</code> searches only current directory (no subdirectories). <code>-maxdepth 2</code> searches current + one level of subdirectories. Faster for large trees.</p>
+
+        <p><strong>Controlling depth:</strong></p>
+        <ul>
+            <li><code>find . -mindepth 2 -maxdepth 3</code> (only levels 2-3, skip top)</li>
+            <li><code>ls</code> is simpler for maxdepth 1!</li>
+            <li><code>tree -L 2</code> (visualize 2 levels)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find depth EN</div>
+</div>
+
+<!-- Card 31 -->
+<div class="card">
+    <div class="front">
+        You want to archive all .log files older than 30 days. How do you find and compress old logs? How do you move them to archive directory?
+    </div>
+    <div class="back">
+        <strong>Find and compress:</strong> <code>find /var/log -name "*.log" -mtime +30 -exec gzip {} \;</code><br>
+        <strong>Move to archive:</strong> <code>find . -name "*.log" -mtime +30 -exec mv {} /archive/ \;</code>
+
+        <p><strong>Why:</strong> <code>-mtime +30</code> finds files older than 30 days. <code>gzip</code> compresses in place (.log becomes .log.gz). Move relocates for archival.</p>
+
+        <p><strong>Better archival workflow:</strong></p>
+        <pre><code>find /var/log -name "*.log" -mtime +30 -print0 | \
+  tar -czf logs-$(date +%Y%m%d).tar.gz --null -T -
+find /var/log -name "*.log" -mtime +30 -delete</code></pre>
+    </div>
+    <div class="tags">cs linux find archive EN</div>
+</div>
+
+<!-- Card 32 -->
+<div class="card">
+    <div class="front">
+        You need to visualize directory structure with size information. How do you show tree with sizes? How do you limit to specific file types?
+    </div>
+    <div class="back">
+        <strong>Tree with sizes:</strong> <code>tree -h</code> or <code>tree -sh</code><br>
+        <strong>Only show .py files:</strong> <code>tree -P "*.py"</code><br>
+        <strong>Exclude pattern:</strong> <code>tree -I "node_modules|.git"</code>
+
+        <p><strong>Why:</strong> <code>-h</code> shows human-readable sizes. <code>-s</code> shows sizes in bytes too. <code>-P</code> pattern includes only matching files. <code>-I</code> pattern excludes.</p>
+
+        <p><strong>Useful tree options:</strong></p>
+        <ul>
+            <li><code>tree -L 2</code> (limit depth to 2 levels)</li>
+            <li><code>tree -du</code> (show directory sizes)</li>
+            <li><code>tree -D</code> (show modification dates)</li>
+            <li><code>tree -p</code> (show permissions)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tree visualization EN</div>
+</div>
+
+<!-- Card 33 -->
+<div class="card">
+    <div class="front">
+        You want to count files of different types in a directory. How do you count files by extension? How do you get a summary?
+    </div>
+    <div class="back">
+        <strong>Count by extension:</strong> <code>find . -type f | sed 's/.*\.//' | sort | uniq -c | sort -rn</code><br>
+        <strong>Total file count:</strong> <code>find . -type f | wc -l</code>
+
+        <p><strong>Why:</strong> Extract extension with sed, sort, count duplicates with <code>uniq -c</code>, sort by count. Shows breakdown like "45 .py, 23 .js, 15 .txt".</p>
+
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>find . -name "*.py" | wc -l</code> (count specific type)</li>
+            <li><code>tree -h --du -L 1</code> (size summary by directory)</li>
+            <li><code>find . -type f -printf "%f\n" | grep -o '\.[^.]*$' | sort | uniq -c</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find count EN</div>
+</div>
+
+<!-- Card 34 -->
+<div class="card">
+    <div class="front">
+        You want to find duplicate files in your system. How do you find files with same name? How do you find files with identical content?
+    </div>
+    <div class="back">
+        <strong>Same name:</strong> <code>find . -type f -printf "%f\n" | sort | uniq -d</code><br>
+        <strong>Same content:</strong> <code>find . -type f -exec md5sum {} \; | sort | uniq -w32 -d</code>
+
+        <p><strong>Why:</strong> First finds duplicate filenames. Second uses MD5 checksums to find files with identical content (same hash = same content).</p>
+
+        <p><strong>Better duplicate finders:</strong></p>
+        <ul>
+            <li><code>fdupes -r .</code> (dedicated duplicate finder tool)</li>
+            <li><code>rdfind .</code> (finds and can remove duplicates)</li>
+            <li><code>find . -type f ! -empty -exec md5sum {} + | sort | uniq -w32 -D</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find duplicates EN</div>
+</div>
+
+<!-- Card 35 -->
+<div class="card">
+    <div class="front">
+        You want to create a file listing with full paths for a project. How do you generate a file tree? How do you save it to a file?
+    </div>
+    <div class="back">
+        <strong>Generate file list:</strong> <code>find . -type f > filelist.txt</code><br>
+        <strong>Pretty tree format:</strong> <code>tree > structure.txt</code><br>
+        <strong>With details:</strong> <code>find . -type f -ls > detailed-list.txt</code>
+
+        <p><strong>Why:</strong> <code>find</code> lists all files with paths. <code>tree</code> creates visual hierarchy. <code>-ls</code> adds permissions, size, dates.</p>
+
+        <p><strong>Useful variations:</strong></p>
+        <ul>
+            <li><code>tree -F > structure.txt</code> (append / to dirs, * to executables)</li>
+            <li><code>find . -type f -printf "%P\n" > list.txt</code> (relative paths)</li>
+            <li><code>tree -J > structure.json</code> (JSON format for parsing)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find tree documentation EN</div>
+</div>
+
 </body>
 </html>

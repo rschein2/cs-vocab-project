@@ -968,5 +968,397 @@ git checkout main           # Return to branch</code></pre>
     <div class="tags">cs git EN</div>
 </div>
 
+<!-- Card 33 -->
+<div class="card">
+    <div class="front">
+        You accidentally committed a password or API key to your repository. How do you remove it from history? What if it's already been pushed?
+    </div>
+    <div class="back">
+        <strong>Remove from last commit:</strong> <code>git reset HEAD~1</code>, remove the file, then <code>git add .</code> and <code>git commit</code><br>
+        <strong>Remove from history completely:</strong> <code>git filter-branch --tree-filter 'rm -f config/secrets.yml' HEAD</code>
+
+        <p><strong>Why:</strong> Secrets in git history are permanent unless you rewrite history. <code>filter-branch</code> rewrites all commits. If pushed, you must force push and teammates must re-clone.</p>
+
+        <p><strong>Better approach:</strong></p>
+        <pre><code>git filter-repo --path config/secrets.yml --invert-paths
+# Then force push: git push --force origin main</code></pre>
+
+        <p><strong>Important:</strong> Change the password/key immediately - it's compromised if it was pushed!</p>
+    </div>
+    <div class="tags">cs git security EN</div>
+</div>
+
+<!-- Card 34 -->
+<div class="card">
+    <div class="front">
+        You're working on a feature but need to quickly fix a bug on main. How do you save your current work without committing? How do you restore it later?
+    </div>
+    <div class="back">
+        <strong>Save current work:</strong> <code>git stash</code><br>
+        <strong>With message:</strong> <code>git stash save "WIP: feature X"</code><br>
+        <strong>Restore later:</strong> <code>git stash pop</code>
+
+        <p><strong>Why:</strong> Stash temporarily saves uncommitted changes so you can switch branches cleanly. <code>pop</code> reapplies and removes from stash. <code>apply</code> keeps it in stash.</p>
+
+        <p><strong>Workflow:</strong></p>
+        <pre><code>git stash              # Save work
+git checkout main      # Switch to main
+# ... fix bug, commit ...
+git checkout feature   # Back to feature
+git stash pop          # Restore work</code></pre>
+    </div>
+    <div class="tags">cs git workflow EN</div>
+</div>
+
+<!-- Card 35 -->
+<div class="card">
+    <div class="front">
+        You have multiple stashed changes and want to see what's in them. How do you list stashes? How do you see what changed in a specific stash?
+    </div>
+    <div class="back">
+        <strong>List all stashes:</strong> <code>git stash list</code><br>
+        <strong>Show stash contents:</strong> <code>git stash show -p stash@{0}</code>
+
+        <p><strong>Why:</strong> <code>stash list</code> shows all saved stashes with indexes. <code>show -p</code> displays the diff. <code>stash@{0}</code> is most recent, <code>stash@{1}</code> is older, etc.</p>
+
+        <p><strong>Variations:</strong></p>
+        <ul>
+            <li><code>git stash show</code> - summary of changes</li>
+            <li><code>git stash apply stash@{2}</code> - apply specific stash</li>
+            <li><code>git stash drop stash@{1}</code> - delete specific stash</li>
+            <li><code>git stash clear</code> - delete all stashes</li>
+        </ul>
+    </div>
+    <div class="tags">cs git stash EN</div>
+</div>
+
+<!-- Card 36 -->
+<div class="card">
+    <div class="front">
+        You committed to the wrong branch. How do you move the commit to a different branch? What if you haven't pushed yet?
+    </div>
+    <div class="back">
+        <strong>Create new branch with commit:</strong> <code>git branch new-branch</code><br>
+        <strong>Remove from current branch:</strong> <code>git reset --hard HEAD~1</code><br>
+        <strong>Switch to new branch:</strong> <code>git checkout new-branch</code>
+
+        <p><strong>Why:</strong> <code>git branch</code> creates branch at current HEAD (includes the commit). <code>reset --hard HEAD~1</code> moves current branch back one commit. Commit only exists on new branch now.</p>
+
+        <p><strong>Alternative - cherry-pick:</strong></p>
+        <pre><code>git checkout correct-branch
+git cherry-pick abc123   # Copy commit
+git checkout wrong-branch
+git reset --hard HEAD~1  # Remove from wrong branch</code></pre>
+    </div>
+    <div class="tags">cs git workflow EN</div>
+</div>
+
+<!-- Card 37 -->
+<div class="card">
+    <div class="front">
+        You want to work on a feature without affecting the main branch. How do you create and switch to a new branch? How do you create a branch from a specific commit?
+    </div>
+    <div class="back">
+        <strong>Create and switch:</strong> <code>git checkout -b feature-name</code><br>
+        <strong>From specific commit:</strong> <code>git checkout -b feature-name abc123</code>
+
+        <p><strong>Why:</strong> <code>-b</code> creates new branch and switches to it. Work is isolated until you merge. Modern syntax: <code>git switch -c feature-name</code> does same thing.</p>
+
+        <p><strong>Workflow:</strong></p>
+        <pre><code>git checkout -b add-login-feature
+# ... make changes ...
+git add .
+git commit -m "Add login feature"
+git push -u origin add-login-feature</code></pre>
+    </div>
+    <div class="tags">cs git branches EN</div>
+</div>
+
+<!-- Card 38 -->
+<div class="card">
+    <div class="front">
+        You have merge conflicts after pulling. How do you see which files conflict? How do you resolve them?
+    </div>
+    <div class="back">
+        <strong>See conflicted files:</strong> <code>git status</code> or <code>git diff --name-only --diff-filter=U</code><br>
+        <strong>After resolving:</strong> <code>git add conflicted-file.txt</code> then <code>git commit</code>
+
+        <p><strong>Why:</strong> Git marks conflicts in files with <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>. Edit to keep what you want, remove markers, then add and commit.</p>
+
+        <p><strong>Conflict resolution options:</strong></p>
+        <ul>
+            <li><code>git checkout --ours file.txt</code> - keep your version</li>
+            <li><code>git checkout --theirs file.txt</code> - keep their version</li>
+            <li><code>git mergetool</code> - open visual merge tool</li>
+            <li><code>git merge --abort</code> - cancel the merge</li>
+        </ul>
+    </div>
+    <div class="tags">cs git merge EN</div>
+</div>
+
+<!-- Card 39 -->
+<div class="card">
+    <div class="front">
+        You want to undo the last commit but keep the changes. How do you uncommit? What if you want to completely discard the commit and changes?
+    </div>
+    <div class="back">
+        <strong>Undo but keep changes staged:</strong> <code>git reset --soft HEAD~1</code><br>
+        <strong>Undo and unstage:</strong> <code>git reset HEAD~1</code> or <code>git reset --mixed HEAD~1</code><br>
+        <strong>Completely discard:</strong> <code>git reset --hard HEAD~1</code>
+
+        <p><strong>Why:</strong> <code>--soft</code> = keep changes staged. <code>--mixed</code> (default) = keep changes unstaged. <code>--hard</code> = delete changes. <code>HEAD~1</code> = one commit back.</p>
+
+        <p><strong>Use cases:</strong></p>
+        <ul>
+            <li><code>--soft</code> - fix commit message or add more changes</li>
+            <li><code>--mixed</code> - redo staging area</li>
+            <li><code>--hard</code> - throw away commit entirely (DANGEROUS!)</li>
+        </ul>
+    </div>
+    <div class="tags">cs git reset EN</div>
+</div>
+
+<!-- Card 40 -->
+<div class="card">
+    <div class="front">
+        You accidentally deleted a file and committed it. How do you restore the file from git history? What if you deleted it but haven't committed?
+    </div>
+    <div class="back">
+        <strong>Restore from last commit:</strong> <code>git checkout HEAD file.txt</code><br>
+        <strong>From specific commit:</strong> <code>git checkout abc123 file.txt</code><br>
+        <strong>If not yet committed:</strong> <code>git restore file.txt</code>
+
+        <p><strong>Why:</strong> <code>checkout</code> copies file from a commit to working directory. <code>restore</code> is newer, clearer command for undoing changes. Both restore deleted files.</p>
+
+        <p><strong>Finding deleted files:</strong></p>
+        <pre><code>git log --all --full-history -- path/to/file.txt
+git checkout abc123^ -- path/to/file.txt  # ^ = parent commit</code></pre>
+    </div>
+    <div class="tags">cs git restore EN</div>
+</div>
+
+<!-- Card 41 -->
+<div class="card">
+    <div class="front">
+        You want to see what changed in a specific file over time. How do you see file history? How do you see who changed each line?
+    </div>
+    <div class="back">
+        <strong>File commit history:</strong> <code>git log --follow -- file.txt</code><br>
+        <strong>With diffs:</strong> <code>git log -p --follow -- file.txt</code><br>
+        <strong>Blame (who changed each line):</strong> <code>git blame file.txt</code>
+
+        <p><strong>Why:</strong> <code>--follow</code> tracks file even through renames. <code>-p</code> shows patch/diff. <code>blame</code> shows who last modified each line and when.</p>
+
+        <p><strong>Variations:</strong></p>
+        <ul>
+            <li><code>git log --oneline --follow file.txt</code> - compact history</li>
+            <li><code>git blame -L 10,20 file.txt</code> - specific line range</li>
+            <li><code>git log -S "function name" file.txt</code> - find when text added/removed</li>
+        </ul>
+    </div>
+    <div class="tags">cs git history EN</div>
+</div>
+
+<!-- Card 42 -->
+<div class="card">
+    <div class="front">
+        You pushed broken code and need to undo it immediately. How do you revert a pushed commit safely? What's the difference from reset?
+    </div>
+    <div class="back">
+        <strong>Revert last commit:</strong> <code>git revert HEAD</code><br>
+        <strong>Revert specific commit:</strong> <code>git revert abc123</code><br>
+        <strong>Then push:</strong> <code>git push</code>
+
+        <p><strong>Why:</strong> <code>revert</code> creates NEW commit that undoes changes. Safe for shared branches - doesn't rewrite history. <code>reset</code> rewrites history - only for unpushed commits.</p>
+
+        <p><strong>Comparison:</strong></p>
+        <ul>
+            <li><code>revert</code> - safe for pushed commits, adds commit</li>
+            <li><code>reset</code> - dangerous for pushed commits, rewrites history</li>
+            <li><code>git revert --no-commit HEAD~3..HEAD</code> - revert multiple</li>
+        </ul>
+    </div>
+    <div class="tags">cs git revert EN</div>
+</div>
+
+<!-- Card 43 -->
+<div class="card">
+    <div class="front">
+        You want to apply only some changes from a file to staging. How do you stage parts of a file? How do you interactively choose changes?
+    </div>
+    <div class="back">
+        <strong>Interactive staging:</strong> <code>git add -p file.txt</code> or <code>git add --patch file.txt</code><br>
+        <strong>Options:</strong> y (yes), n (no), s (split), e (edit), q (quit)
+
+        <p><strong>Why:</strong> <code>-p</code> shows each change (hunk) and asks if you want to stage it. <code>s</code> splits large hunks. <code>e</code> lets you manually edit what to stage. Great for atomic commits.</p>
+
+        <p><strong>Use case:</strong></p>
+        <pre><code># You debugged file.txt (added prints) and fixed a bug
+# Stage only bug fix, not debug prints
+git add -p file.txt
+# Select 'y' for bug fix hunks, 'n' for debug prints
+git commit -m "Fix bug in validation"</code></pre>
+    </div>
+    <div class="tags">cs git staging EN</div>
+</div>
+
+<!-- Card 44 -->
+<div class="card">
+    <div class="front">
+        Your branch is behind main and you want to update it. How do you merge main into your branch? What's the alternative with rebase?
+    </div>
+    <div class="back">
+        <strong>Merge approach:</strong> <code>git checkout feature</code> then <code>git merge main</code><br>
+        <strong>Rebase approach:</strong> <code>git checkout feature</code> then <code>git rebase main</code>
+
+        <p><strong>Why:</strong> <code>merge</code> creates merge commit, preserves history. <code>rebase</code> replays your commits on top of main, linear history. Rebase rewrites history - don't rebase pushed commits!</p>
+
+        <p><strong>When to use each:</strong></p>
+        <ul>
+            <li><code>merge</code> - safe, shows when branches merged, shared branches</li>
+            <li><code>rebase</code> - cleaner history, your local feature branch</li>
+            <li>After rebase: <code>git push --force-with-lease</code> (safer than --force)</li>
+        </ul>
+    </div>
+    <div class="tags">cs git merge rebase EN</div>
+</div>
+
+<!-- Card 45 -->
+<div class="card">
+    <div class="front">
+        You want to grab just one commit from another branch. How do you cherry-pick a commit? What if it conflicts?
+    </div>
+    <div class="back">
+        <strong>Cherry-pick single commit:</strong> <code>git cherry-pick abc123</code><br>
+        <strong>Multiple commits:</strong> <code>git cherry-pick abc123 def456</code><br>
+        <strong>Range of commits:</strong> <code>git cherry-pick abc123..def456</code>
+
+        <p><strong>Why:</strong> Cherry-pick copies a commit to current branch. Creates new commit with same changes but different hash. Useful for bug fixes needed on multiple branches.</p>
+
+        <p><strong>Conflict handling:</strong></p>
+        <ul>
+            <li>If conflicts: resolve, then <code>git cherry-pick --continue</code></li>
+            <li><code>git cherry-pick --abort</code> - cancel cherry-pick</li>
+            <li><code>git cherry-pick --skip</code> - skip this commit</li>
+        </ul>
+    </div>
+    <div class="tags">cs git cherry-pick EN</div>
+</div>
+
+<!-- Card 46 -->
+<div class="card">
+    <div class="front">
+        You want to temporarily switch branches but git won't let you because of uncommitted changes. What are your options? How do you force the switch?
+    </div>
+    <div class="back">
+        <strong>Option 1 - Stash:</strong> <code>git stash</code>, switch, then <code>git stash pop</code> later<br>
+        <strong>Option 2 - Commit:</strong> <code>git commit -m "WIP"</code>, switch, later <code>git reset --soft HEAD~1</code><br>
+        <strong>Option 3 - Force (lose changes):</strong> <code>git checkout -f other-branch</code>
+
+        <p><strong>Why:</strong> Git prevents switching if uncommitted changes would be overwritten. Stash is cleanest. WIP commit works too. <code>-f</code> discards changes (dangerous!).</p>
+
+        <p><strong>Best practice:</strong></p>
+        <pre><code>git stash save "WIP: half-finished feature X"
+git checkout other-branch
+# ... do work ...
+git checkout original-branch
+git stash pop</code></pre>
+    </div>
+    <div class="tags">cs git workflow EN</div>
+</div>
+
+<!-- Card 47 -->
+<div class="card">
+    <div class="front">
+        You want to see what would be pushed before actually pushing. How do you preview push? How do you see differences between local and remote?
+    </div>
+    <div class="back">
+        <strong>See what would be pushed:</strong> <code>git log origin/main..HEAD</code><br>
+        <strong>See diff:</strong> <code>git diff origin/main HEAD</code><br>
+        <strong>Dry run push:</strong> <code>git push --dry-run</code>
+
+        <p><strong>Why:</strong> <code>origin/main..HEAD</code> shows commits in local but not remote. <code>--dry-run</code> simulates push without doing it. Good to review before pushing.</p>
+
+        <p><strong>Other comparisons:</strong></p>
+        <ul>
+            <li><code>git log HEAD..origin/main</code> - commits in remote not in local</li>
+            <li><code>git diff --stat origin/main</code> - file change summary</li>
+            <li><code>git fetch && git log origin/main</code> - see remote commits</li>
+        </ul>
+    </div>
+    <div class="tags">cs git remote EN</div>
+</div>
+
+<!-- Card 48 -->
+<div class="card">
+    <div class="front">
+        You cloned a repo and want to contribute. How do you create a pull request? What's the typical workflow?
+    </div>
+    <div class="back">
+        <strong>Typical workflow:</strong>
+        <pre><code>git checkout -b fix-typo
+# ... make changes ...
+git add .
+git commit -m "Fix typo in README"
+git push -u origin fix-typo
+# Then create PR on GitHub/GitLab</code></pre>
+
+        <p><strong>Why:</strong> Create feature branch, make changes, push branch (not main!), then use web interface to create PR. <code>-u</code> sets upstream so future pushes work.</p>
+
+        <p><strong>Best practices:</strong></p>
+        <ul>
+            <li>One feature/fix per PR</li>
+            <li>Descriptive branch names: <code>fix-login-bug</code>, <code>add-dark-mode</code></li>
+            <li>Keep PRs small and focused</li>
+            <li><code>git push origin fix-typo</code> to update PR after feedback</li>
+        </ul>
+    </div>
+    <div class="tags">cs git github workflow EN</div>
+</div>
+
+<!-- Card 49 -->
+<div class="card">
+    <div class="front">
+        You want to combine your last 3 commits into one before pushing. How do you squash commits? What if they're already pushed?
+    </div>
+    <div class="back">
+        <strong>Interactive rebase:</strong> <code>git rebase -i HEAD~3</code><br>
+        <strong>In editor:</strong> Change <code>pick</code> to <code>squash</code> (or <code>s</code>) for commits 2 and 3<br>
+        <strong>Then:</strong> Edit combined commit message
+
+        <p><strong>Why:</strong> <code>rebase -i</code> opens editor showing last 3 commits. <code>squash</code> merges commit into previous one. Results in one clean commit. Don't squash pushed commits (rewrites history).</p>
+
+        <p><strong>Example:</strong></p>
+        <pre><code>pick abc123 Add feature
+squash def456 Fix typo
+squash ghi789 Update tests
+# Save and close - you'll get one commit with all changes</code></pre>
+    </div>
+    <div class="tags">cs git rebase EN</div>
+</div>
+
+<!-- Card 50 -->
+<div class="card">
+    <div class="front">
+        You want to see what branches exist locally and remotely. How do you list all branches? How do you see which branch tracks which remote?
+    </div>
+    <div class="back">
+        <strong>List local branches:</strong> <code>git branch</code><br>
+        <strong>List remote branches:</strong> <code>git branch -r</code><br>
+        <strong>List all branches:</strong> <code>git branch -a</code><br>
+        <strong>Show tracking info:</strong> <code>git branch -vv</code>
+
+        <p><strong>Why:</strong> <code>-r</code> = remote only, <code>-a</code> = all (local + remote), <code>-vv</code> = verbose (shows tracking branches and ahead/behind status).</p>
+
+        <p><strong>Useful commands:</strong></p>
+        <ul>
+            <li><code>git branch -d branch-name</code> - delete local branch</li>
+            <li><code>git push origin --delete branch-name</code> - delete remote branch</li>
+            <li><code>git remote prune origin</code> - clean up deleted remote branches</li>
+        </ul>
+    </div>
+    <div class="tags">cs git branches EN</div>
+</div>
+
 </body>
 </html>
