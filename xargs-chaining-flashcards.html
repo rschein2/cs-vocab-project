@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - xargs & Command Chaining</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You have a list of files from find and want to delete them. How do you pass results to another command? What if filenames have spaces?
+    </div>
+    <div class="back">
+        <strong>Basic xargs:</strong> <code>find . -name "*.tmp" | xargs rm</code><br>
+        <strong>Handle spaces:</strong> <code>find . -name "*.tmp" -print0 | xargs -0 rm</code>
+        <p><strong>Why:</strong> <code>xargs</code> converts stdin to command arguments. <code>-0</code> uses null delimiter (safe for spaces/special chars). <code>-print0</code> and <code>-0</code> work together.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>find . -name "*.tmp" -exec rm {} \;</code> (find's built-in exec)</li>
+            <li><code>find . -name "*.tmp" -delete</code> (find can delete directly)</li>
+            <li>xargs more efficient for many files (fewer command invocations)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux xargs command-chaining EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You want to run a command on each line of input individually. How do you execute once per input? What if you want to see what would run?
+    </div>
+    <div class="back">
+        <strong>Execute per line:</strong> <code>cat files.txt | xargs -I {} command {}</code><br>
+        <strong>Dry-run (show commands):</strong> <code>cat files.txt | xargs -t command</code>
+        <p><strong>Why:</strong> <code>-I {}</code> replaces {} with each input line. <code>-t</code> prints command before executing (useful for testing). <code>-p</code> prompts before each execution.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>xargs -I % command %</code> (% as placeholder instead of {})</li>
+            <li><code>xargs -p command</code> (prompt for confirmation)</li>
+            <li><code>xargs -n1 command</code> (one arg at a time, no placeholder)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux xargs EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You want to run commands in parallel to speed up processing. How do you parallelize with xargs? What if you want to limit concurrent jobs?
+    </div>
+    <div class="back">
+        <strong>Run in parallel:</strong> <code>find . -name "*.jpg" | xargs -P 4 -I {} convert {} {}.png</code><br>
+        <strong>Auto-detect CPUs:</strong> <code>xargs -P 0 command</code>
+        <p><strong>Why:</strong> <code>-P 4</code> runs 4 processes in parallel. <code>-P 0</code> uses all available CPUs. Great for CPU-intensive tasks on many files.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>parallel command :::: files.txt</code> (GNU parallel, more features)</li>
+            <li><code>xargs -P $(nproc) command</code> (use CPU count explicitly)</li>
+            <li>Parallel speeds up independent tasks significantly</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux xargs parallel EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You want to chain commands so the second runs only if the first succeeds. How do you chain with AND? How about OR?
+    </div>
+    <div class="back">
+        <strong>AND (run if success):</strong> <code>command1 && command2</code><br>
+        <strong>OR (run if failure):</strong> <code>command1 || command2</code>
+        <p><strong>Why:</strong> <code>&&</code> runs command2 only if command1 exits 0 (success). <code>||</code> runs command2 only if command1 fails (non-zero exit). Conditional execution.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>make && make install</code> (install only if build succeeds)</li>
+            <li><code>grep pattern file || echo "Not found"</code> (message if not found)</li>
+            <li><code>cd /path && rm file</code> (only rm if cd succeeds - safety!)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux command-chaining bash EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want to run multiple commands sequentially regardless of success. How do you run commands in sequence? What's the difference from using &&?
+    </div>
+    <div class="back">
+        <strong>Sequential (always run):</strong> <code>command1 ; command2 ; command3</code><br>
+        <strong>On one line:</strong> <code>command1; command2; command3</code>
+        <p><strong>Why:</strong> <code>;</code> runs commands in order, continuing even if one fails. <code>&&</code> stops on first failure. Use <code>;</code> when independence matters.</p>
+        <p><strong>Comparison:</strong></p>
+        <ul>
+            <li><code>cmd1 && cmd2</code> (cmd2 only if cmd1 succeeds)</li>
+            <li><code>cmd1 ; cmd2</code> (cmd2 runs regardless)</li>
+            <li><code>cmd1 || cmd2</code> (cmd2 only if cmd1 fails)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux command-chaining bash EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want to send output to both a file and the screen. How do you tee output? How do you append instead of overwrite?
+    </div>
+    <div class="back">
+        <strong>Send to file and stdout:</strong> <code>command | tee output.txt</code><br>
+        <strong>Append to file:</strong> <code>command | tee -a output.txt</code>
+        <p><strong>Why:</strong> <code>tee</code> splits output - shows on screen AND writes to file. <code>-a</code> appends instead of overwriting. Named after T-pipe fitting.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>command | tee file1.txt file2.txt</code> (write to multiple files)</li>
+            <li><code>command | tee output.txt | grep pattern</code> (continue pipeline)</li>
+            <li><code>command 2>&1 | tee log.txt</code> (capture stderr too)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tee command-chaining EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You want to limit the number of arguments passed to a command at once. How do you batch arguments with xargs? What if commands have argument limits?
+    </div>
+    <div class="back">
+        <strong>Limit args per invocation:</strong> <code>cat files.txt | xargs -n 10 command</code><br>
+        <strong>Max command size:</strong> <code>xargs -s 2048 command</code>
+        <p><strong>Why:</strong> <code>-n 10</code> passes max 10 arguments per command invocation. <code>-s</code> limits total command line size. Prevents "argument list too long" errors.</p>
+        <p><strong>Use cases:</strong></p>
+        <ul>
+            <li><code>ls | xargs -n 1 echo</code> (print each file on separate line)</li>
+            <li><code>find . -name "*.log" | xargs -n 100 tar -czf logs.tar.gz</code></li>
+            <li>Useful for commands with argument limits</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux xargs EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to use command output as filename or argument in complex ways. How do you use command substitution? What's the modern syntax?
+    </div>
+    <div class="back">
+        <strong>Modern syntax:</strong> <code>command $(other-command)</code><br>
+        <strong>Old syntax:</strong> <code>command `other-command`</code>
+        <p><strong>Why:</strong> Command substitution runs inner command, replaces with output. <code>$()</code> preferred - nestable, clearer. Backticks deprecated.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>echo "Today is $(date)"</code></li>
+            <li><code>rm $(find . -name "*.tmp")</code></li>
+            <li><code>tar -czf backup-$(date +%Y%m%d).tar.gz /data</code></li>
+            <li><code>cd $(dirname $(which python))</code> (nesting works)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux bash command-substitution EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You want to use the output of one command as a file for another command. How do you use process substitution? When is it better than pipes?
+    </div>
+    <div class="back">
+        <strong>Process substitution:</strong> <code>diff <(command1) <(command2)</code><br>
+        <strong>Example:</strong> <code>diff <(ls dir1) <(ls dir2)</code>
+        <p><strong>Why:</strong> <code><(command)</code> treats command output as a file. Lets you pass multiple command outputs where command expects files. Can't do this with pipes.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>comm <(sort file1) <(sort file2)</code> (compare sorted outputs)</li>
+            <li><code>paste <(cut -f1 file) <(cut -f3 file)</code></li>
+            <li><code>while read line; do ...; done < <(command)</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux bash process-substitution EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You want to run a command but ignore errors or always succeed. How do you force success? How do you ignore specific exit codes?
+    </div>
+    <div class="back">
+        <strong>Always succeed:</strong> <code>command || true</code><br>
+        <strong>Ignore errors:</strong> <code>command 2>/dev/null || true</code>
+        <p><strong>Why:</strong> <code>|| true</code> ensures exit code 0 even if command fails. Useful in scripts with <code>set -e</code>. Prevents script exit on expected failures.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>mkdir /tmp/dir || true</code> (don't fail if exists)</li>
+            <li><code>grep pattern file || echo "Not found"</code></li>
+            <li><code>! command</code> (invert exit code: 0 becomes 1, 1 becomes 0)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux bash error-handling EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You want to read xargs input from a file instead of stdin. How do you specify input file? How do you combine multiple input sources?
+    </div>
+    <div class="back">
+        <strong>Read from file:</strong> <code>xargs -a files.txt command</code><br>
+        <strong>Multiple sources:</strong> <code>cat file1 file2 | xargs command</code>
+        <p><strong>Why:</strong> <code>-a filename</code> reads arguments from file instead of stdin. Useful when you can't pipe easily or want to save/reuse argument lists.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>xargs command < files.txt</code> (redirect stdin)</li>
+            <li><code>cat files.txt | xargs command</code> (pipe from cat)</li>
+            <li><code>xargs -a <(command) target</code> (combine with process substitution)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux xargs EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You want to handle xargs failures gracefully. How do you stop on first error? How do you continue despite errors?
+    </div>
+    <div class="back">
+        <strong>Exit on first error:</strong> <code>xargs command</code> (default behavior)<br>
+        <strong>Show which failed:</strong> <code>xargs -t command</code>
+        <p><strong>Why:</strong> xargs normally exits on first command failure. <code>-t</code> prints each command before running, helping identify failures. Check exit code after.</p>
+        <p><strong>Error handling:</strong></p>
+        <ul>
+            <li><code>xargs command || echo "Something failed"</code></li>
+            <li>xargs exit code 123 = command failed</li>
+            <li>xargs exit code 124 = command failed with 255</li>
+            <li><code>xargs -I {} sh -c 'command {} || true'</code> (continue on error)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux xargs error-handling EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to use GNU parallel for more advanced parallel processing. How does it differ from xargs? What are key features?
+    </div>
+    <div class="back">
+        <strong>Basic parallel:</strong> <code>parallel command ::: arg1 arg2 arg3</code><br>
+        <strong>From stdin:</strong> <code>cat files.txt | parallel command</code>
+        <p><strong>Why:</strong> GNU <code>parallel</code> is more powerful than <code>xargs -P</code>. Better job control, progress bars, resume failed jobs, SSH distribution.</p>
+        <p><strong>Features:</strong></p>
+        <ul>
+            <li><code>parallel -j 4 command :::: files.txt</code> (4 jobs from file)</li>
+            <li><code>parallel --progress command ::: args</code> (show progress)</li>
+            <li><code>parallel --dry-run command ::: args</code> (test first)</li>
+            <li><code>parallel -S server1,server2 command ::: args</code> (distribute via SSH)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux parallel EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You want to group commands and redirect their combined output. How do you group commands? What's the difference between () and {}?
+    </div>
+    <div class="back">
+        <strong>Subshell grouping:</strong> <code>(command1; command2) > output.txt</code><br>
+        <strong>Current shell grouping:</strong> <code>{ command1; command2; } > output.txt</code>
+        <p><strong>Why:</strong> <code>()</code> runs in subshell (doesn't affect current shell). <code>{}</code> runs in current shell (variables persist). Both allow single redirect for multiple commands.</p>
+        <p><strong>Differences:</strong></p>
+        <ul>
+            <li><code>(cd /tmp; ls)</code> doesn't change your pwd</li>
+            <li><code>{ cd /tmp; ls; }</code> changes your pwd</li>
+            <li>Note: {} requires spaces and final semicolon</li>
+            <li><code>( sleep 10 ) &</code> (background subshell)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux bash grouping EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You want to build a complex pipeline with multiple stages. How do you chain pipes? How do you debug pipeline failures?
+    </div>
+    <div class="back">
+        <strong>Multi-stage pipeline:</strong> <code>command1 | command2 | command3 | command4</code><br>
+        <strong>Debug with tee:</strong> <code>cmd1 | tee stage1.txt | cmd2 | tee stage2.txt | cmd3</code>
+        <p><strong>Why:</strong> Pipes chain commands, feeding output as input. <code>tee</code> at each stage saves intermediate results for debugging without breaking flow.</p>
+        <p><strong>Pipeline tips:</strong></p>
+        <ul>
+            <li><code>set -o pipefail</code> (fail if any pipeline command fails)</li>
+            <li><code>command1 | command2 ; echo ${PIPESTATUS[@]}</code> (see all exit codes)</li>
+            <li>Test each stage independently first</li>
+            <li><code>cmd1 | pv | cmd2</code> (pv shows throughput)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux pipes command-chaining EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You want to reuse complex command pipelines. How do you save them? How do you make them reusable functions?
+    </div>
+    <div class="back">
+        <strong>Save as function:</strong>
+        <pre>my_process() {
+  grep "$1" | sort | uniq -c | sort -rn
+}
+cat file.txt | my_process "pattern"</pre>
+        <strong>Save as alias:</strong> <code>alias countpatterns='sort | uniq -c | sort -rn'</code>
+        <p><strong>Why:</strong> Functions accept arguments, more flexible. Aliases are shortcuts for fixed commands. Add to ~/.bashrc for persistence.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li>Save as script: <code>#!/bin/bash</code> at top</li>
+            <li>Use <code>$@</code> for all arguments in function</li>
+            <li><code>type my_process</code> (show function definition)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux bash functions aliases EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to run commands and capture both stdout and stderr separately or together. How do you redirect both streams? How do you redirect stderr to stdout?
+    </div>
+    <div class="back">
+        <strong>Redirect both to file:</strong> <code>command &> output.txt</code> or <code>command > output.txt 2>&1</code><br>
+        <strong>Stderr to stdout:</strong> <code>command 2>&1 | other-command</code>
+        <p><strong>Why:</strong> <code>&></code> redirects both streams (modern syntax). <code>2>&1</code> redirects stderr(2) to wherever stdout(1) goes. Order matters!</p>
+        <p><strong>Stream redirection:</strong></p>
+        <ul>
+            <li><code>command > out.txt 2> err.txt</code> (separate files)</li>
+            <li><code>command 2>&1 > file</code> (WRONG - stderr goes to terminal)</li>
+            <li><code>command > file 2>&1</code> (CORRECT - both to file)</li>
+            <li><code>command 2>&1 | tee log.txt</code> (both to screen and file)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux bash redirection EN</div>
+</div>
+
+</body>
+</html>

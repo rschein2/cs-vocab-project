@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - Disk Management</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You plugged in a USB drive and want to see all available storage devices. How do you list all block devices? What information does it show?
+    </div>
+    <div class="back">
+        <strong>List block devices:</strong> <code>lsblk</code><br>
+        <strong>More details:</strong> <code>lsblk -f</code>
+        <p><strong>Why:</strong> <code>lsblk</code> shows all disks, partitions, and mount points in tree format. <code>-f</code> adds filesystem type, UUID, and mount options. Essential for disk management.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>lsblk -o NAME,SIZE,TYPE,MOUNTPOINT</code> (custom columns)</li>
+            <li><code>sudo fdisk -l</code> (more detailed partition info)</li>
+            <li><code>ls -l /dev/sd*</code> (list disk devices directly)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk lsblk EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You need to check filesystem usage and available space. How do you see disk space? What if you want to see inode usage?
+    </div>
+    <div class="back">
+        <strong>Check disk space:</strong> <code>df -h</code><br>
+        <strong>Check inodes:</strong> <code>df -i</code>
+        <p><strong>Why:</strong> <code>df -h</code> shows filesystem space usage (human-readable). <code>-i</code> shows inode usage - can run out of inodes even with free space!</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>df -h /path</code> (check specific filesystem)</li>
+            <li><code>df -Th</code> (include filesystem type)</li>
+            <li><code>df -h --total</code> (add total row)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk df EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You need to mount a USB drive or external disk. How do you mount a filesystem? What if you want to mount to a specific location?
+    </div>
+    <div class="back">
+        <strong>Mount disk:</strong> <code>sudo mount /dev/sdb1 /mnt</code><br>
+        <strong>Custom mount point:</strong> <code>sudo mount /dev/sdb1 /media/usb</code>
+        <p><strong>Why:</strong> <code>mount</code> attaches filesystem to directory tree. Device name (like /dev/sdb1) to mount point (/mnt). Directory must exist first.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo mount -t ext4 /dev/sdb1 /mnt</code> (specify filesystem type)</li>
+            <li><code>sudo mount -o ro /dev/sdb1 /mnt</code> (read-only mount)</li>
+            <li><code>mount</code> (no args: list all mounted filesystems)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk mount EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You need to safely unmount a device before removing it. How do you unmount? What if the device is busy?
+    </div>
+    <div class="back">
+        <strong>Unmount:</strong> <code>sudo umount /mnt</code> or <code>sudo umount /dev/sdb1</code><br>
+        <strong>If busy, find what's using it:</strong> <code>sudo lsof +D /mnt</code>
+        <p><strong>Why:</strong> <code>umount</code> detaches filesystem. Can specify mount point or device. "Device busy" means files are open or processes are using it.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo fuser -m /mnt</code> (find processes using mount point)</li>
+            <li><code>sudo umount -l /mnt</code> (lazy unmount: detach when no longer busy)</li>
+            <li><code>sudo umount -f /mnt</code> (force unmount - risky for NFS)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk mount EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want disks to mount automatically on boot. Where do you configure automatic mounting? What's the file format?
+    </div>
+    <div class="back">
+        <strong>Configuration file:</strong> <code>/etc/fstab</code><br>
+        <strong>Format:</strong> <code>UUID=xxx /mount/point filesystem options dump pass</code>
+        <p><strong>Why:</strong> <code>/etc/fstab</code> (filesystem table) defines automatic mounts. Use UUID instead of /dev/sdX (device names can change). Wrong fstab can prevent boot!</p>
+        <p><strong>Example entry:</strong></p>
+        <ul>
+            <li><code>UUID=12345 /data ext4 defaults 0 2</code></li>
+            <li><code>sudo blkid</code> (get UUIDs)</li>
+            <li><code>sudo mount -a</code> (test fstab without reboot)</li>
+            <li>Always test before rebooting!</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk fstab mount EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You need to create partitions on a new disk. How do you partition a disk? What's the difference between MBR and GPT?
+    </div>
+    <div class="back">
+        <strong>Partition with fdisk (MBR):</strong> <code>sudo fdisk /dev/sdb</code><br>
+        <strong>Partition with gdisk (GPT):</strong> <code>sudo gdisk /dev/sdb</code>
+        <p><strong>Why:</strong> <code>fdisk</code> for MBR (legacy, max 2TB, 4 primary partitions). <code>gdisk</code> for GPT (modern, large disks, many partitions). Interactive menu-driven.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo parted /dev/sdb</code> (supports both MBR and GPT)</li>
+            <li><code>sudo cfdisk /dev/sdb</code> (user-friendly ncurses interface)</li>
+            <li>GPT recommended for new disks > 2TB</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk partition fdisk EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You created a partition and need to format it with a filesystem. How do you create an ext4 filesystem? What about other filesystem types?
+    </div>
+    <div class="back">
+        <strong>Format as ext4:</strong> <code>sudo mkfs.ext4 /dev/sdb1</code><br>
+        <strong>Format as XFS:</strong> <code>sudo mkfs.xfs /dev/sdb1</code>
+        <p><strong>Why:</strong> <code>mkfs</code> (make filesystem) creates filesystem on partition. ext4 is default for Linux. XFS good for large files. This ERASES all data!</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo mkfs.ext4 -L DataDisk /dev/sdb1</code> (add filesystem label)</li>
+            <li><code>sudo mkfs.vfat /dev/sdb1</code> (FAT32, for Windows compatibility)</li>
+            <li><code>sudo mkfs.ntfs /dev/sdb1</code> (NTFS, for Windows)</li>
+            <li><code>sudo mkfs.btrfs /dev/sdb1</code> (Btrfs, advanced features)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk mkfs filesystem EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to check a filesystem for errors. How do you run a filesystem check? When can you check a filesystem?
+    </div>
+    <div class="back">
+        <strong>Check filesystem:</strong> <code>sudo fsck /dev/sdb1</code><br>
+        <strong>Check ext4 specifically:</strong> <code>sudo fsck.ext4 /dev/sdb1</code>
+        <p><strong>Why:</strong> <code>fsck</code> (filesystem check) repairs errors. MUST be unmounted first or system won't boot! Can run automatically on boot if configured.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo fsck -y /dev/sdb1</code> (auto-answer yes to repairs)</li>
+            <li><code>sudo e2fsck -f /dev/sdb1</code> (force check even if clean)</li>
+            <li>Check at boot: <code>tune2fs -c 30 /dev/sdb1</code> (every 30 mounts)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk fsck filesystem EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You want to see filesystem properties and tune them. How do you view ext4 filesystem info? How do you change settings?
+    </div>
+    <div class="back">
+        <strong>View filesystem info:</strong> <code>sudo tune2fs -l /dev/sdb1</code><br>
+        <strong>Set filesystem label:</strong> <code>sudo tune2fs -L "MyData" /dev/sdb1</code>
+        <p><strong>Why:</strong> <code>tune2fs</code> views/modifies ext2/ext3/ext4 filesystems. <code>-l</code> lists all parameters. Can change label, reserved space, check intervals.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo tune2fs -m 1 /dev/sdb1</code> (set 1% reserved space for root)</li>
+            <li><code>sudo tune2fs -c 0 /dev/sdb1</code> (disable mount count check)</li>
+            <li><code>sudo blkid /dev/sdb1</code> (quick view of UUID/label)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk tune2fs filesystem EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You need to resize a partition and filesystem. How do you grow a filesystem? What must you do first?
+    </div>
+    <div class="back">
+        <strong>Resize partition first (parted):</strong> <code>sudo parted /dev/sdb resizepart 1 100%</code><br>
+        <strong>Then grow filesystem:</strong> <code>sudo resize2fs /dev/sdb1</code>
+        <p><strong>Why:</strong> Must resize partition first, then filesystem. <code>resize2fs</code> for ext2/3/4. Can grow while mounted (if supported), must unmount to shrink.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo xfs_growfs /mount/point</code> (grow XFS - operates on mount point)</li>
+            <li><code>sudo resize2fs /dev/sdb1 50G</code> (resize to specific size)</li>
+            <li>LVM makes resizing easier: <code>lvextend</code> + <code>resize2fs</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk resize filesystem EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You want to clone a disk or create a disk image. How do you copy a disk? How do you restore from an image?
+    </div>
+    <div class="back">
+        <strong>Clone disk:</strong> <code>sudo dd if=/dev/sda of=/dev/sdb bs=4M status=progress</code><br>
+        <strong>Create image:</strong> <code>sudo dd if=/dev/sda of=disk.img bs=4M status=progress</code>
+        <p><strong>Why:</strong> <code>dd</code> does byte-level copy. <code>if</code>=input file, <code>of</code>=output file, <code>bs</code>=block size. DANGEROUS - wrong of= can wipe disks!</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo dd if=disk.img of=/dev/sdb bs=4M status=progress</code> (restore)</li>
+            <li><code>sudo dd if=/dev/sda | gzip > disk.img.gz</code> (compress while imaging)</li>
+            <li><code>sudo ddrescue /dev/sda /dev/sdb</code> (better for damaged disks)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk dd cloning EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You want to securely erase a disk before disposal. How do you wipe a disk? What's the difference between quick and secure erase?
+    </div>
+    <div class="back">
+        <strong>Zero-fill disk:</strong> <code>sudo dd if=/dev/zero of=/dev/sdb bs=4M status=progress</code><br>
+        <strong>Secure random wipe:</strong> <code>sudo shred -vfz -n 3 /dev/sdb</code>
+        <p><strong>Why:</strong> <code>dd</code> with /dev/zero does one-pass wipe. <code>shred -n 3</code> does 3 passes with random data then zeros. Good for disposal/donation.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo wipefs -a /dev/sdb</code> (wipe signatures only, quick)</li>
+            <li><code>sudo badblocks -wsv /dev/sdb</code> (destructive write test)</li>
+            <li>SSDs: use ATA Secure Erase instead (dd not effective)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk security wipe EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to create a swap partition or swap file. How do you set up swap? How do you enable it permanently?
+    </div>
+    <div class="back">
+        <strong>Create swap file:</strong> <code>sudo fallocate -l 4G /swapfile && sudo chmod 600 /swapfile</code><br>
+        <strong>Initialize and enable:</strong> <code>sudo mkswap /swapfile && sudo swapon /swapfile</code>
+        <p><strong>Why:</strong> Swap extends RAM to disk. <code>mkswap</code> formats as swap, <code>swapon</code> activates it. Add to /etc/fstab for permanent: <code>/swapfile none swap sw 0 0</code></p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo mkswap /dev/sdb2</code> (use partition instead of file)</li>
+            <li><code>sudo swapoff /swapfile</code> (disable swap)</li>
+            <li><code>swapon --show</code> or <code>free -h</code> (check swap usage)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk swap memory EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You want to check disk health and SMART status. How do you view SMART data? How do you run a disk self-test?
+    </div>
+    <div class="back">
+        <strong>View SMART info:</strong> <code>sudo smartctl -a /dev/sda</code><br>
+        <strong>Run short test:</strong> <code>sudo smartctl -t short /dev/sda</code>
+        <p><strong>Why:</strong> SMART (Self-Monitoring, Analysis and Reporting Technology) monitors disk health. Shows temperature, errors, reallocated sectors. Early warning for failure.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo smartctl -H /dev/sda</code> (health status only)</li>
+            <li><code>sudo smartctl -t long /dev/sda</code> (comprehensive test, hours)</li>
+            <li><code>sudo smartctl -l selftest /dev/sda</code> (view test results)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk smart health EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You want to find the UUID or label of a filesystem. How do you list UUIDs? Why use UUID instead of /dev names?
+    </div>
+    <div class="back">
+        <strong>List all UUIDs:</strong> <code>sudo blkid</code><br>
+        <strong>Specific device:</strong> <code>sudo blkid /dev/sdb1</code>
+        <p><strong>Why:</strong> <code>blkid</code> shows UUID, label, filesystem type. UUIDs don't change when devices are added/removed (unlike /dev/sda which can become /dev/sdb). Essential for /etc/fstab.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>ls -l /dev/disk/by-uuid/</code> (see UUID symlinks)</li>
+            <li><code>ls -l /dev/disk/by-label/</code> (see label symlinks)</li>
+            <li><code>lsblk -o NAME,UUID,LABEL</code> (tree view with UUID/label)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk uuid blkid EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You want to benchmark disk performance. How do you test read speed? How do you test write speed?
+    </div>
+    <div class="back">
+        <strong>Test write speed:</strong> <code>dd if=/dev/zero of=testfile bs=1G count=1 oflag=direct</code><br>
+        <strong>Test read speed:</strong> <code>dd if=testfile of=/dev/null bs=1G iflag=direct</code>
+        <p><strong>Why:</strong> <code>dd</code> can benchmark disk. <code>oflag=direct</code> bypasses cache for accurate results. Basic test; dedicated tools are better.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>hdparm -Tt /dev/sda</code> (quick disk read test)</li>
+            <li><code>fio</code> (comprehensive I/O testing tool)</li>
+            <li><code>iozone</code> (filesystem benchmark suite)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk benchmark performance EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to create a RAM disk for temporary fast storage. How do you create a tmpfs? What are the use cases?
+    </div>
+    <div class="back">
+        <strong>Create RAM disk:</strong> <code>sudo mount -t tmpfs -o size=1G tmpfs /mnt/ramdisk</code><br>
+        <strong>In fstab:</strong> <code>tmpfs /mnt/ramdisk tmpfs size=1G 0 0</code>
+        <p><strong>Why:</strong> <code>tmpfs</code> uses RAM for storage. Extremely fast but data lost on reboot. Good for temp files, caches, build directories.</p>
+        <p><strong>Use cases:</strong></p>
+        <ul>
+            <li>/tmp often uses tmpfs by default</li>
+            <li>Browser cache, compilation temp files</li>
+            <li>Data lost on reboot or unmount!</li>
+            <li><code>df -h /mnt/ramdisk</code> (check usage)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux disk tmpfs ramdisk EN</div>
+</div>
+
+</body>
+</html>

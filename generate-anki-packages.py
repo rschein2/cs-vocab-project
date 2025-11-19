@@ -89,34 +89,34 @@ CS_VOCAB_MODEL = genanki.Model(
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 16px;
             text-align: left;
-            color: #333;
-            background-color: white;
             padding: 20px;
+            line-height: 1.6;
         }
 
         .question {
             font-size: 1.2em;
             font-weight: 600;
-            color: #2c3e50;
             margin-bottom: 20px;
         }
 
         .answer {
             line-height: 1.6;
-            color: #555;
         }
 
         code {
-            background-color: #f4f4f4;
+            background-color: rgba(127, 127, 127, 0.2);
             padding: 2px 6px;
             border-radius: 3px;
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
             font-size: 0.9em;
-            color: #c7254e;
+        }
+
+        .nightMode code {
+            color: #ff79c6;
         }
 
         pre {
-            background-color: #f4f4f4;
+            background-color: rgba(127, 127, 127, 0.15);
             padding: 12px;
             border-radius: 5px;
             overflow-x: auto;
@@ -126,12 +126,14 @@ CS_VOCAB_MODEL = genanki.Model(
         pre code {
             background-color: transparent;
             padding: 0;
-            color: #333;
         }
 
         strong {
-            color: #2c3e50;
             font-weight: 600;
+        }
+
+        .nightMode strong {
+            color: #8be9fd;
         }
 
         ul, ol {
@@ -145,7 +147,7 @@ CS_VOCAB_MODEL = genanki.Model(
 
         hr {
             border: none;
-            border-top: 2px solid #e0e0e0;
+            border-top: 2px solid rgba(127, 127, 127, 0.3);
             margin: 20px 0;
         }
     '''
@@ -210,6 +212,16 @@ if __name__ == '__main__':
         ('networking-flashcards.html', 'CS Vocab::Networking', 'cs-vocab-networking.apkg', 2059400119),
         ('filesystem-flashcards.html', 'CS Vocab::File System Hierarchy', 'cs-vocab-filesystem.apkg', 2059400120),
         ('shell-config-flashcards.html', 'CS Vocab::Shell Configuration', 'cs-vocab-shell-config.apkg', 2059400121),
+        ('find-tree-flashcards.html', 'CS Vocab::Find and Tree Commands', 'cs-vocab-find.apkg', 2059400122),
+        ('package-diff-flashcards.html', 'CS Vocab::Package Management & Diff', 'cs-vocab-package-diff.apkg', 2059400123),
+        ('text-processing-flashcards.html', 'CS Vocab::Text Processing', 'cs-vocab-text.apkg', 2059400124),
+        ('permissions-flashcards.html', 'CS Vocab::Permissions & Ownership', 'cs-vocab-permissions.apkg', 2059400125),
+        ('archives-compression-flashcards.html', 'CS Vocab::Archives & Compression', 'cs-vocab-archives.apkg', 2059400126),
+        ('logs-monitoring-flashcards.html', 'CS Vocab::System Logs & Monitoring', 'cs-vocab-logs.apkg', 2059400127),
+        ('users-groups-flashcards.html', 'CS Vocab::User & Group Management', 'cs-vocab-users.apkg', 2059400128),
+        ('disk-management-flashcards.html', 'CS Vocab::Disk Management', 'cs-vocab-disk.apkg', 2059400129),
+        ('symlinks-attributes-flashcards.html', 'CS Vocab::Symbolic Links & File Attributes', 'cs-vocab-symlinks.apkg', 2059400130),
+        ('xargs-chaining-flashcards.html', 'CS Vocab::xargs & Command Chaining', 'cs-vocab-xargs.apkg', 2059400131),
     ]
 
     for html_file, deck_name, output_file, deck_id in deck_configs:
@@ -243,8 +255,18 @@ if __name__ == '__main__':
     print('  - cs-vocab-networking.apkg  (Networking only)')
     print('  - cs-vocab-filesystem.apkg  (File System Hierarchy only)')
     print('  - cs-vocab-shell-config.apkg (Shell Configuration only)')
+    print('  - cs-vocab-find.apkg        (Find and Tree Commands only)')
+    print('  - cs-vocab-package-diff.apkg (Package Management & Diff only)')
+    print('  - cs-vocab-text.apkg        (Text Processing only)')
+    print('  - cs-vocab-permissions.apkg (Permissions & Ownership only)')
+    print('  - cs-vocab-archives.apkg    (Archives & Compression only)')
+    print('  - cs-vocab-logs.apkg        (System Logs & Monitoring only)')
+    print('  - cs-vocab-users.apkg       (User & Group Management only)')
+    print('  - cs-vocab-disk.apkg        (Disk Management only)')
+    print('  - cs-vocab-symlinks.apkg    (Symbolic Links & File Attributes only)')
+    print('  - cs-vocab-xargs.apkg       (xargs & Command Chaining only)')
     print()
     print('Combined package:')
     print('  - cs-vocab-all.apkg         (All topics)')
     print()
-    print('Import creates subdeck structure: CS Vocab → Git/tmux/SSH/Linux Shell/Linux Utilities/Linux Processes/Readline Shortcuts/Shell Scripting/Regex Patterns/Networking/File System Hierarchy/Shell Configuration')
+    print('Import creates subdeck structure: CS Vocab → [22 subdecks]')

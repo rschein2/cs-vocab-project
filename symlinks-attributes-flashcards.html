@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - Symbolic Links & File Attributes</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You want to create a shortcut to a file in another location. How do you create a symbolic link? What if you want to link a directory?
+    </div>
+    <div class="back">
+        <strong>Create symlink:</strong> <code>ln -s /path/to/original /path/to/link</code><br>
+        <strong>Link directory:</strong> <code>ln -s /path/to/directory /path/to/link</code>
+        <p><strong>Why:</strong> <code>ln -s</code> creates symbolic link (symlink). Symlinks are shortcuts that point to another file/directory. Works across filesystems. Like Windows shortcuts.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>ln -sf target link</code> (force: overwrite existing link)</li>
+            <li><code>ln -sr /path/file link</code> (relative symlink)</li>
+            <li>Use absolute paths to avoid broken links</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux symlinks ln EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You want to see where a symbolic link points to. How do you read a symlink? How do you resolve all symlinks in a path?
+    </div>
+    <div class="back">
+        <strong>Read symlink:</strong> <code>readlink linkname</code><br>
+        <strong>Resolve to absolute path:</strong> <code>readlink -f linkname</code>
+        <p><strong>Why:</strong> <code>readlink</code> shows what a symlink points to. <code>-f</code> follows all symlinks and returns absolute path to final target. Useful for debugging.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>ls -l linkname</code> (shows: linkname -> target)</li>
+            <li><code>realpath linkname</code> (canonical absolute path)</li>
+            <li><code>file linkname</code> (shows if it's a symlink and target)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux symlinks readlink EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You want to understand the difference between symbolic and hard links. What's a hard link? When would you use it instead of a symlink?
+    </div>
+    <div class="back">
+        <strong>Create hard link:</strong> <code>ln /path/to/original /path/to/hardlink</code><br>
+        <strong>Key difference:</strong> Hard link = same file, different name. Symlink = pointer to file.
+        <p><strong>Why:</strong> Hard links share inode with original - same file in two places. Can't cross filesystems or link directories. File exists until all hard links deleted.</p>
+        <p><strong>Comparison:</strong></p>
+        <ul>
+            <li>Hard link: survives if original deleted, same filesystem only</li>
+            <li>Symlink: breaks if original deleted, works across filesystems</li>
+            <li><code>ls -li</code> (shows inode numbers - same for hard links)</li>
+            <li>Hard links don't work for directories (prevents loops)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux links hard-links EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You want to find all symlinks in a directory or find broken symlinks. How do you find symlinks? How do you find broken ones?
+    </div>
+    <div class="back">
+        <strong>Find all symlinks:</strong> <code>find /path -type l</code><br>
+        <strong>Find broken symlinks:</strong> <code>find /path -type l -xtype l</code>
+        <p><strong>Why:</strong> <code>-type l</code> finds symbolic links. <code>-xtype l</code> finds links whose target doesn't exist (broken links). Useful for cleanup.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>find /path -type l -ls</code> (list details of symlinks)</li>
+            <li><code>find /path -type l -exec readlink -f {} \;</code> (show targets)</li>
+            <li><code>find /path -type l ! -exec test -e {} \; -print</code> (broken links)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux symlinks find EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want to find files that are hard-linked together. How do you find hard links to a file? How many hard links does a file have?
+    </div>
+    <div class="back">
+        <strong>Check link count:</strong> <code>ls -l file.txt</code> (2nd column shows count)<br>
+        <strong>Find all hard links:</strong> <code>find / -samefile file.txt 2>/dev/null</code>
+        <p><strong>Why:</strong> <code>ls -l</code> shows hard link count (usually 1). <code>find -samefile</code> finds all paths pointing to same inode. Useful for duplicate detection.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>ls -li file.txt</code> (show inode number)</li>
+            <li><code>find / -inum 123456</code> (find by inode number)</li>
+            <li><code>stat file.txt</code> (detailed file info including links)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux links find EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want to make a file immutable so even root can't modify it. How do you set the immutable attribute? How do you view file attributes?
+    </div>
+    <div class="back">
+        <strong>Make immutable:</strong> <code>sudo chattr +i filename</code><br>
+        <strong>View attributes:</strong> <code>lsattr filename</code>
+        <p><strong>Why:</strong> <code>chattr +i</code> makes file unchangeable - can't modify, delete, or rename even as root. <code>lsattr</code> lists extended attributes. Extreme protection.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo chattr -i filename</code> (remove immutable)</li>
+            <li><code>lsattr -d directory/</code> (show directory attributes)</li>
+            <li><code>lsattr -R directory/</code> (recursive)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux chattr attributes EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You want to make a log file append-only so old entries can't be deleted. How do you set append-only attribute? What other useful attributes exist?
+    </div>
+    <div class="back">
+        <strong>Append-only:</strong> <code>sudo chattr +a logfile.txt</code><br>
+        <strong>No atime updates:</strong> <code>sudo chattr +A file.txt</code>
+        <p><strong>Why:</strong> <code>+a</code> allows appending but not modification or deletion. Good for logs. <code>+A</code> disables access time updates (performance boost).</p>
+        <p><strong>Common attributes:</strong></p>
+        <ul>
+            <li><code>i</code> = immutable (unchangeable)</li>
+            <li><code>a</code> = append only</li>
+            <li><code>A</code> = no atime updates</li>
+            <li><code>c</code> = compressed automatically</li>
+            <li><code>d</code> = no dump (excluded from backup)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux chattr attributes EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to create a relative symlink that works even if you move the directory. How do you create relative links? What's the advantage?
+    </div>
+    <div class="back">
+        <strong>Relative symlink:</strong> <code>ln -s ../target linkname</code><br>
+        <strong>Auto-relative:</strong> <code>ln -sr /abs/path/to/target linkname</code>
+        <p><strong>Why:</strong> Relative symlinks use relative paths (../file). If you move the directory, links still work. <code>-r</code> automatically makes link relative.</p>
+        <p><strong>Example:</strong></p>
+        <ul>
+            <li>Absolute: <code>link -> /home/user/file</code> (breaks if moved)</li>
+            <li>Relative: <code>link -> ../file</code> (survives moves)</li>
+            <li>Use relative for portable directory structures</li>
+            <li><code>readlink link</code> (shows relative path)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux symlinks ln EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You want to replace a directory with a symlink to move data without breaking paths. How do you safely replace? What if the link already exists?
+    </div>
+    <div class="back">
+        <strong>Replace directory with link:</strong>
+        <pre>mv /old/location /new/location
+ln -s /new/location /old/location</pre>
+        <strong>Force replace existing link:</strong> <code>ln -sf /new/target /old/link</code>
+        <p><strong>Why:</strong> Move data first, then create symlink at old location. Applications using old path still work. <code>-f</code> force-replaces existing link.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>ln -sfn /new/target /old/link</code> (-n treats link to dir as file)</li>
+            <li>Test first: <code>ls -l /old/location</code></li>
+            <li>Common pattern for data migration</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux symlinks migration EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You want to get detailed file information including inode, links, and timestamps. How do you view detailed file stats? What information does it show?
+    </div>
+    <div class="back">
+        <strong>Detailed file info:</strong> <code>stat filename</code><br>
+        <strong>Filesystem info:</strong> <code>stat -f filename</code>
+        <p><strong>Why:</strong> <code>stat</code> shows everything: size, inode, blocks, permissions, timestamps (access, modify, change), link count. Complete file metadata.</p>
+        <p><strong>Information shown:</strong></p>
+        <ul>
+            <li>Inode number, blocks, size</li>
+            <li>Access/Modify/Change times</li>
+            <li>Hard link count</li>
+            <li>Device, permissions, ownership</li>
+            <li><code>stat -c "%n: %s bytes" file</code> (custom format)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux stat files EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You want to update file access or modification time without editing. How do you change timestamps? How do you match another file's timestamp?
+    </div>
+    <div class="back">
+        <strong>Update to now:</strong> <code>touch filename</code><br>
+        <strong>Match another file's time:</strong> <code>touch -r reference.txt target.txt</code>
+        <p><strong>Why:</strong> <code>touch</code> updates access and modify times to current time. Creates file if doesn't exist. <code>-r</code> copies timestamp from reference file.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>touch -t 202401151430 file</code> (specific time: YYYYMMDDhhmm)</li>
+            <li><code>touch -d "2024-01-15 14:30" file</code> (human-readable date)</li>
+            <li><code>touch -a file</code> (only access time)</li>
+            <li><code>touch -m file</code> (only modification time)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux touch timestamps EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You want to understand the three different timestamps on files. What are atime, mtime, and ctime? How do they differ?
+    </div>
+    <div class="back">
+        <strong>View all timestamps:</strong> <code>stat filename</code><br>
+        <strong>Timestamps:</strong> atime (access), mtime (modify), ctime (change)
+        <p><strong>Why:</strong> atime = last read, mtime = content modified, ctime = metadata changed (permissions, ownership). ctime can't be manually set.</p>
+        <p><strong>Differences:</strong></p>
+        <ul>
+            <li>atime: reading file updates it (often disabled for performance)</li>
+            <li>mtime: editing file content updates it</li>
+            <li>ctime: chmod, chown, or content change updates it</li>
+            <li><code>ls -l</code> shows mtime, <code>ls -lc</code> shows ctime, <code>ls -lu</code> shows atime</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux timestamps files EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to find files modified in the last 24 hours or accessed recently. How do you find files by modification time? How about by access time?
+    </div>
+    <div class="back">
+        <strong>Modified in last 24hrs:</strong> <code>find /path -mtime -1</code><br>
+        <strong>Accessed in last 7 days:</strong> <code>find /path -atime -7</code>
+        <p><strong>Why:</strong> <code>-mtime -1</code> = modified less than 1 day ago. <code>-atime -7</code> = accessed less than 7 days ago. Useful for finding recent changes.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>find /path -mmin -60</code> (modified in last 60 minutes)</li>
+            <li><code>find /path -mtime +30</code> (modified MORE than 30 days ago)</li>
+            <li><code>find /path -ctime -1</code> (metadata changed in last day)</li>
+            <li><code>find /path -newer reference.txt</code> (modified after reference)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux find timestamps EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You want to preserve symlinks when copying or find the inode number of a file. How do you copy preserving symlinks? How do you see inodes?
+    </div>
+    <div class="back">
+        <strong>Copy preserving symlinks:</strong> <code>cp -a source dest</code><br>
+        <strong>Show inode numbers:</strong> <code>ls -li</code>
+        <p><strong>Why:</strong> <code>cp -a</code> (archive mode) preserves symlinks, permissions, timestamps. Without it, <code>cp</code> dereferences symlinks. <code>ls -i</code> shows inode numbers.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>cp -P link newlink</code> (copy symlink itself, not target)</li>
+            <li><code>cp -L link newfile</code> (dereference: copy target, not link)</li>
+            <li><code>stat file</code> (detailed inode info)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux cp symlinks inodes EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You want to create multiple symlinks at once or update existing symlinks. How do you create symlinks efficiently? How do you update broken links?
+    </div>
+    <div class="back">
+        <strong>Create multiple symlinks:</strong>
+        <pre>for file in /source/*.txt; do
+  ln -s "$file" /dest/
+done</pre>
+        <strong>Update all symlinks in directory:</strong> <code>find /path -type l -delete && create new links</code>
+        <p><strong>Why:</strong> Loop through files to create symlinks. For updating, find and delete broken links, then recreate. <code>-f</code> can replace individual links.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>ln -sf /new/target /old/link</code> (update single link)</li>
+            <li><code>find /path -type l -xtype l -delete</code> (delete broken links only)</li>
+            <li><code>symlinks -r /path</code> (symlinks tool: convert absolute to relative)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux symlinks automation EN</div>
+</div>
+
+</body>
+</html>

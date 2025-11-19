@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - User & Group Management</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You need to create a new user account on the system. How do you add a user? What if you want to set their home directory and shell?
+    </div>
+    <div class="back">
+        <strong>Add user (interactive):</strong> <code>sudo adduser username</code><br>
+        <strong>Add with options:</strong> <code>sudo useradd -m -s /bin/bash username</code>
+        <p><strong>Why:</strong> <code>adduser</code> is user-friendly (Debian/Ubuntu), creates home dir, prompts for password. <code>useradd</code> is low-level. <code>-m</code> creates home, <code>-s</code> sets shell.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo useradd -m -d /home/custom -s /bin/zsh username</code> (custom home)</li>
+            <li><code>sudo useradd -m -G sudo username</code> (add to sudo group)</li>
+            <li><code>sudo passwd username</code> (set password after creation)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users useradd EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You need to delete a user account. How do you remove a user? What if you want to delete their home directory too?
+    </div>
+    <div class="back">
+        <strong>Remove user:</strong> <code>sudo userdel username</code><br>
+        <strong>Remove with home directory:</strong> <code>sudo userdel -r username</code>
+        <p><strong>Why:</strong> <code>userdel</code> removes user account. <code>-r</code> removes home directory and mail spool. Without <code>-r</code>, files remain (can be useful for backups).</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo deluser username</code> (Debian/Ubuntu friendly wrapper)</li>
+            <li><code>sudo deluser --remove-home username</code> (remove home)</li>
+            <li>Check for leftover files: <code>find / -user username 2>/dev/null</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users userdel EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You need to modify an existing user's properties. How do you change a user's shell? How do you change their home directory?
+    </div>
+    <div class="back">
+        <strong>Change shell:</strong> <code>sudo usermod -s /bin/zsh username</code><br>
+        <strong>Change home directory:</strong> <code>sudo usermod -d /new/home -m username</code>
+        <p><strong>Why:</strong> <code>usermod</code> modifies user accounts. <code>-s</code> changes login shell. <code>-d</code> changes home directory, <code>-m</code> moves contents to new location.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>chsh -s /bin/zsh username</code> (change shell, dedicated command)</li>
+            <li><code>sudo usermod -L username</code> (lock account, disable login)</li>
+            <li><code>sudo usermod -U username</code> (unlock account)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users usermod EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You need to add a user to a group. How do you add a user to a supplementary group? What if you want to change their primary group?
+    </div>
+    <div class="back">
+        <strong>Add to supplementary group:</strong> <code>sudo usermod -aG groupname username</code><br>
+        <strong>Change primary group:</strong> <code>sudo usermod -g groupname username</code>
+        <p><strong>Why:</strong> <code>-aG</code> appends to groups (keep existing groups). <code>-G</code> alone replaces all groups (dangerous!). <code>-g</code> changes primary group.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo gpasswd -a username groupname</code> (add to group)</li>
+            <li><code>sudo adduser username groupname</code> (Debian/Ubuntu)</li>
+            <li>User must log out/in for group changes to take effect</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users groups usermod EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You need to remove a user from a group. How do you remove group membership? What if you want to see all groups a user belongs to?
+    </div>
+    <div class="back">
+        <strong>Remove from group:</strong> <code>sudo gpasswd -d username groupname</code><br>
+        <strong>List user's groups:</strong> <code>groups username</code> or <code>id username</code>
+        <p><strong>Why:</strong> <code>gpasswd -d</code> deletes user from group. <code>groups</code> lists group memberships. <code>id</code> shows UID, GID, and all groups with numeric IDs.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo deluser username groupname</code> (Debian/Ubuntu)</li>
+            <li><code>id -Gn username</code> (group names only)</li>
+            <li><code>getent group groupname</code> (see all members of a group)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users groups gpasswd EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You need to create a new group for a project team. How do you create a group? How do you delete a group?
+    </div>
+    <div class="back">
+        <strong>Create group:</strong> <code>sudo groupadd groupname</code><br>
+        <strong>Delete group:</strong> <code>sudo groupdel groupname</code>
+        <p><strong>Why:</strong> <code>groupadd</code> creates a new group. <code>groupdel</code> removes it. Can't delete a group if it's any user's primary group.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo groupadd -g 1500 groupname</code> (specific GID)</li>
+            <li><code>sudo addgroup groupname</code> (Debian/Ubuntu wrapper)</li>
+            <li><code>sudo groupmod -n newname oldname</code> (rename group)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux groups groupadd EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You need to change a user's password. How do you set a password? What if you want to force them to change it on next login?
+    </div>
+    <div class="back">
+        <strong>Set password:</strong> <code>sudo passwd username</code><br>
+        <strong>Force change on login:</strong> <code>sudo passwd -e username</code>
+        <p><strong>Why:</strong> <code>passwd</code> changes passwords. <code>-e</code> expires password immediately, forcing change on next login. Users can change their own with just <code>passwd</code>.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>passwd</code> (change your own password)</li>
+            <li><code>sudo passwd -l username</code> (lock password, disable login)</li>
+            <li><code>sudo passwd -u username</code> (unlock password)</li>
+            <li><code>sudo chage -d 0 username</code> (also forces password change)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users passwd EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to see user account information and password expiry. How do you view password aging info? How do you set password expiry?
+    </div>
+    <div class="back">
+        <strong>View password info:</strong> <code>sudo chage -l username</code><br>
+        <strong>Set expiry (90 days):</strong> <code>sudo chage -M 90 username</code>
+        <p><strong>Why:</strong> <code>chage</code> (change age) manages password expiration. <code>-l</code> lists info. <code>-M</code> sets maximum days password is valid. Improves security.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo chage -E 2024-12-31 username</code> (account expires on date)</li>
+            <li><code>sudo chage -m 7 username</code> (minimum days between changes)</li>
+            <li><code>sudo chage -W 14 username</code> (warn 14 days before expiry)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users passwd chage EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You need to view and edit the user database files directly. Where are users stored? Where are passwords hashed?
+    </div>
+    <div class="back">
+        <strong>User database:</strong> <code>/etc/passwd</code> (user info)<br>
+        <strong>Password hashes:</strong> <code>/etc/shadow</code> (requires root)
+        <p><strong>Why:</strong> <code>/etc/passwd</code> contains username, UID, GID, home, shell (world-readable). <code>/etc/shadow</code> has password hashes and aging info (root only, for security).</p>
+        <p><strong>File format:</strong></p>
+        <ul>
+            <li>/etc/passwd: <code>user:x:UID:GID:comment:home:shell</code></li>
+            <li>/etc/shadow: <code>user:$hash:lastchange:min:max:warn:...</code></li>
+            <li><code>vipw</code> (safely edit /etc/passwd)</li>
+            <li><code>vipw -s</code> (safely edit /etc/shadow)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users files passwd shadow EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You need to see group information. Where are groups stored? How do you view group members?
+    </div>
+    <div class="back">
+        <strong>Group database:</strong> <code>/etc/group</code><br>
+        <strong>View group members:</strong> <code>getent group groupname</code>
+        <p><strong>Why:</strong> <code>/etc/group</code> contains group name, GID, and members. <code>getent</code> queries system databases including /etc/group and network directory services.</p>
+        <p><strong>File format:</strong></p>
+        <ul>
+            <li>/etc/group: <code>groupname:x:GID:member1,member2</code></li>
+            <li><code>cat /etc/group | grep groupname</code> (direct file view)</li>
+            <li><code>vigr</code> (safely edit /etc/group)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux groups files EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You want to create a system user for running a service (no login, no home). How do you create a system user? What makes it different?
+    </div>
+    <div class="back">
+        <strong>Create system user:</strong> <code>sudo useradd -r -s /usr/sbin/nologin servicename</code><br>
+        <strong>With home in /var:</strong> <code>sudo useradd -r -d /var/lib/servicename -s /usr/sbin/nologin servicename</code>
+        <p><strong>Why:</strong> <code>-r</code> creates system user (UID < 1000). <code>/usr/sbin/nologin</code> prevents shell login. System users run services/daemons securely without human access.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo useradd -r -M servicename</code> (-M = no home directory)</li>
+            <li><code>sudo adduser --system --no-create-home servicename</code> (Debian)</li>
+            <li>Common shells: <code>/bin/false</code>, <code>/usr/sbin/nologin</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users system-users EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You need to see who is currently logged in and what they're doing. How do you see active users? How do you see user activity?
+    </div>
+    <div class="back">
+        <strong>Who is logged in:</strong> <code>who</code> or <code>w</code><br>
+        <strong>Detailed activity:</strong> <code>w</code>
+        <p><strong>Why:</strong> <code>who</code> shows logged-in users, terminal, login time. <code>w</code> adds load average, idle time, and current command. <code>w</code> more informative.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>users</code> (simple list of usernames)</li>
+            <li><code>who -a</code> (all information including system boot time)</li>
+            <li><code>last</code> (historical login records)</li>
+            <li><code>lastlog</code> (most recent login for each user)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users who w EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You need to find a user's UID or a group's GID. How do you look up UID? How do you find which user has a specific UID?
+    </div>
+    <div class="back">
+        <strong>Get user's UID:</strong> <code>id -u username</code><br>
+        <strong>Find user by UID:</strong> <code>getent passwd 1000</code>
+        <p><strong>Why:</strong> <code>id -u</code> shows numeric user ID. <code>getent passwd UID</code> looks up user by UID. <code>id -g</code> shows GID.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>id username</code> (shows UID, GID, all groups)</li>
+            <li><code>grep :1000: /etc/passwd</code> (direct file search)</li>
+            <li><code>id -gn username</code> (group name instead of GID)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users id getent EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You want to lock a user account temporarily without deleting it. How do you lock an account? How do you unlock it?
+    </div>
+    <div class="back">
+        <strong>Lock account:</strong> <code>sudo usermod -L username</code> or <code>sudo passwd -l username</code><br>
+        <strong>Unlock account:</strong> <code>sudo usermod -U username</code> or <code>sudo passwd -u username</code>
+        <p><strong>Why:</strong> Locking puts <code>!</code> in password hash, preventing password login. SSH keys still work! User keeps files and processes.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo usermod -s /usr/sbin/nologin username</code> (disable shell completely)</li>
+            <li><code>sudo usermod -e 1 username</code> (expire account)</li>
+            <li>To fully disable: lock + change shell + expire</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users security usermod EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You need to become another user temporarily to test their permissions. How do you switch to another user? What's the difference between su and su -?
+    </div>
+    <div class="back">
+        <strong>Switch user (login shell):</strong> <code>su - username</code><br>
+        <strong>Switch (keep environment):</strong> <code>su username</code>
+        <p><strong>Why:</strong> <code>su -</code> starts login shell, loads user's environment (~/.bashrc, PATH, etc.). <code>su</code> without dash keeps your environment. <code>-</code> recommended.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>su -</code> (become root)</li>
+            <li><code>su - username -c "command"</code> (run single command as user)</li>
+            <li><code>sudo -u username -s</code> (switch via sudo)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users su EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You want to see the default settings for new user creation. Where are defaults stored? How do you change default shell or home location?
+    </div>
+    <div class="back">
+        <strong>View defaults:</strong> <code>sudo useradd -D</code><br>
+        <strong>Change default shell:</strong> <code>sudo useradd -D -s /bin/zsh</code>
+        <p><strong>Why:</strong> <code>useradd -D</code> shows/sets defaults. Defaults stored in <code>/etc/default/useradd</code> and <code>/etc/login.defs</code>. Affects all new user creation.</p>
+        <p><strong>Configuration files:</strong></p>
+        <ul>
+            <li><code>/etc/default/useradd</code> (shell, home base, skeleton)</li>
+            <li><code>/etc/login.defs</code> (UID ranges, password aging)</li>
+            <li><code>/etc/skel/</code> (default files copied to new home dirs)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users configuration EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You created a new user and want to set up their home directory with default files. Where are skeleton files stored? How do you apply them?
+    </div>
+    <div class="back">
+        <strong>Skeleton directory:</strong> <code>/etc/skel/</code><br>
+        <strong>Auto-applied when:</strong> Using <code>useradd -m</code> or <code>adduser</code>
+        <p><strong>Why:</strong> Files in <code>/etc/skel/</code> are copied to new users' home directories. Put default .bashrc, .profile, README there. Applied automatically on user creation.</p>
+        <p><strong>Usage:</strong></p>
+        <ul>
+            <li><code>ls -la /etc/skel/</code> (view default files)</li>
+            <li>Add company-wide configs, welcome docs here</li>
+            <li><code>sudo cp /etc/skel/.bashrc /home/existinguser/</code> (manual copy)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users configuration EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You need to check if a username is already taken. How do you check if a user exists? How about checking a group?
+    </div>
+    <div class="back">
+        <strong>Check if user exists:</strong> <code>id username</code> or <code>getent passwd username</code><br>
+        <strong>Check if group exists:</strong> <code>getent group groupname</code>
+        <p><strong>Why:</strong> <code>id</code> returns 0 if user exists, non-zero if not (good for scripts). <code>getent</code> queries databases, returns entry if found.</p>
+        <p><strong>Script usage:</strong></p>
+        <ul>
+            <li><code>if id username &>/dev/null; then echo "exists"; fi</code></li>
+            <li><code>grep "^username:" /etc/passwd</code> (direct file check)</li>
+            <li><code>getent passwd | grep username</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users getent EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You want to create multiple users with similar settings efficiently. How do you script user creation? What's a safe approach?
+    </div>
+    <div class="back">
+        <strong>Script approach:</strong>
+        <pre>while IFS=, read user fullname; do
+  sudo useradd -m -c "$fullname" "$user"
+  sudo passwd -e "$user"
+done < users.csv</pre>
+        <p><strong>Why:</strong> Loop through CSV file, create users with full names, force password change. <code>-c</code> sets comment (full name). Safer than batch with passwords in file.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>newusers</code> command (bulk user creation from file)</li>
+            <li>Use Ansible/Puppet for production environments</li>
+            <li>Generate random passwords: <code>pwgen</code> or <code>openssl rand</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users automation scripting EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You need to audit user accounts for security. How do you find users with UID 0? How do you find users with empty passwords?
+    </div>
+    <div class="back">
+        <strong>Find UID 0 (root-equivalent):</strong> <code>awk -F: '$3 == 0 {print $1}' /etc/passwd</code><br>
+        <strong>Find empty passwords:</strong> <code>sudo awk -F: '$2 == "" {print $1}' /etc/shadow</code>
+        <p><strong>Why:</strong> UID 0 = root privileges. Only "root" should have UID 0. Empty password = security risk. Regular audits are important.</p>
+        <p><strong>Other security checks:</strong></p>
+        <ul>
+            <li><code>sudo awk -F: '$3 < 1000 && $1 != "root" {print $1}' /etc/passwd</code> (system users)</li>
+            <li><code>find / -nouser -o -nogroup</code> (files with no valid owner)</li>
+            <li><code>last | grep -v 'still logged in' | head -20</code> (recent logins)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux users security audit EN</div>
+</div>
+
+</body>
+</html>

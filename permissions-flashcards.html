@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - Permissions & Ownership</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You created a script file and need to make it executable. How do you add execute permission? What if you want to make it executable for everyone?
+    </div>
+    <div class="back">
+        <strong>Add execute for yourself:</strong> <code>chmod +x script.sh</code><br>
+        <strong>For everyone:</strong> <code>chmod a+x script.sh</code>
+        <p><strong>Why:</strong> <code>chmod</code> changes file permissions. <code>+x</code> adds execute permission. Without specifying who, it adds for user/group/others. <code>a+x</code> explicitly means "all".</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>chmod u+x script.sh</code> (execute for user/owner only)</li>
+            <li><code>chmod 755 script.sh</code> (rwxr-xr-x: owner full, others read+execute)</li>
+            <li><code>chmod ug+x script.sh</code> (execute for user and group)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chmod EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You see permissions like "rwxr-xr--" and want to understand what they mean. How do you read permission notation? What do the three groups represent?
+    </div>
+    <div class="back">
+        <strong>Format:</strong> <code>rwxr-xr--</code> = owner(rwx) group(r-x) others(r--)<br>
+        <strong>Meanings:</strong> r=read(4), w=write(2), x=execute(1)
+        <p><strong>Why:</strong> First 3 chars = owner permissions, next 3 = group, last 3 = others. <code>rwx</code> = read+write+execute, <code>r--</code> = read only, <code>---</code> = no access.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>rwxr-xr-x</code> = 755 (owner: all, others: read+execute)</li>
+            <li><code>rw-r--r--</code> = 644 (owner: read+write, others: read only)</li>
+            <li><code>rw-------</code> = 600 (owner only, private file)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chmod EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You want to set exact permissions using numbers instead of letters. How do you use octal notation with chmod? What does each digit mean?
+    </div>
+    <div class="back">
+        <strong>Set exact permissions:</strong> <code>chmod 644 file.txt</code><br>
+        <strong>Calculation:</strong> Each digit = sum of r(4) + w(2) + x(1)
+        <p><strong>Why:</strong> Octal notation sets exact permissions. First digit = owner, second = group, third = others. Example: 7=rwx (4+2+1), 6=rw- (4+2), 5=r-x (4+1), 4=r-- (4).</p>
+        <p><strong>Common patterns:</strong></p>
+        <ul>
+            <li><code>chmod 755 script.sh</code> (rwxr-xr-x: executable script)</li>
+            <li><code>chmod 644 file.txt</code> (rw-r--r--: regular file)</li>
+            <li><code>chmod 600 secret.key</code> (rw-------: private file)</li>
+            <li><code>chmod 700 private_dir/</code> (rwx------: private directory)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chmod EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You need to remove write permission for everyone except yourself on a file. How do you remove permissions? What if you want to remove recursively for a directory?
+    </div>
+    <div class="back">
+        <strong>Remove write for group/others:</strong> <code>chmod go-w file.txt</code><br>
+        <strong>Recursive for directory:</strong> <code>chmod -R go-w mydir/</code>
+        <p><strong>Why:</strong> <code>go-w</code> means remove(-) write(w) from group(g) and others(o). <code>-R</code> applies recursively to directory contents.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>chmod a-w file.txt</code> (remove write from all, including owner)</li>
+            <li><code>chmod u-x file.txt</code> (remove execute from owner only)</li>
+            <li><code>chmod 644 file.txt</code> (set exact: rw-r--r--)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chmod EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        A file is owned by another user and you need to take ownership. How do you change file owner? What if you need to change both owner and group?
+    </div>
+    <div class="back">
+        <strong>Change owner:</strong> <code>sudo chown newuser file.txt</code><br>
+        <strong>Change owner and group:</strong> <code>sudo chown newuser:newgroup file.txt</code>
+        <p><strong>Why:</strong> <code>chown</code> changes ownership. Format is <code>user:group</code>. Requires sudo unless you own the file. Use <code>-R</code> for directories.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo chown -R user:group directory/</code> (recursive)</li>
+            <li><code>sudo chown :groupname file.txt</code> (change group only, keep owner)</li>
+            <li><code>sudo chgrp groupname file.txt</code> (dedicated command for group change)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chown EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want to change the group ownership of a file without changing the user owner. How do you change just the group? What if you need to do this for all files in a directory?
+    </div>
+    <div class="back">
+        <strong>Change group:</strong> <code>sudo chgrp groupname file.txt</code><br>
+        <strong>Recursive for directory:</strong> <code>sudo chgrp -R groupname mydir/</code>
+        <p><strong>Why:</strong> <code>chgrp</code> changes only group ownership. Useful when you want to share files with a group. <code>-R</code> applies to directory contents.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo chown :groupname file.txt</code> (using chown with colon prefix)</li>
+            <li><code>sudo chown user:groupname file.txt</code> (change both)</li>
+            <li><code>groups</code> (list groups you belong to)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chgrp EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You want new files you create in a directory to have specific default permissions. How do you view your umask? How do you change it?
+    </div>
+    <div class="back">
+        <strong>View current umask:</strong> <code>umask</code><br>
+        <strong>Set umask:</strong> <code>umask 022</code>
+        <p><strong>Why:</strong> <code>umask</code> sets default permission mask. It's subtracted from 666 (files) or 777 (directories). umask 022 → files get 644, directories get 755.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>umask 022</code> → files: 644 (rw-r--r--), dirs: 755 (rwxr-xr-x)</li>
+            <li><code>umask 077</code> → files: 600 (rw-------), dirs: 700 (rwx------)</li>
+            <li><code>umask 002</code> → files: 664 (rw-rw-r--), dirs: 775 (rwxrwxr-x)</li>
+            <li>Add to ~/.bashrc to make permanent</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions umask EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to make a directory where files created inside inherit the directory's group ownership. How do you set the setgid bit? What does it do?
+    </div>
+    <div class="back">
+        <strong>Set setgid on directory:</strong> <code>chmod g+s directory/</code><br>
+        <strong>Numeric notation:</strong> <code>chmod 2775 directory/</code>
+        <p><strong>Why:</strong> <code>setgid</code> (set group ID) on directories makes new files inherit the directory's group. Useful for shared project directories. Shows as <code>s</code> in group execute position.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>chmod 2755 directory/</code> (2 prefix sets setgid bit)</li>
+            <li>On files, setgid makes executable run as file's group</li>
+            <li><code>ls -ld directory/</code> (shows: drwxr-sr-x - note the 's')</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chmod setgid EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You want to prevent users from deleting files in a shared directory unless they own the file. How do you set the sticky bit? What is it commonly used for?
+    </div>
+    <div class="back">
+        <strong>Set sticky bit:</strong> <code>chmod +t directory/</code><br>
+        <strong>Numeric notation:</strong> <code>chmod 1777 directory/</code>
+        <p><strong>Why:</strong> <code>sticky bit</code> on directories restricts deletion - only file owner, directory owner, or root can delete files. Shows as <code>t</code> in others execute position. Used for /tmp.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>ls -ld /tmp</code> (shows: drwxrwxrwt - note the 't')</li>
+            <li><code>chmod 1755 directory/</code> (1 prefix sets sticky bit)</li>
+            <li>Common for shared directories where multiple users create files</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chmod sticky-bit EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You need to make a binary executable run with the owner's privileges instead of the user running it. How do you set the setuid bit? When is this dangerous?
+    </div>
+    <div class="back">
+        <strong>Set setuid:</strong> <code>chmod u+s executable</code><br>
+        <strong>Numeric notation:</strong> <code>chmod 4755 executable</code>
+        <p><strong>Why:</strong> <code>setuid</code> makes executable run as file owner's user ID. Shows as <code>s</code> in owner execute position. Dangerous on shell scripts - can be security risk if misconfigured.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>ls -l /usr/bin/passwd</code> (shows: -rwsr-xr-x - runs as root)</li>
+            <li><code>find / -perm -4000</code> (find all setuid files)</li>
+            <li>NEVER use on scripts you didn't write - security risk!</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chmod setuid security EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You want to view detailed permissions including ACLs (Access Control Lists). How do you check for ACLs? How do you view them?
+    </div>
+    <div class="back">
+        <strong>Check if ACLs exist:</strong> <code>ls -l</code> (look for + after permissions)<br>
+        <strong>View ACLs:</strong> <code>getfacl filename</code>
+        <p><strong>Why:</strong> ACLs provide more granular permissions than standard Unix permissions. A <code>+</code> after permissions (e.g., <code>-rw-r--r--+</code>) indicates ACLs are set.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>getfacl -R directory/</code> (recursive ACL listing)</li>
+            <li><code>getfacl --tabular filename</code> (tabular format)</li>
+            <li>ACLs allow per-user/group permissions beyond owner/group/others</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions acl getfacl EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You need to give a specific user read access to a file without changing its group. How do you set ACLs? How do you grant permissions to a specific user?
+    </div>
+    <div class="back">
+        <strong>Give user read access:</strong> <code>setfacl -m u:username:r filename</code><br>
+        <strong>Give group write access:</strong> <code>setfacl -m g:groupname:rw filename</code>
+        <p><strong>Why:</strong> <code>setfacl -m</code> (modify) sets ACL entries. Format: <code>u:user:perms</code> for users, <code>g:group:perms</code> for groups. Allows fine-grained access control.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>setfacl -m u:bob:rwx,u:alice:r-- file.txt</code> (multiple entries)</li>
+            <li><code>setfacl -R -m u:username:rx directory/</code> (recursive)</li>
+            <li><code>setfacl -x u:username filename</code> (remove user ACL entry)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions acl setfacl EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to copy ACLs from one file to another, or remove all ACLs. How do you copy ACLs? How do you remove them?
+    </div>
+    <div class="back">
+        <strong>Copy ACLs:</strong> <code>getfacl file1 | setfacl --set-file=- file2</code><br>
+        <strong>Remove all ACLs:</strong> <code>setfacl -b filename</code>
+        <p><strong>Why:</strong> <code>getfacl</code> outputs ACLs in format that <code>setfacl --set-file</code> can read. <code>-b</code> removes all ACL entries, reverting to basic permissions.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>setfacl --set-file=acls.txt filename</code> (read ACLs from file)</li>
+            <li><code>setfacl -x u:username filename</code> (remove specific user entry)</li>
+            <li><code>setfacl -R -b directory/</code> (remove ACLs recursively)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions acl setfacl EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You need to run a command as another user without logging in as them. How do you switch users temporarily? How do you run a single command as another user?
+    </div>
+    <div class="back">
+        <strong>Switch to another user:</strong> <code>su - username</code><br>
+        <strong>Run single command:</strong> <code>su - username -c "command"</code>
+        <p><strong>Why:</strong> <code>su</code> (substitute user) switches to another user. <code>-</code> loads that user's environment. <code>-c</code> runs one command then exits. Requires that user's password.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>su username</code> (switch but keep current environment)</li>
+            <li><code>su</code> (switch to root)</li>
+            <li><code>sudo -u username command</code> (run as user via sudo - preferred)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions su EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You need to run a command with root privileges without knowing the root password. How do you use sudo? What if you need to edit a file as root?
+    </div>
+    <div class="back">
+        <strong>Run command as root:</strong> <code>sudo command</code><br>
+        <strong>Edit file as root:</strong> <code>sudo -e /etc/config</code> or <code>sudoedit /etc/config</code>
+        <p><strong>Why:</strong> <code>sudo</code> runs commands as root using YOUR password (must be in sudoers file). <code>sudo -e</code> safely edits files as root in your own editor.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo -i</code> (become root with root's environment)</li>
+            <li><code>sudo -s</code> (root shell with your environment)</li>
+            <li><code>sudo -u username command</code> (run as different user)</li>
+            <li><code>sudo !!</ code> (run previous command with sudo)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions sudo EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You want to see what sudo privileges you have. How do you check your sudo permissions? How do you run a long-running command that won't timeout?
+    </div>
+    <div class="back">
+        <strong>Check sudo privileges:</strong> <code>sudo -l</code><br>
+        <strong>Keep sudo active:</strong> <code>sudo -v</code> (refresh timeout)
+        <p><strong>Why:</strong> <code>sudo -l</code> lists commands you're allowed to run via sudo. <code>sudo -v</code> extends the sudo timeout (default 15 min) without running a command.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo -ll</code> (long format with more details)</li>
+            <li><code>sudo -k</code> (invalidate sudo timestamp, requires password next time)</li>
+            <li><code>while true; do sudo -v; sleep 60; done &</code> (keep alive in background)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions sudo EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You need to edit the sudoers file safely to grant sudo access. How do you edit sudoers? What's dangerous about editing it directly?
+    </div>
+    <div class="back">
+        <strong>Edit sudoers safely:</strong> <code>sudo visudo</code><br>
+        <strong>Edit specific file:</strong> <code>sudo visudo -f /etc/sudoers.d/myfile</code>
+        <p><strong>Why:</strong> <code>visudo</code> safely edits sudoers with syntax checking. Direct editing with vi/nano could break sudo if syntax is wrong, locking you out.</p>
+        <p><strong>Common entries:</strong></p>
+        <ul>
+            <li><code>username ALL=(ALL) ALL</code> (user can run anything as anyone)</li>
+            <li><code>username ALL=(ALL) NOPASSWD: ALL</code> (no password required)</li>
+            <li><code>%groupname ALL=(ALL) ALL</code> (% = group gets sudo access)</li>
+            <li>Files in /etc/sudoers.d/ included automatically</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions sudo visudo EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You want to find all files owned by a specific user or with specific permissions. How do you find by owner? How about by permissions?
+    </div>
+    <div class="back">
+        <strong>Find by owner:</strong> <code>find /path -user username</code><br>
+        <strong>Find by permissions:</strong> <code>find /path -perm 644</code>
+        <p><strong>Why:</strong> <code>find</code> with <code>-user</code> locates files owned by user. <code>-perm</code> finds exact permission matches. Useful for security audits.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>find /path -group groupname</code> (find by group)</li>
+            <li><code>find /path -perm -u+s</code> (find setuid files)</li>
+            <li><code>find /path -perm /u+w,g+w</code> (writable by user OR group)</li>
+            <li><code>find /path -user username -exec ls -l {} \;</code> (list details)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions find EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You want to find files that are world-writable or have insecure permissions. How do you find security risks? What about setuid files?
+    </div>
+    <div class="back">
+        <strong>Find world-writable:</strong> <code>find /path -perm -002 -type f</code><br>
+        <strong>Find setuid files:</strong> <code>find /path -perm -4000</code>
+        <p><strong>Why:</strong> World-writable files (writable by others) are security risks. Setuid files run as owner - dangerous if compromised. Regular audits are important.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>find /path -perm -002 ! -type l</code> (exclude symlinks)</li>
+            <li><code>find /path -perm -6000</code> (setuid OR setgid)</li>
+            <li><code>find /path -perm -002 -exec chmod o-w {} \;</code> (fix automatically)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions find security EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You want to make a file immutable so even root can't modify or delete it. How do you set immutable attribute? How do you remove it?
+    </div>
+    <div class="back">
+        <strong>Make immutable:</strong> <code>sudo chattr +i filename</code><br>
+        <strong>Remove immutable:</strong> <code>sudo chattr -i filename</code>
+        <p><strong>Why:</strong> <code>chattr +i</code> sets immutable bit - file can't be modified, deleted, renamed, or linked even by root. Useful for protecting critical config files.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>lsattr filename</code> (view file attributes, shows 'i' if immutable)</li>
+            <li><code>chattr +a filename</code> (append-only: can add but not modify/delete)</li>
+            <li><code>chattr +A filename</code> (no atime updates - performance)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chattr EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        You want to see what groups you belong to or what groups another user is in. How do you list groups? How do you see all group memberships?
+    </div>
+    <div class="back">
+        <strong>Your groups:</strong> <code>groups</code><br>
+        <strong>Another user's groups:</strong> <code>groups username</code>
+        <p><strong>Why:</strong> <code>groups</code> shows group memberships. First group listed is primary group. Group membership affects file access permissions.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>id</code> (shows UID, GID, and all groups with numeric IDs)</li>
+            <li><code>id username</code> (another user's id info)</li>
+            <li><code>cat /etc/group | grep username</code> (see all groups user is in)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions groups EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        You created files as root and need to fix ownership for your normal user recursively. How do you change ownership of a directory and everything inside? What about following symbolic links?
+    </div>
+    <div class="back">
+        <strong>Recursive ownership change:</strong> <code>sudo chown -R username:groupname directory/</code><br>
+        <strong>Follow symlinks:</strong> <code>sudo chown -RL username:groupname directory/</code>
+        <p><strong>Why:</strong> <code>-R</code> applies to all files/subdirectories. <code>-L</code> follows symbolic links and changes their targets too (default: changes link itself).</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo chown -R $USER:$USER directory/</code> ($USER = your username)</li>
+            <li><code>find directory/ -exec chown username:groupname {} \;</code> (find + chown)</li>
+            <li><code>sudo chown -R username: directory/</code> (sets primary group automatically)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chown EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        You want files in a shared project directory to be readable/writable by your team group but not others. What permissions should you set? What umask?
+    </div>
+    <div class="back">
+        <strong>Set directory permissions:</strong> <code>chmod 2770 projectdir/</code><br>
+        <strong>Set umask for new files:</strong> <code>umask 007</code>
+        <p><strong>Why:</strong> 2770 = setgid(2) + owner(7=rwx) + group(7=rwx) + others(0=---). umask 007 makes new files 660 (rw-rw----), new dirs 770 (rwxrwx---). Setgid ensures files inherit group.</p>
+        <p><strong>Setup:</strong></p>
+        <ul>
+            <li><code>sudo chgrp -R teamgroup projectdir/</code> (set group)</li>
+            <li><code>chmod 2770 projectdir/</code> (permissions + setgid)</li>
+            <li><code>echo "umask 007" >> ~/.bashrc</code> (permanent umask)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux permissions chmod umask collaboration EN</div>
+</div>
+
+</body>
+</html>

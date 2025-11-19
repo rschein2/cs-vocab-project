@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - Package Management & Diff Utilities</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You need to install a package called "nodejs" on your Fedora system. How do you install it? What if you want to install it without asking for confirmation?
+    </div>
+    <div class="back">
+        <strong>Install package:</strong> <code>sudo dnf install nodejs</code><br>
+        <strong>Without confirmation:</strong> <code>sudo dnf install -y nodejs</code>
+        <p><strong>Why:</strong> <code>dnf</code> is the package manager for Fedora/RHEL systems. The <code>-y</code> flag automatically answers "yes" to prompts, useful for scripts.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo apt install nodejs</code> (Debian/Ubuntu)</li>
+            <li><code>sudo yum install nodejs</code> (older RHEL systems)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You want to search for packages related to "python" before installing. How do you search for available packages? What if you want to see more details about a specific package?
+    </div>
+    <div class="back">
+        <strong>Search for packages:</strong> <code>dnf search python</code><br>
+        <strong>Show package details:</strong> <code>dnf info python3</code>
+        <p><strong>Why:</strong> <code>dnf search</code> searches package names and descriptions. <code>dnf info</code> shows version, size, dependencies, and description of a specific package.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>apt search python</code> / <code>apt show python3</code> (Debian/Ubuntu)</li>
+            <li><code>yum search python</code> / <code>yum info python3</code> (older RHEL)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You need to remove a package you no longer need. How do you uninstall it? What if you also want to remove unused dependencies that were installed with it?
+    </div>
+    <div class="back">
+        <strong>Remove package:</strong> <code>sudo dnf remove packagename</code><br>
+        <strong>Remove with dependencies:</strong> <code>sudo dnf autoremove packagename</code>
+        <p><strong>Why:</strong> <code>dnf remove</code> uninstalls a package. <code>autoremove</code> also removes dependencies that are no longer needed by any package, cleaning up disk space.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo apt remove packagename</code> / <code>sudo apt autoremove</code> (Debian/Ubuntu)</li>
+            <li><code>sudo yum remove packagename</code> (older RHEL)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You want to update all packages on your system to their latest versions. How do you check for updates? How do you apply them?
+    </div>
+    <div class="back">
+        <strong>Check for updates:</strong> <code>dnf check-update</code><br>
+        <strong>Apply updates:</strong> <code>sudo dnf upgrade</code>
+        <p><strong>Why:</strong> <code>check-update</code> lists available updates without installing. <code>upgrade</code> updates all packages (preferred over <code>update</code> which is similar but has subtle differences with obsoletes handling).</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>apt list --upgradable</code> / <code>sudo apt upgrade</code> (Debian/Ubuntu)</li>
+            <li><code>yum check-update</code> / <code>sudo yum update</code> (older RHEL)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want to see what packages are currently installed on your system. How do you list all installed packages? What if you want to check if a specific package is installed?
+    </div>
+    <div class="back">
+        <strong>List all installed:</strong> <code>dnf list installed</code><br>
+        <strong>Check specific package:</strong> <code>dnf list installed nodejs</code>
+        <p><strong>Why:</strong> <code>dnf list installed</code> shows all packages currently on your system. Adding a package name filters to just that package, useful for quick checks.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>apt list --installed</code> (Debian/Ubuntu)</li>
+            <li><code>rpm -qa</code> (query all installed RPM packages)</li>
+            <li><code>rpm -q nodejs</code> (check specific package)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want to see the history of package operations you've performed. How do you view transaction history? What if you want to undo the last installation?
+    </div>
+    <div class="back">
+        <strong>View history:</strong> <code>dnf history</code><br>
+        <strong>Undo last transaction:</strong> <code>sudo dnf history undo last</code>
+        <p><strong>Why:</strong> <code>dnf history</code> shows all install/remove/update operations with transaction IDs. You can undo or redo specific transactions by ID or "last".</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo dnf history undo 42</code> (undo specific transaction ID)</li>
+            <li><code>sudo dnf history redo last</code> (redo a transaction)</li>
+            <li><code>cat /var/log/dnf.log</code> (view raw log file)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        Your system is running out of disk space and you suspect cached packages are taking up room. How do you clean up dnf cache? What about removing old kernels?
+    </div>
+    <div class="back">
+        <strong>Clean cache:</strong> <code>sudo dnf clean all</code><br>
+        <strong>Remove old kernels:</strong> <code>sudo dnf remove $(dnf repoquery --installonly --latest-limit=-2 -q)</code>
+        <p><strong>Why:</strong> <code>dnf clean all</code> removes cached package files and metadata. Old kernels accumulate over time; keeping 2-3 latest is usually sufficient (change -2 to keep more).</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo apt clean</code> (Debian/Ubuntu)</li>
+            <li><code>sudo dnf autoremove</code> (remove unused dependencies)</li>
+            <li>Set <code>installonly_limit=3</code> in /etc/dnf/dnf.conf</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You downloaded a .rpm file and want to install it directly. How do you install a local RPM file? What if it has dependency issues?
+    </div>
+    <div class="back">
+        <strong>Install local RPM:</strong> <code>sudo dnf install ./package.rpm</code><br>
+        <strong>Force install (risky):</strong> <code>sudo rpm -ivh --nodeps package.rpm</code>
+        <p><strong>Why:</strong> <code>dnf install</code> on a local .rpm file automatically resolves dependencies from repos. Using <code>rpm -ivh --nodeps</code> bypasses dependency checks but may break things.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo rpm -ivh package.rpm</code> (install with rpm, but doesn't resolve deps)</li>
+            <li><code>sudo apt install ./package.deb</code> (Debian/Ubuntu .deb files)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf rpm package-management EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You need to find out which package provides a specific file or command. How do you find which package owns "/usr/bin/python3"? What about a file not yet installed?
+    </div>
+    <div class="back">
+        <strong>Find owner of installed file:</strong> <code>rpm -qf /usr/bin/python3</code><br>
+        <strong>Find provider in repos:</strong> <code>dnf provides /usr/bin/python3</code>
+        <p><strong>Why:</strong> <code>rpm -qf</code> queries which package owns an installed file. <code>dnf provides</code> searches all repo packages for what would provide that file.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>dnf provides '*/python3'</code> (wildcard search)</li>
+            <li><code>dpkg -S /usr/bin/python3</code> (Debian/Ubuntu installed files)</li>
+            <li><code>apt-file search python3</code> (Debian/Ubuntu repos - requires apt-file package)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf rpm package-management EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You want to see what files a package installed on your system. How do you list all files from an installed package? What about before installing it?
+    </div>
+    <div class="back">
+        <strong>List files from installed package:</strong> <code>rpm -ql packagename</code><br>
+        <strong>List files before installing:</strong> <code>dnf repoquery -l packagename</code>
+        <p><strong>Why:</strong> <code>rpm -ql</code> (query list) shows all files installed by a package. <code>dnf repoquery -l</code> queries repository metadata without installing.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>dpkg -L packagename</code> (Debian/Ubuntu installed)</li>
+            <li><code>apt-file list packagename</code> (Debian/Ubuntu before installing)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf rpm package-management EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You have two versions of a configuration file and want to see what changed. How do you compare two text files? What if you want side-by-side comparison?
+    </div>
+    <div class="back">
+        <strong>Basic diff:</strong> <code>diff file1.txt file2.txt</code><br>
+        <strong>Side-by-side:</strong> <code>diff -y file1.txt file2.txt</code>
+        <p><strong>Why:</strong> <code>diff</code> shows line-by-line differences using < and > symbols. <code>-y</code> flag displays files side-by-side with | marking different lines.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>diff -u file1.txt file2.txt</code> (unified format, like git)</li>
+            <li><code>sdiff file1.txt file2.txt</code> (interactive side-by-side)</li>
+            <li><code>vimdiff file1.txt file2.txt</code> (visual comparison in vim)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux diff utilities EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You want to see differences between two files at the word level instead of line level. How do you compare files word-by-word? What if you want to ignore whitespace changes?
+    </div>
+    <div class="back">
+        <strong>Word-level diff:</strong> <code>wdiff file1.txt file2.txt</code><br>
+        <strong>Ignore whitespace:</strong> <code>diff -w file1.txt file2.txt</code>
+        <p><strong>Why:</strong> <code>wdiff</code> shows deletions in [-brackets-] and additions in {+braces+}, highlighting individual word changes. <code>diff -w</code> ignores whitespace differences.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>diff -b file1.txt file2.txt</code> (ignore changes in whitespace amount)</li>
+            <li><code>diff --color=auto file1.txt file2.txt</code> (colored output)</li>
+            <li><code>git diff --word-diff file1.txt file2.txt</code> (git's word diff)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux diff wdiff utilities EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You need to create a patch file from differences between two files to share with someone. How do you generate a patch? How would they apply it?
+    </div>
+    <div class="back">
+        <strong>Create patch:</strong> <code>diff -u original.txt modified.txt > changes.patch</code><br>
+        <strong>Apply patch:</strong> <code>patch original.txt < changes.patch</code>
+        <p><strong>Why:</strong> <code>-u</code> creates unified diff format (standard patch format). The patch file can be applied to the original to recreate the modified version.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>diff -Naur olddir/ newdir/ > changes.patch</code> (patch entire directories)</li>
+            <li><code>patch -p1 < changes.patch</code> (strip 1 leading directory in paths)</li>
+            <li><code>git diff > changes.patch</code> / <code>git apply changes.patch</code> (git patches)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux diff patch utilities EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You want to compare two files but only care if they're different, not what the differences are. How do you check if two files are identical? What about binary files?
+    </div>
+    <div class="back">
+        <strong>Silent comparison:</strong> <code>cmp -s file1 file2 && echo "Same" || echo "Different"</code><br>
+        <strong>Show first difference:</strong> <code>cmp file1 file2</code>
+        <p><strong>Why:</strong> <code>cmp</code> compares files byte-by-byte and exits on first difference, faster than diff. <code>-s</code> flag makes it silent (only sets exit code). Works on binary files.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>diff -q file1 file2</code> (brief, only reports if different)</li>
+            <li><code>cmp -l file1 file2</code> (list all differences, byte positions)</li>
+            <li><code>md5sum file1 file2</code> (compare checksums)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux diff cmp utilities EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You have two sorted files and want to find lines that appear in both, or only in one. How do you compare sorted files? How do you find lines unique to each file?
+    </div>
+    <div class="back">
+        <strong>Show differences only:</strong> <code>comm -3 file1.txt file2.txt</code><br>
+        <strong>Show common lines:</strong> <code>comm -12 file1.txt file2.txt</code>
+        <p><strong>Why:</strong> <code>comm</code> compares sorted files in 3 columns: only in file1, only in file2, in both. <code>-1</code>, <code>-2</code>, <code>-3</code> suppress respective columns.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>comm -23 file1.txt file2.txt</code> (lines only in file1)</li>
+            <li><code>comm -13 file1.txt file2.txt</code> (lines only in file2)</li>
+            <li>Files must be sorted first: <code>sort file1.txt > sorted1.txt</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux comm utilities EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You want to compare entire directory trees to find which files differ. How do you recursively compare directories? What if you only want to see which files exist in one but not the other?
+    </div>
+    <div class="back">
+        <strong>Recursive directory diff:</strong> <code>diff -r dir1/ dir2/</code><br>
+        <strong>Only show which files differ:</strong> <code>diff -qr dir1/ dir2/</code>
+        <p><strong>Why:</strong> <code>-r</code> recurses into subdirectories. <code>-q</code> (brief) only reports which files differ without showing the differences, useful for large directory trees.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>diff -rq --exclude=*.log dir1/ dir2/</code> (exclude certain files)</li>
+            <li><code>rsync -avn --delete dir1/ dir2/</code> (dry-run sync shows differences)</li>
+            <li><code>git diff --no-index dir1/ dir2/</code> (use git's diff on non-git dirs)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux diff utilities EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to interactively merge changes from two files. How do you open an interactive diff tool? What if you're comfortable with vim?
+    </div>
+    <div class="back">
+        <strong>Interactive side-by-side:</strong> <code>sdiff -o merged.txt file1.txt file2.txt</code><br>
+        <strong>Vim diff mode:</strong> <code>vimdiff file1.txt file2.txt</code>
+        <p><strong>Why:</strong> <code>sdiff -o</code> lets you choose which version to keep for each difference interactively. <code>vimdiff</code> opens files side-by-side in vim with syntax highlighting and easy navigation.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>vim -d file1.txt file2.txt</code> (same as vimdiff)</li>
+            <li><code>meld file1.txt file2.txt</code> (GUI diff tool)</li>
+            <li><code>git mergetool</code> (use configured merge tool)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux diff vimdiff utilities EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You want to compare the output of two commands rather than files. How do you diff command outputs? What if you want to ignore blank lines?
+    </div>
+    <div class="back">
+        <strong>Compare command outputs:</strong> <code>diff <(command1) <(command2)</code><br>
+        <strong>Ignore blank lines:</strong> <code>diff -B file1.txt file2.txt</code>
+        <p><strong>Why:</strong> <code><(command)</code> is process substitution - treats command output as a file. <code>-B</code> ignores lines that are blank in both files.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>diff <(ls /etc) <(ls /usr/etc)</code> (compare directory listings)</li>
+            <li><code>diff -I "pattern" file1 file2</code> (ignore lines matching regex)</li>
+            <li><code>command1 > out1; command2 > out2; diff out1 out2</code> (save first)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux diff bash utilities EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You need to find which repository a package comes from. How do you check what repo provides a package? How do you list all enabled repositories?
+    </div>
+    <div class="back">
+        <strong>Check package repo:</strong> <code>dnf info packagename</code> (look at "From repo:" line)<br>
+        <strong>List all repos:</strong> <code>dnf repolist</code>
+        <p><strong>Why:</strong> <code>dnf info</code> shows package metadata including source repository. <code>dnf repolist</code> shows all enabled repos, while <code>repolist --all</code> includes disabled ones.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>dnf repolist --all</code> (show disabled repos too)</li>
+            <li><code>dnf repository-packages reponame list</code> (list all packages from a repo)</li>
+            <li><code>dnf config-manager --set-enabled reponame</code> (enable a repo)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You want to see what dependencies a package requires before installing. How do you check package dependencies? What if you want to see what packages depend ON it (reverse dependencies)?
+    </div>
+    <div class="back">
+        <strong>Show dependencies:</strong> <code>dnf repoquery --requires packagename</code><br>
+        <strong>Show reverse dependencies:</strong> <code>dnf repoquery --whatrequires packagename</code>
+        <p><strong>Why:</strong> <code>--requires</code> lists what a package needs to work. <code>--whatrequires</code> shows what other packages depend on it (useful before removing).</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>rpm -qR packagename</code> (dependencies of installed package)</li>
+            <li><code>dnf deplist packagename</code> (detailed dependency list)</li>
+            <li><code>apt-cache depends packagename</code> (Debian/Ubuntu)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        You want to download a package without installing it, maybe to inspect or transfer to another machine. How do you download package files? What if you also need the dependencies?
+    </div>
+    <div class="back">
+        <strong>Download package only:</strong> <code>dnf download packagename</code><br>
+        <strong>Download with dependencies:</strong> <code>dnf download --resolve packagename</code>
+        <p><strong>Why:</strong> <code>dnf download</code> saves .rpm files to current directory without installing. <code>--resolve</code> also downloads all required dependencies.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>dnf download --destdir=/path packagename</code> (specify download location)</li>
+            <li><code>dnf install --downloadonly packagename</code> (download to cache)</li>
+            <li><code>apt download packagename</code> (Debian/Ubuntu)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        You suspect a package file has been corrupted or modified. How do you verify package integrity? What if you want to check all installed packages?
+    </div>
+    <div class="back">
+        <strong>Verify one package:</strong> <code>rpm -V packagename</code><br>
+        <strong>Verify all packages:</strong> <code>rpm -Va</code>
+        <p><strong>Why:</strong> <code>rpm -V</code> (verify) checks file sizes, permissions, timestamps, checksums. Output codes like "S" (size changed) or "5" (MD5 checksum) show what differs.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>rpm -V --nomtime packagename</code> (ignore modification time)</li>
+            <li><code>dnf reinstall packagename</code> (reinstall if corrupted)</li>
+            <li><code>debsums -s</code> (Debian/Ubuntu - only show errors)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf rpm package-management EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        You want to see the changelog of a package to understand what changed between versions. How do you view package changelog? What about before installing?
+    </div>
+    <div class="back">
+        <strong>View changelog:</strong> <code>rpm -q --changelog packagename | less</code><br>
+        <strong>Before installing:</strong> <code>dnf updateinfo list packagename</code>
+        <p><strong>Why:</strong> <code>rpm -q --changelog</code> shows version history and changes for installed package. <code>dnf updateinfo</code> shows update information including security advisories.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>dnf updateinfo --info packagename</code> (detailed update info)</li>
+            <li><code>dnf updateinfo security</code> (only security updates)</li>
+            <li><code>apt changelog packagename</code> (Debian/Ubuntu)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf rpm package-management EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        You want to create a unified diff with context lines to better understand changes. How do you show extra context around changes? What if you want to create a diff that's easier for humans to read?
+    </div>
+    <div class="back">
+        <strong>More context lines:</strong> <code>diff -U 5 file1.txt file2.txt</code><br>
+        <strong>Human-readable diff:</strong> <code>diff -u --color=always file1.txt file2.txt | less -R</code>
+        <p><strong>Why:</strong> <code>-U 5</code> shows 5 context lines instead of default 3. Colors make additions/deletions obvious; <code>less -R</code> preserves colors while allowing scrolling.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>diff -C 5 file1.txt file2.txt</code> (context format instead of unified)</li>
+            <li><code>git diff --no-index file1.txt file2.txt</code> (git's colored diff)</li>
+            <li><code>colordiff file1.txt file2.txt</code> (requires colordiff package)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux diff utilities EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        You want to hold a package at its current version to prevent updates. How do you exclude a package from updates? How do you undo this later?
+    </div>
+    <div class="back">
+        <strong>Exclude from updates:</strong> Add <code>exclude=packagename</code> to <code>/etc/dnf/dnf.conf</code><br>
+        <strong>Or per-command:</strong> <code>sudo dnf upgrade --exclude=packagename</code>
+        <p><strong>Why:</strong> Excluding packages prevents automatic updates, useful for packages you've customized or that have known issues. Per-command exclusion doesn't persist.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo dnf versionlock packagename</code> (requires dnf-plugins-core)</li>
+            <li><code>dnf versionlock list</code> / <code>dnf versionlock delete packagename</code> (manage locks)</li>
+            <li><code>apt-mark hold packagename</code> (Debian/Ubuntu)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux dnf package-management EN</div>
+</div>
+
+</body>
+</html>

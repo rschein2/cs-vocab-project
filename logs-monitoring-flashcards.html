@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - System Logs & Monitoring</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        Your system service is failing and you need to check recent logs. How do you view systemd logs? What if you want to follow logs in real-time?
+    </div>
+    <div class="back">
+        <strong>View recent logs:</strong> <code>journalctl -xe</code><br>
+        <strong>Follow in real-time:</strong> <code>journalctl -f</code>
+        <p><strong>Why:</strong> <code>journalctl</code> queries systemd journal. <code>-x</code> adds explanatory help text, <code>-e</code> jumps to end. <code>-f</code> follows like <code>tail -f</code>.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>journalctl -n 50</code> (show last 50 lines)</li>
+            <li><code>journalctl --since "10 minutes ago"</code> (time-based filter)</li>
+            <li><code>journalctl -b</code> (logs since last boot)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux logs journalctl systemd EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You need to check logs for a specific systemd service. How do you view service-specific logs? What if you want only errors?
+    </div>
+    <div class="back">
+        <strong>Logs for specific service:</strong> <code>journalctl -u servicename</code><br>
+        <strong>Only errors/warnings:</strong> <code>journalctl -u servicename -p err</code>
+        <p><strong>Why:</strong> <code>-u</code> filters by unit (service name). <code>-p</code> filters by priority: emerg, alert, crit, err, warning, notice, info, debug.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>journalctl -u nginx -f</code> (follow nginx logs)</li>
+            <li><code>journalctl -u ssh --since today</code> (ssh logs from today)</li>
+            <li><code>journalctl -p warning</code> (all warnings+ system-wide)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux logs journalctl systemd EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You want to see logs from a specific time period. How do you filter by time? How do you see logs from previous boots?
+    </div>
+    <div class="back">
+        <strong>Logs since specific time:</strong> <code>journalctl --since "2024-01-15 14:00"</code><br>
+        <strong>Previous boot:</strong> <code>journalctl -b -1</code>
+        <p><strong>Why:</strong> <code>--since</code> and <code>--until</code> accept various time formats. <code>-b</code> shows boot logs, <code>-b -1</code> = previous boot, <code>-b -2</code> = 2 boots ago.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>journalctl --since "1 hour ago"</code> (relative time)</li>
+            <li><code>journalctl --since "yesterday" --until "today"</code> (range)</li>
+            <li><code>journalctl --list-boots</code> (list all boot sessions)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux logs journalctl EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You need to check kernel messages for hardware issues. How do you view kernel ring buffer? What if you want to monitor it continuously?
+    </div>
+    <div class="back">
+        <strong>View kernel messages:</strong> <code>dmesg</code><br>
+        <strong>Follow kernel messages:</strong> <code>dmesg -w</code>
+        <p><strong>Why:</strong> <code>dmesg</code> displays kernel ring buffer messages. Shows hardware detection, driver loading, errors. <code>-w</code> watches for new messages (like tail -f).</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>dmesg -T</code> (human-readable timestamps)</li>
+            <li><code>dmesg -l err,warn</code> (only errors and warnings)</li>
+            <li><code>dmesg | grep -i usb</code> (filter for specific hardware)</li>
+            <li><code>journalctl -k</code> (kernel messages via journalctl)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux logs dmesg kernel EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        A log file is actively growing and you want to watch new lines as they're added. How do you follow a log file? What if you want to start from the beginning?
+    </div>
+    <div class="back">
+        <strong>Follow log file:</strong> <code>tail -f /var/log/syslog</code><br>
+        <strong>Show existing + follow:</strong> <code>tail -f -n 100 /var/log/syslog</code>
+        <p><strong>Why:</strong> <code>tail -f</code> displays new lines as they're written. <code>-n 100</code> shows last 100 lines first, then follows. Essential for debugging live issues.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tail -F /var/log/syslog</code> (follows even if file is rotated)</li>
+            <li><code>less +F /var/log/syslog</code> (follow in less, Ctrl+C to stop)</li>
+            <li><code>multitail /var/log/syslog /var/log/auth.log</code> (multiple files)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux logs tail EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want to check authentication logs for failed login attempts. Where are auth logs stored? How do you search for failed logins?
+    </div>
+    <div class="back">
+        <strong>View auth logs:</strong> <code>sudo tail -f /var/log/auth.log</code> (Debian/Ubuntu)<br>
+        <strong>Failed logins:</strong> <code>sudo grep "Failed password" /var/log/auth.log</code>
+        <p><strong>Why:</strong> <code>/var/log/auth.log</code> (Debian) or <code>/var/log/secure</code> (RHEL) logs authentication events. Contains ssh logins, sudo usage, failed attempts.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>journalctl -u sshd | grep "Failed"</code> (systemd approach)</li>
+            <li><code>sudo grep "authentication failure" /var/log/auth.log</code></li>
+            <li><code>lastb</code> (show failed login attempts from wtmp)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux logs auth security EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You need to see who has logged into the system recently. How do you view login history? What about currently logged-in users?
+    </div>
+    <div class="back">
+        <strong>Recent logins:</strong> <code>last</code><br>
+        <strong>Currently logged in:</strong> <code>who</code> or <code>w</code>
+        <p><strong>Why:</strong> <code>last</code> shows login history from wtmp. <code>who</code> shows current users. <code>w</code> shows users + what they're doing.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>last -n 10</code> (last 10 logins)</li>
+            <li><code>last username</code> (specific user's logins)</li>
+            <li><code>lastlog</code> (most recent login for each user)</li>
+            <li><code>w -s</code> (short format)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux logs users last who EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to manage or check the status of systemd services. How do you check service status? How do you start/stop services?
+    </div>
+    <div class="back">
+        <strong>Check status:</strong> <code>systemctl status servicename</code><br>
+        <strong>Start service:</strong> <code>sudo systemctl start servicename</code><br>
+        <strong>Stop service:</strong> <code>sudo systemctl stop servicename</code>
+        <p><strong>Why:</strong> <code>systemctl</code> controls systemd services. <code>status</code> shows if running, recent logs, enabled/disabled state.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>systemctl restart servicename</code> (stop then start)</li>
+            <li><code>systemctl reload servicename</code> (reload config without restart)</li>
+            <li><code>systemctl enable servicename</code> (start on boot)</li>
+            <li><code>systemctl disable servicename</code> (don't start on boot)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux systemctl systemd services EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You want to see all running services or failed services. How do you list all services? How do you find failed ones?
+    </div>
+    <div class="back">
+        <strong>List all services:</strong> <code>systemctl list-units --type=service</code><br>
+        <strong>Failed services:</strong> <code>systemctl --failed</code>
+        <p><strong>Why:</strong> <code>list-units</code> shows all loaded units. <code>--type=service</code> filters to services only. <code>--failed</code> quickly identifies problems.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>systemctl list-units --type=service --state=running</code> (only running)</li>
+            <li><code>systemctl list-unit-files --type=service</code> (all available services)</li>
+            <li><code>systemctl list-timers</code> (scheduled systemd timers)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux systemctl systemd EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You want to monitor system resource usage in real-time. How do you see CPU and memory usage? What if you want GPU stats?
+    </div>
+    <div class="back">
+        <strong>CPU/memory monitor:</strong> <code>top</code> or <code>htop</code><br>
+        <strong>GPU monitor:</strong> <code>nvidia-smi</code> (NVIDIA) or <code>watch -n 1 nvidia-smi</code>
+        <p><strong>Why:</strong> <code>top</code> shows live system stats and process list. <code>htop</code> is more user-friendly. <code>nvidia-smi</code> shows GPU utilization, memory, temp.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>htop</code> (better interface, requires installation)</li>
+            <li><code>btop</code> (modern, colorful monitor)</li>
+            <li><code>glances</code> (comprehensive system monitor)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux monitoring top htop EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You want to see disk I/O statistics to find bottlenecks. How do you monitor disk activity? What about network I/O?
+    </div>
+    <div class="back">
+        <strong>Disk I/O stats:</strong> <code>iostat</code> or <code>iotop</code><br>
+        <strong>Network I/O:</strong> <code>iftop</code> or <code>nethogs</code>
+        <p><strong>Why:</strong> <code>iostat</code> shows disk throughput/utilization. <code>iotop</code> shows per-process disk usage (like top for I/O). <code>iftop</code> monitors network bandwidth by connection.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>iostat -x 1</code> (extended stats, update every second)</li>
+            <li><code>sudo iotop -o</code> (only show processes doing I/O)</li>
+            <li><code>nload</code> (simple network bandwidth monitor)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux monitoring iostat iotop EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You need to check available disk space and find what's using it. How do you see disk usage? How do you find large directories?
+    </div>
+    <div class="back">
+        <strong>Check disk space:</strong> <code>df -h</code><br>
+        <strong>Directory sizes:</strong> <code>du -sh /*</code> or <code>du -h --max-depth=1 | sort -hr</code>
+        <p><strong>Why:</strong> <code>df -h</code> shows filesystem space (human-readable). <code>du -sh</code> shows directory size summary. Sorting helps find largest dirs.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>df -i</code> (check inode usage, not space)</li>
+            <li><code>ncdu</code> (interactive disk usage browser)</li>
+            <li><code>dust</code> (modern du alternative with visualization)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux monitoring df du EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to see system uptime and load average. How do you check uptime? What do the load average numbers mean?
+    </div>
+    <div class="back">
+        <strong>Check uptime and load:</strong> <code>uptime</code><br>
+        <strong>Load meaning:</strong> 1-min, 5-min, 15-min averages of runnable processes
+        <p><strong>Why:</strong> <code>uptime</code> shows how long system is running + load averages. Load > CPU cores = system under pressure. Load < cores = system handling load fine.</p>
+        <p><strong>Interpretation:</strong></p>
+        <ul>
+            <li>4-core system: load of 4.0 = 100% utilized</li>
+            <li>load of 8.0 = 200% (queued processes)</li>
+            <li>load of 0.5 = 12.5% utilized</li>
+            <li>Also shown in <code>top</code>, <code>w</code>, <code>cat /proc/loadavg</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux monitoring uptime load EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You need to monitor memory usage including cache and swap. How do you see detailed memory stats? What's the difference between used and available?
+    </div>
+    <div class="back">
+        <strong>Memory stats:</strong> <code>free -h</code><br>
+        <strong>Detailed breakdown:</strong> <code>cat /proc/meminfo</code>
+        <p><strong>Why:</strong> <code>free -h</code> shows total, used, free, cache/buffer, available memory. "Available" is what's actually free for apps (includes reclaimable cache). Cache is good!</p>
+        <p><strong>Understanding:</strong></p>
+        <ul>
+            <li>High cache/buffers = normal (Linux uses free RAM for cache)</li>
+            <li>"available" matters more than "free"</li>
+            <li>Swap usage = memory pressure (unless configured as zram)</li>
+            <li><code>vmstat</code> for ongoing memory stats</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux monitoring memory free EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You want to clear the journal logs to free up space. How do you check journal size? How do you clean old logs?
+    </div>
+    <div class="back">
+        <strong>Check journal size:</strong> <code>journalctl --disk-usage</code><br>
+        <strong>Clean old logs:</strong> <code>sudo journalctl --vacuum-time=7d</code>
+        <p><strong>Why:</strong> Journal can grow large over time. <code>--vacuum-time</code> keeps only recent logs. <code>--vacuum-size</code> limits by size.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sudo journalctl --vacuum-size=500M</code> (keep max 500M)</li>
+            <li><code>sudo journalctl --rotate</code> (rotate logs now)</li>
+            <li>Edit /etc/systemd/journald.conf: <code>SystemMaxUse=500M</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux logs journalctl maintenance EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You need to export journal logs for analysis. How do you export to a file? How do you export in JSON format?
+    </div>
+    <div class="back">
+        <strong>Export to text:</strong> <code>journalctl -u servicename > logs.txt</code><br>
+        <strong>Export as JSON:</strong> <code>journalctl -u servicename -o json > logs.json</code>
+        <p><strong>Why:</strong> <code>-o</code> sets output format. JSON is machine-readable for analysis tools. Export helps with log aggregation or offline analysis.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>journalctl -o json-pretty</code> (formatted JSON)</li>
+            <li><code>journalctl -o short-iso</code> (ISO timestamps)</li>
+            <li><code>journalctl --since today -o export</code> (binary export format)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux logs journalctl export EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to monitor network connections and which processes are using them. How do you see active connections? How do you find which process is using a port?
+    </div>
+    <div class="back">
+        <strong>Active connections:</strong> <code>ss -tunap</code> or <code>netstat -tunap</code><br>
+        <strong>Process using port:</strong> <code>sudo lsof -i :8080</code>
+        <p><strong>Why:</strong> <code>ss</code> (socket stats) shows network connections. <code>-t</code>=TCP, <code>-u</code>=UDP, <code>-n</code>=numeric, <code>-a</code>=all, <code>-p</code>=process. <code>lsof</code> lists open files including network sockets.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>ss -tulpn</code> (listening ports only)</li>
+            <li><code>netstat -tulpn | grep :80</code> (find specific port)</li>
+            <li><code>fuser 8080/tcp</code> (which process uses port 8080)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux monitoring network ss lsof EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You want to trace system calls and signals to debug a program. How do you trace a running process? How do you trace a new command?
+    </div>
+    <div class="back">
+        <strong>Trace running process:</strong> <code>sudo strace -p PID</code><br>
+        <strong>Trace new command:</strong> <code>strace command args</code>
+        <p><strong>Why:</strong> <code>strace</code> shows all system calls a process makes. Useful for debugging: see what files it opens, network calls, errors. Can be verbose!</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>strace -e trace=open,read,write command</code> (filter specific calls)</li>
+            <li><code>strace -c command</code> (summary: count/time per syscall)</li>
+            <li><code>ltrace command</code> (trace library calls instead of syscalls)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux debugging strace EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You need to check what files a process has open. How do you list open files? How do you find which processes have a file open?
+    </div>
+    <div class="back">
+        <strong>Files opened by process:</strong> <code>lsof -p PID</code><br>
+        <strong>Processes using a file:</strong> <code>lsof /path/to/file</code>
+        <p><strong>Why:</strong> <code>lsof</code> (list open files) shows files, sockets, pipes opened by processes. Useful for "device busy" errors, finding file locks, network debugging.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>lsof -u username</code> (files opened by user)</li>
+            <li><code>lsof +D /directory</code> (processes using files in directory)</li>
+            <li><code>fuser -v /path/to/file</code> (which processes use file)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux monitoring lsof EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You want to set up a simple monitoring alert for disk space. How do you create a one-liner check? How would you schedule it to run regularly?
+    </div>
+    <div class="back">
+        <strong>Check and alert:</strong> <code>df -h | awk '$5 > 90 {print $0}' | grep -v "^Filesystem"</code><br>
+        <strong>Schedule:</strong> Add to crontab: <code>*/30 * * * * /path/to/script.sh</code>
+        <p><strong>Why:</strong> Parse <code>df</code> output, check if usage (column 5) > 90%. Combine with email/notification in cron job for regular checks.</p>
+        <p><strong>Better approach:</strong></p>
+        <ul>
+            <li>Create script that sends email if disk > 90%</li>
+            <li>Use monitoring tools: Nagios, Zabbix, Prometheus</li>
+            <li><code>systemctl --user enable --now monitoring.timer</code> (systemd timer)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux monitoring automation cron EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        You want to see the boot time and services that slow down boot. How do you analyze boot performance? How do you see which services take longest?
+    </div>
+    <div class="back">
+        <strong>Boot time:</strong> <code>systemd-analyze</code><br>
+        <strong>Service times:</strong> <code>systemd-analyze blame</code>
+        <p><strong>Why:</strong> <code>systemd-analyze</code> shows total boot time breakdown. <code>blame</code> lists services by initialization time. Helps optimize boot speed.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>systemd-analyze critical-chain</code> (show boot dependency chain)</li>
+            <li><code>systemd-analyze plot > boot.svg</code> (visual timeline)</li>
+            <li><code>systemd-analyze verify servicename</code> (check service file)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux monitoring systemd boot EN</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - Text Processing</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You have a CSV file and need to extract just the 2nd and 4th columns. How do you extract specific columns? What if the delimiter is a tab instead of comma?
+    </div>
+    <div class="back">
+        <strong>Extract columns from CSV:</strong> <code>cut -d',' -f2,4 file.csv</code><br>
+        <strong>Tab-delimited:</strong> <code>cut -f2,4 file.tsv</code>
+        <p><strong>Why:</strong> <code>cut</code> extracts columns by delimiter. <code>-d</code> sets delimiter (default is tab), <code>-f</code> specifies field numbers. Use ranges like <code>-f1-3</code> or lists like <code>-f1,3,5</code>.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>awk -F',' '{print $2, $4}' file.csv</code> (more flexible)</li>
+            <li><code>cut -d',' -f2-4</code> (range: columns 2 through 4)</li>
+            <li><code>cut -c1-10 file.txt</code> (extract by character position)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing cut EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You need to sort a file alphabetically and remove duplicate lines. How do you sort a file? How do you remove duplicates?
+    </div>
+    <div class="back">
+        <strong>Sort file:</strong> <code>sort file.txt</code><br>
+        <strong>Sort and remove duplicates:</strong> <code>sort -u file.txt</code>
+        <p><strong>Why:</strong> <code>sort</code> arranges lines alphabetically. <code>-u</code> (unique) removes duplicate lines. Must be sorted first for <code>uniq</code> to work properly.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sort file.txt | uniq</code> (two-step: sort then unique)</li>
+            <li><code>sort -n file.txt</code> (numeric sort)</li>
+            <li><code>sort -r file.txt</code> (reverse order)</li>
+            <li><code>sort -k2 file.txt</code> (sort by 2nd column)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing sort uniq EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You have a sorted file and want to find duplicate lines and count how many times each appears. How do you count duplicates? What if you only want lines that appear more than once?
+    </div>
+    <div class="back">
+        <strong>Count occurrences:</strong> <code>sort file.txt | uniq -c</code><br>
+        <strong>Only duplicates:</strong> <code>sort file.txt | uniq -d</code>
+        <p><strong>Why:</strong> <code>uniq -c</code> counts consecutive duplicate lines (requires sorted input). <code>-d</code> only shows lines that appear more than once.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sort file.txt | uniq -c | sort -rn</code> (sort by frequency)</li>
+            <li><code>uniq -u file.txt</code> (only unique lines, no duplicates)</li>
+            <li><code>awk '{count[$0]++} END {for(i in count) print count[i], i}' file.txt</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing uniq EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You need to replace all spaces in a string with underscores. How do you translate characters? What if you want to delete all digits?
+    </div>
+    <div class="back">
+        <strong>Replace spaces with underscores:</strong> <code>echo "hello world" | tr ' ' '_'</code><br>
+        <strong>Delete all digits:</strong> <code>echo "abc123def456" | tr -d '0-9'</code>
+        <p><strong>Why:</strong> <code>tr</code> (translate) replaces or deletes characters. <code>-d</code> deletes matching characters. Supports ranges like <code>a-z</code>, <code>0-9</code>.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tr 'a-z' 'A-Z'</code> (convert lowercase to uppercase)</li>
+            <li><code>tr -s ' '</code> (squeeze: replace multiple spaces with one)</li>
+            <li><code>tr -cd '0-9'</code> (keep only digits, delete everything else)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing tr EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You have two files with sorted data and want to combine them side-by-side based on a common field. How do you join files on a key? What if the key is in different columns?
+    </div>
+    <div class="back">
+        <strong>Join on first field:</strong> <code>join file1.txt file2.txt</code><br>
+        <strong>Different key columns:</strong> <code>join -1 2 -2 1 file1.txt file2.txt</code>
+        <p><strong>Why:</strong> <code>join</code> merges files based on a common field (like SQL join). Files must be sorted on the join field. <code>-1 2</code> means use column 2 from file1, <code>-2 1</code> means column 1 from file2.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>join -t',' file1.csv file2.csv</code> (specify delimiter)</li>
+            <li><code>join -a1 file1.txt file2.txt</code> (left outer join: keep unmatched from file1)</li>
+            <li><code>paste file1.txt file2.txt</code> (combine line-by-line, no key matching)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing join EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want to merge two files line-by-line, side-by-side. How do you paste files together? What if you want a custom delimiter between them?
+    </div>
+    <div class="back">
+        <strong>Paste side-by-side:</strong> <code>paste file1.txt file2.txt</code><br>
+        <strong>Custom delimiter:</strong> <code>paste -d',' file1.txt file2.txt</code>
+        <p><strong>Why:</strong> <code>paste</code> merges corresponding lines from files horizontally. Default delimiter is tab, <code>-d</code> changes it. Unlike <code>join</code>, it doesn't need a common key.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>paste -s file.txt</code> (serial: combine all lines into one line)</li>
+            <li><code>paste file1.txt file2.txt file3.txt</code> (paste multiple files)</li>
+            <li><code>paste -d'\n' file1.txt file2.txt</code> (alternate lines)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing paste EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You need to print the 3rd column from a space-delimited file. How do you extract and print columns with awk? What if you want to print multiple columns?
+    </div>
+    <div class="back">
+        <strong>Print 3rd column:</strong> <code>awk '{print $3}' file.txt</code><br>
+        <strong>Multiple columns:</strong> <code>awk '{print $1, $3, $5}' file.txt</code>
+        <p><strong>Why:</strong> <code>awk</code> splits each line into fields ($1, $2, etc.) by whitespace (default). Very powerful for structured text processing. $0 represents entire line.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>awk -F',' '{print $3}' file.csv</code> (custom field separator)</li>
+            <li><code>awk '{print $NF}' file.txt</code> (print last field)</li>
+            <li><code>awk '{print $1 "\t" $3}' file.txt</code> (custom output format)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing awk EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to filter lines where the 2nd column is greater than 100. How do you use awk with conditions? What if you want to sum values in a column?
+    </div>
+    <div class="back">
+        <strong>Filter by condition:</strong> <code>awk '$2 > 100' file.txt</code><br>
+        <strong>Sum column values:</strong> <code>awk '{sum += $2} END {print sum}' file.txt</code>
+        <p><strong>Why:</strong> <code>awk</code> can filter lines with conditions and perform calculations. <code>END</code> block runs after all lines are processed, good for aggregations.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>awk '$2 > 100 && $3 == "active"' file.txt</code> (multiple conditions)</li>
+            <li><code>awk '{sum += $2; count++} END {print sum/count}' file.txt</code> (average)</li>
+            <li><code>awk '$2 > 100 {print $1}' file.txt</code> (print column 1 where column 2 > 100)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing awk EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You need to replace all occurrences of "foo" with "bar" in a file. How do you do find-and-replace with sed? What if you want to replace only on lines matching a pattern?
+    </div>
+    <div class="back">
+        <strong>Replace all occurrences:</strong> <code>sed 's/foo/bar/g' file.txt</code><br>
+        <strong>Only on matching lines:</strong> <code>sed '/pattern/s/foo/bar/g' file.txt</code>
+        <p><strong>Why:</strong> <code>sed</code> (stream editor) performs text transformations. <code>s/old/new/g</code> is substitute command (<code>g</code> = global, all occurrences per line). Without <code>g</code>, only first match per line.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sed -i 's/foo/bar/g' file.txt</code> (edit file in-place)</li>
+            <li><code>sed 's/foo/bar/2' file.txt</code> (replace only 2nd occurrence per line)</li>
+            <li><code>sed '3,7s/foo/bar/g' file.txt</code> (only lines 3-7)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing sed EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You want to delete lines matching a pattern from a file. How do you delete lines with sed? What if you want to delete blank lines?
+    </div>
+    <div class="back">
+        <strong>Delete lines matching pattern:</strong> <code>sed '/pattern/d' file.txt</code><br>
+        <strong>Delete blank lines:</strong> <code>sed '/^$/d' file.txt</code>
+        <p><strong>Why:</strong> <code>d</code> command deletes matching lines. <code>^$</code> matches empty lines (^ = start, $ = end, nothing between). Can specify line numbers too.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sed '3,5d' file.txt</code> (delete lines 3-5)</li>
+            <li><code>sed '/pattern/!d' file.txt</code> (delete lines NOT matching pattern)</li>
+            <li><code>grep -v pattern file.txt</code> (alternative: keep non-matching lines)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing sed EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You need to extract a specific field from a JSON file. How do you query JSON with jq? What if you want to extract from an array?
+    </div>
+    <div class="back">
+        <strong>Extract field:</strong> <code>jq '.fieldname' file.json</code><br>
+        <strong>Extract from array:</strong> <code>jq '.[0].fieldname' file.json</code>
+        <p><strong>Why:</strong> <code>jq</code> is a JSON processor. <code>.fieldname</code> accesses a field, <code>.[0]</code> accesses first array element. Can chain: <code>.user.name</code>.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>jq '.[] | .name' file.json</code> (iterate array, extract name from each)</li>
+            <li><code>jq '.users[] | select(.age > 25)' file.json</code> (filter)</li>
+            <li><code>jq -r '.name' file.json</code> (raw output, no quotes)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing jq json EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You want to pretty-print a minified JSON file and extract just the keys. How do you format JSON? How do you get all keys?
+    </div>
+    <div class="back">
+        <strong>Pretty-print JSON:</strong> <code>jq '.' file.json</code><br>
+        <strong>Get all keys:</strong> <code>jq 'keys' file.json</code>
+        <p><strong>Why:</strong> <code>jq '.'</code> formats JSON with indentation. <code>keys</code> returns array of all top-level keys. Use <code>-c</code> for compact (minified) output.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>jq -c '.' file.json</code> (minify/compact JSON)</li>
+            <li><code>jq 'keys_unsorted' file.json</code> (keys in original order)</li>
+            <li><code>jq 'to_entries | .[].key' file.json</code> (list all keys)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing jq json EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You need to print specific lines from a file - say lines 10-20. How do you extract a range of lines with sed? What if you just want line 50?
+    </div>
+    <div class="back">
+        <strong>Print lines 10-20:</strong> <code>sed -n '10,20p' file.txt</code><br>
+        <strong>Print line 50:</strong> <code>sed -n '50p' file.txt</code>
+        <p><strong>Why:</strong> <code>-n</code> suppresses default output, <code>p</code> prints matching lines. Without <code>-n</code>, you'd get all lines plus duplicates of matching lines.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>head -n 20 file.txt | tail -n 11</code> (lines 10-20: first 20, last 11 of those)</li>
+            <li><code>awk 'NR==50' file.txt</code> (print line 50)</li>
+            <li><code>awk 'NR>=10 && NR<=20' file.txt</code> (lines 10-20)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing sed EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You have a messy text file with irregular spacing and want to format it as a nice table. How do you align columns? What if you want to specify column width?
+    </div>
+    <div class="back">
+        <strong>Align into columns:</strong> <code>column -t file.txt</code><br>
+        <strong>Specify separator:</strong> <code>column -t -s',' file.csv</code>
+        <p><strong>Why:</strong> <code>column -t</code> formats input into a neat table with aligned columns. <code>-s</code> sets the input delimiter (default is whitespace).</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>column -t -s',' -o' | ' file.csv</code> (-o sets output delimiter)</li>
+            <li><code>column -c 80 file.txt</code> (fill columns to width 80)</li>
+            <li><code>awk '{printf "%-20s %-10s\n", $1, $2}' file.txt</code> (custom alignment)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing column EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You want to add line numbers to a file. How do you number lines? What if you want to number only non-blank lines?
+    </div>
+    <div class="back">
+        <strong>Number all lines:</strong> <code>nl file.txt</code> or <code>cat -n file.txt</code><br>
+        <strong>Number non-blank lines only:</strong> <code>nl -ba file.txt</code>
+        <p><strong>Why:</strong> <code>nl</code> numbers lines (default: only non-blank). <code>cat -n</code> numbers all lines. <code>-ba</code> makes nl number all (including blank).</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>cat -b file.txt</code> (number non-blank lines)</li>
+            <li><code>awk '{print NR, $0}' file.txt</code> (custom numbering)</li>
+            <li><code>nl -w 5 file.txt</code> (number width: 5 characters)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing nl EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You need to calculate the average of numbers in the 3rd column of a file. How do you compute statistics with awk? What about finding max/min values?
+    </div>
+    <div class="back">
+        <strong>Calculate average:</strong> <code>awk '{sum+=$3; count++} END {print sum/count}' file.txt</code><br>
+        <strong>Find maximum:</strong> <code>awk 'max<$3 {max=$3} END {print max}' file.txt</code>
+        <p><strong>Why:</strong> <code>awk</code> can maintain variables across lines. Process each line in main block, output results in <code>END</code> block after all lines are read.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>awk 'min=="" || $3<min {min=$3} END {print min}' file.txt</code> (minimum)</li>
+            <li><code>awk '{sum+=$3} END {print sum}' file.txt</code> (total sum)</li>
+            <li><code>sort -nk3 file.txt | tail -1</code> (max via sort)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing awk EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to print lines that contain duplicate values in a specific column. How do you find duplicates in a column? What if you want to keep only unique entries?
+    </div>
+    <div class="back">
+        <strong>Find duplicate values in column 1:</strong> <code>awk '{count[$1]++} END {for(i in count) if(count[i]>1) print i}' file.txt</code><br>
+        <strong>Keep only unique:</strong> <code>awk '!seen[$1]++' file.txt</code>
+        <p><strong>Why:</strong> First command counts occurrences of each value in column 1, prints if count > 1. Second uses <code>!</code> to only print when <code>seen[$1]</code> is 0 (first time), then increments.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>sort -k1 file.txt | uniq -d -f0</code> (duplicates via sort/uniq)</li>
+            <li><code>cut -f1 file.txt | sort | uniq -d</code> (show duplicate values)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing awk EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You need to insert text at the beginning or end of each line. How do you prepend text to each line? How do you append?
+    </div>
+    <div class="back">
+        <strong>Prepend "prefix: ":</strong> <code>sed 's/^/prefix: /' file.txt</code><br>
+        <strong>Append " :suffix":</strong> <code>sed 's/$/ :suffix/' file.txt</code>
+        <p><strong>Why:</strong> <code>^</code> matches start of line, <code>$</code> matches end. Replacing start/end with text effectively prepends/appends.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>awk '{print "prefix: " $0}' file.txt</code> (prepend with awk)</li>
+            <li><code>awk '{print $0 " :suffix"}' file.txt</code> (append with awk)</li>
+            <li><code>while read line; do echo "prefix: $line"; done < file.txt</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing sed awk EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You want to extract fields from a file where fields are separated by multiple spaces or tabs. How do you handle variable whitespace as delimiter? What about extracting based on character positions?
+    </div>
+    <div class="back">
+        <strong>Handle multiple whitespace:</strong> <code>awk '{print $2, $4}' file.txt</code><br>
+        <strong>Extract by position:</strong> <code>cut -c1-10,20-30 file.txt</code>
+        <p><strong>Why:</strong> <code>awk</code> treats any whitespace (spaces, tabs, multiple) as field separator by default. <code>cut -c</code> extracts specific character positions.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tr -s ' ' file.txt | cut -d' ' -f2,4</code> (squeeze multiple spaces first)</li>
+            <li><code>awk -F'[ \t]+' '{print $2}' file.txt</code> (explicit regex delimiter)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing awk cut EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You need to reverse the order of lines in a file. How do you reverse lines? What if you want to reverse the characters in each line?
+    </div>
+    <div class="back">
+        <strong>Reverse line order:</strong> <code>tac file.txt</code><br>
+        <strong>Reverse characters in each line:</strong> <code>rev file.txt</code>
+        <p><strong>Why:</strong> <code>tac</code> is <code>cat</code> backwards - prints file in reverse line order. <code>rev</code> reverses characters within each line.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tail -r file.txt</code> (BSD/macOS version of line reversal)</li>
+            <li><code>awk '{a[NR]=$0} END {for(i=NR;i>0;i--) print a[i]}' file.txt</code></li>
+            <li><code>sed '1!G;h;$!d' file.txt</code> (reverse lines with sed)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing tac rev EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        You want to convert a file with DOS/Windows line endings (CRLF) to Unix line endings (LF). How do you convert line endings? What about the reverse?
+    </div>
+    <div class="back">
+        <strong>DOS to Unix:</strong> <code>dos2unix file.txt</code> or <code>sed -i 's/\r$//' file.txt</code><br>
+        <strong>Unix to DOS:</strong> <code>unix2dos file.txt</code> or <code>sed -i 's/$/\r/' file.txt</code>
+        <p><strong>Why:</strong> Windows uses CRLF (\r\n), Unix uses LF (\n). <code>dos2unix</code> removes \r from line ends. <code>\r</code> is carriage return.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tr -d '\r' < dosfile.txt > unixfile.txt</code> (remove all \r)</li>
+            <li><code>awk '{sub(/\r$/,""); print}' file.txt</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing sed tr EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        You need to wrap long lines to a specific width, or unwrap lines to a single paragraph. How do you wrap text to width? How do you join lines into paragraphs?
+    </div>
+    <div class="back">
+        <strong>Wrap to 80 characters:</strong> <code>fold -w 80 file.txt</code><br>
+        <strong>Join lines:</strong> <code>tr '\n' ' ' < file.txt</code>
+        <p><strong>Why:</strong> <code>fold</code> breaks long lines at specified width. <code>tr '\n' ' '</code> replaces newlines with spaces, joining all lines.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>fold -s -w 80 file.txt</code> (-s breaks at spaces, not mid-word)</li>
+            <li><code>fmt -w 80 file.txt</code> (smart formatting, preserves paragraphs)</li>
+            <li><code>paste -sd' ' file.txt</code> (join all lines with space)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing fold fmt EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        You want to extract all email addresses or URLs from a text file using pattern matching. How do you extract patterns with grep? What about using awk?
+    </div>
+    <div class="back">
+        <strong>Extract emails with grep:</strong> <code>grep -oE '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' file.txt</code><br>
+        <strong>With awk:</strong> <code>awk '{for(i=1;i<=NF;i++) if($i ~ /@/) print $i}' file.txt</code>
+        <p><strong>Why:</strong> <code>grep -o</code> only outputs matching parts (not full line). <code>-E</code> enables extended regex. The awk version checks each word for @ symbol.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>grep -oP '\w+@\w+\.\w+' file.txt</code> (simpler pattern, Perl regex)</li>
+            <li><code>sed -n 's/.*\(.\+@.\+\..\+\).*/\1/p' file.txt</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing grep awk regex EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        You need to convert all text to uppercase or lowercase. How do you change case? What if you only want to capitalize the first letter of each word?
+    </div>
+    <div class="back">
+        <strong>Convert to uppercase:</strong> <code>tr 'a-z' 'A-Z' < file.txt</code><br>
+        <strong>Convert to lowercase:</strong> <code>tr 'A-Z' 'a-z' < file.txt</code>
+        <p><strong>Why:</strong> <code>tr</code> translates character ranges. Maps each lowercase to uppercase equivalent or vice versa.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>awk '{print toupper($0)}' file.txt</code> (uppercase with awk)</li>
+            <li><code>awk '{print tolower($0)}' file.txt</code> (lowercase with awk)</li>
+            <li><code>sed 's/.*/\U&/' file.txt</code> (uppercase - GNU sed)</li>
+            <li><code>awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))} 1' file.txt</code> (title case)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing tr awk EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        You want to split a large file into smaller files based on number of lines or file size. How do you split files? What if you want to split by pattern?
+    </div>
+    <div class="back">
+        <strong>Split into 1000-line chunks:</strong> <code>split -l 1000 largefile.txt chunk_</code><br>
+        <strong>Split by size:</strong> <code>split -b 10M largefile.txt chunk_</code>
+        <p><strong>Why:</strong> <code>split</code> divides files into pieces. <code>-l</code> specifies lines per file, <code>-b</code> specifies bytes/size. Creates chunk_aa, chunk_ab, etc.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>split -d -l 1000 file.txt chunk_</code> (-d uses numeric suffixes: chunk_00, chunk_01)</li>
+            <li><code>csplit file.txt /pattern/ {*}</code> (split at pattern matches)</li>
+            <li><code>awk '/pattern/{x++}{print > "chunk_"x".txt"}' file.txt</code> (split by pattern)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux text-processing split EN</div>
+</div>
+
+</body>
+</html>

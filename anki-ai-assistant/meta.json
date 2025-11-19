@@ -1,0 +1,9 @@
+{
+    "name": "AI Card Assistant",
+    "version": "1.0.0",
+    "homepage": "https://github.com/yourusername/anki-ai-assistant",
+    "description": "AI-powered assistant to help refine, clarify, and expand flashcards during review",
+    "author": "CS Vocab Project",
+    "ankiweb_id": "",
+    "tags": ["ai", "learning", "productivity", "claude", "study"]
+}

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Vocab - Archives & Compression</title>
+    <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .nightMode code {
+            color: #ff79c6;
+        }
+        .nightMode strong {
+            color: #8be9fd;
+        }
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You need to create a tarball archive of a directory for backup. How do you create a tar archive? What if you want to compress it with gzip at the same time?
+    </div>
+    <div class="back">
+        <strong>Create tar archive:</strong> <code>tar -cf archive.tar directory/</code><br>
+        <strong>Create and gzip:</strong> <code>tar -czf archive.tar.gz directory/</code>
+        <p><strong>Why:</strong> <code>tar -c</code> creates archive, <code>-f</code> specifies filename. <code>-z</code> adds gzip compression. Convention: .tar for uncompressed, .tar.gz or .tgz for gzipped.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tar -cjf archive.tar.bz2 directory/</code> (bzip2 compression, better ratio)</li>
+            <li><code>tar -cJf archive.tar.xz directory/</code> (xz compression, best ratio)</li>
+            <li><code>tar -cvzf archive.tar.gz dir/</code> (-v for verbose output)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tar compression EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You downloaded a .tar.gz file and need to extract it. How do you extract a tar.gz archive? What if you want to see what's inside before extracting?
+    </div>
+    <div class="back">
+        <strong>Extract tar.gz:</strong> <code>tar -xzf archive.tar.gz</code><br>
+        <strong>List contents first:</strong> <code>tar -tzf archive.tar.gz</code>
+        <p><strong>Why:</strong> <code>-x</code> extracts, <code>-z</code> handles gzip, <code>-f</code> specifies file. <code>-t</code> lists contents without extracting. Good to check before extracting.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tar -xzf archive.tar.gz -C /destination/</code> (extract to specific directory)</li>
+            <li><code>tar -xzvf archive.tar.gz</code> (-v shows files as extracted)</li>
+            <li><code>tar -xzf archive.tar.gz file.txt</code> (extract only specific file)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tar compression EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You want to add files to an existing tar archive or update files that have changed. How do you append to a tar? How do you update modified files?
+    </div>
+    <div class="back">
+        <strong>Append to archive:</strong> <code>tar -rf archive.tar newfile.txt</code><br>
+        <strong>Update changed files:</strong> <code>tar -uf archive.tar directory/</code>
+        <p><strong>Why:</strong> <code>-r</code> appends files to end of archive. <code>-u</code> only adds files newer than version in archive. Note: can't append to compressed (.gz, .bz2) archives!</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li>For compressed archives: extract, add files, re-compress</li>
+            <li><code>tar -rvf archive.tar file1 file2</code> (append multiple files)</li>
+            <li><code>tar --delete -f archive.tar unwanted.txt</code> (remove from archive)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tar EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You need to compress a single file to save space. How do you gzip a file? How do you decompress it later?
+    </div>
+    <div class="back">
+        <strong>Compress file:</strong> <code>gzip file.txt</code> (creates file.txt.gz, removes original)<br>
+        <strong>Decompress:</strong> <code>gunzip file.txt.gz</code> or <code>gzip -d file.txt.gz</code>
+        <p><strong>Why:</strong> <code>gzip</code> compresses and replaces original file. <code>gunzip</code> decompresses and removes .gz. Fast compression, widely supported.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>gzip -k file.txt</code> (keep original file after compressing)</li>
+            <li><code>gzip -9 file.txt</code> (maximum compression, slower)</li>
+            <li><code>gzip -1 file.txt</code> (fast compression, larger file)</li>
+            <li><code>zcat file.txt.gz</code> (view without decompressing)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux gzip compression EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want better compression than gzip. How do you use bzip2? How does it compare to gzip?
+    </div>
+    <div class="back">
+        <strong>Compress with bzip2:</strong> <code>bzip2 file.txt</code> (creates file.txt.bz2)<br>
+        <strong>Decompress:</strong> <code>bunzip2 file.txt.bz2</code> or <code>bzip2 -d file.txt.bz2</code>
+        <p><strong>Why:</strong> <code>bzip2</code> offers better compression than gzip but slower. Good for large files when size matters more than speed. Convention: .bz2 extension.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>bzip2 -k file.txt</code> (keep original)</li>
+            <li><code>bzcat file.txt.bz2</code> (view without decompressing)</li>
+            <li><code>tar -cjf archive.tar.bz2 dir/</code> (tar with bzip2)</li>
+            <li>bzip2 typically 10-15% smaller than gzip, 2-3x slower</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux bzip2 compression EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want the best possible compression ratio. How do you use xz compression? What are the tradeoffs?
+    </div>
+    <div class="back">
+        <strong>Compress with xz:</strong> <code>xz file.txt</code> (creates file.txt.xz)<br>
+        <strong>Decompress:</strong> <code>unxz file.txt.xz</code> or <code>xz -d file.txt.xz</code>
+        <p><strong>Why:</strong> <code>xz</code> provides best compression ratio but slowest speed and high memory usage. Great for distributing software. Uses LZMA2 algorithm.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>xz -k file.txt</code> (keep original)</li>
+            <li><code>xz -9 file.txt</code> (maximum compression, very slow)</li>
+            <li><code>tar -cJf archive.tar.xz dir/</code> (tar with xz)</li>
+            <li><code>xzcat file.txt.xz</code> (view without decompressing)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux xz compression EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You need to create a zip archive for Windows compatibility. How do you create a zip file? How do you extract one?
+    </div>
+    <div class="back">
+        <strong>Create zip:</strong> <code>zip archive.zip file1.txt file2.txt</code><br>
+        <strong>Extract zip:</strong> <code>unzip archive.zip</code>
+        <p><strong>Why:</strong> <code>zip</code> creates archives compatible with Windows. Unlike gzip, zip is both archiver and compressor (like tar+gzip combined). Widely compatible.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>zip -r archive.zip directory/</code> (recursive: include subdirectories)</li>
+            <li><code>unzip -l archive.zip</code> (list contents without extracting)</li>
+            <li><code>unzip archive.zip -d /destination/</code> (extract to specific directory)</li>
+            <li><code>zip -9 archive.zip file.txt</code> (maximum compression)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux zip compression EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to add or update files in an existing zip archive. How do you add to a zip? How do you delete files from it?
+    </div>
+    <div class="back">
+        <strong>Add/update files:</strong> <code>zip archive.zip newfile.txt</code><br>
+        <strong>Delete from archive:</strong> <code>zip -d archive.zip unwanted.txt</code>
+        <p><strong>Why:</strong> <code>zip</code> can modify existing archives. If file exists, it updates; if new, it adds. <code>-d</code> deletes files from archive.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>zip -u archive.zip file.txt</code> (-u only updates if newer)</li>
+            <li><code>zip -r archive.zip newdir/</code> (add entire directory)</li>
+            <li><code>unzip -p archive.zip file.txt</code> (extract to stdout, not file)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux zip EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You need to create a password-protected zip archive. How do you encrypt a zip? How do you extract it?
+    </div>
+    <div class="back">
+        <strong>Create encrypted zip:</strong> <code>zip -e archive.zip file.txt</code> (prompts for password)<br>
+        <strong>Extract:</strong> <code>unzip archive.zip</code> (prompts for password)
+        <p><strong>Why:</strong> <code>-e</code> encrypts zip with password. Uses standard zip encryption (weak) or AES (stronger with <code>-P</code> on some systems). Good for basic protection.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>zip -er archive.zip directory/</code> (recursive + encrypted)</li>
+            <li><code>7z a -p archive.7z files</code> (7zip with stronger encryption)</li>
+            <li><code>gpg -c file.txt</code> (GPG encryption, more secure)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux zip encryption EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You want to use 7zip for maximum compression. How do you create a 7z archive? How do you extract it?
+    </div>
+    <div class="back">
+        <strong>Create 7z archive:</strong> <code>7z a archive.7z directory/</code><br>
+        <strong>Extract 7z:</strong> <code>7z x archive.7z</code>
+        <p><strong>Why:</strong> <code>7z</code> (7zip) offers excellent compression ratios, better than zip/gzip. <code>a</code> = add (create), <code>x</code> = extract with full paths.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>7z l archive.7z</code> (list contents)</li>
+            <li><code>7z e archive.7z</code> (extract without directory structure)</li>
+            <li><code>7z a -mx=9 archive.7z files</code> (maximum compression)</li>
+            <li><code>7z a -p archive.7z files</code> (with password)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux 7zip compression EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You need to view the contents of a compressed file without extracting it. How do you read compressed files? What about searching in them?
+    </div>
+    <div class="back">
+        <strong>View gzipped file:</strong> <code>zcat file.txt.gz</code> or <code>zless file.txt.gz</code><br>
+        <strong>Search in gzipped file:</strong> <code>zgrep "pattern" file.txt.gz</code>
+        <p><strong>Why:</strong> <code>zcat</code> decompresses to stdout, <code>zless</code> allows paging. <code>zgrep</code> searches without extracting. Saves disk space and time.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>bzcat file.txt.bz2</code> / <code>bzgrep "pattern" file.txt.bz2</code> (bzip2)</li>
+            <li><code>xzcat file.txt.xz</code> / <code>xzgrep "pattern" file.txt.xz</code> (xz)</li>
+            <li><code>zless file.txt.gz</code> (paginated viewing like less)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux compression zcat zgrep EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You want to compress multiple files individually (not in an archive). How do you compress many files at once? How do you preserve directory structure?
+    </div>
+    <div class="back">
+        <strong>Compress all files in directory:</strong> <code>gzip directory/*</code><br>
+        <strong>Recursive compression:</strong> <code>find directory/ -type f -exec gzip {} \;</code>
+        <p><strong>Why:</strong> <code>gzip</code> with wildcard compresses each file individually (.txt → .txt.gz). <code>find</code> with <code>-exec</code> recurses into subdirectories.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>gzip -r directory/</code> (recursive, compresses all files in-place)</li>
+            <li><code>for f in *; do gzip "$f"; done</code> (compress with loop)</li>
+            <li>For archiving: use <code>tar -czf</code> instead (single archive)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux gzip compression EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to compare the compression ratios of different algorithms. How do you test compression effectiveness? What factors affect it?
+    </div>
+    <div class="back">
+        <strong>Test gzip:</strong> <code>gzip -c file > file.gz && ls -lh file file.gz</code><br>
+        <strong>Compare multiple:</strong> Test with <code>gzip</code>, <code>bzip2</code>, <code>xz</code> and check sizes
+        <p><strong>Why:</strong> <code>-c</code> outputs to stdout (preserves original). <code>ls -lh</code> shows human-readable sizes. Compression depends on file type and content.</p>
+        <p><strong>Typical ratios (text):</strong></p>
+        <ul>
+            <li>gzip: 60-70% reduction, fast (good default)</li>
+            <li>bzip2: 65-75% reduction, slower</li>
+            <li>xz: 70-80% reduction, slowest, high memory</li>
+            <li>Already-compressed (images, videos): minimal benefit</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux compression comparison EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You need to extract only specific files from a tar archive. How do you extract individual files? What if you don't know the exact path?
+    </div>
+    <div class="back">
+        <strong>Extract specific file:</strong> <code>tar -xzf archive.tar.gz path/to/file.txt</code><br>
+        <strong>Extract by pattern:</strong> <code>tar -xzf archive.tar.gz --wildcards '*.txt'</code>
+        <p><strong>Why:</strong> Specify path as it appears in archive (use <code>tar -tzf</code> to see paths). <code>--wildcards</code> allows pattern matching for multiple files.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tar -xzf archive.tar.gz dir/</code> (extract entire directory)</li>
+            <li><code>tar -xzf archive.tar.gz file1 file2</code> (multiple specific files)</li>
+            <li><code>tar -tzf archive.tar.gz | grep pattern</code> (find files first)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tar EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You want to create an archive but exclude certain files or directories. How do you exclude files from tar? What if you have a long list to exclude?
+    </div>
+    <div class="back">
+        <strong>Exclude pattern:</strong> <code>tar -czf archive.tar.gz --exclude='*.log' directory/</code><br>
+        <strong>Exclude multiple:</strong> <code>tar -czf archive.tar.gz --exclude='*.log' --exclude='tmp/' directory/</code>
+        <p><strong>Why:</strong> <code>--exclude</code> skips matching files/directories. Can use multiple times or patterns. Useful for avoiding temp files, logs, node_modules, etc.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tar -czf archive.tar.gz --exclude-from=exclude-list.txt directory/</code></li>
+            <li><code>tar -czf archive.tar.gz --exclude='node_modules' --exclude='.git' .</code></li>
+            <li><code>tar -czf archive.tar.gz --exclude='*/temp/*' directory/</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tar EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You need to split a large archive into smaller chunks for transfer. How do you split archives? How do you reassemble them?
+    </div>
+    <div class="back">
+        <strong>Create and split:</strong> <code>tar -czf - directory/ | split -b 100M - archive.tar.gz.</code><br>
+        <strong>Reassemble and extract:</strong> <code>cat archive.tar.gz.* | tar -xzf -</code>
+        <p><strong>Why:</strong> <code>tar -czf -</code> outputs to stdout, <code>split -b</code> creates chunks (100M each). <code>cat</code> concatenates them back, pipe to <code>tar -xzf -</code> to extract.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>split -d -b 100M archive.tar.gz chunk_</code> (split existing archive)</li>
+            <li><code>cat chunk_* > archive.tar.gz && tar -xzf archive.tar.gz</code></li>
+            <li><code>7z a -v100m archive.7z directory/</code> (7zip built-in split)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tar split EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to preserve file permissions, ownership, and timestamps when creating an archive. How do you preserve metadata? How do you restore it?
+    </div>
+    <div class="back">
+        <strong>Preserve metadata (default):</strong> <code>tar -czf archive.tar.gz directory/</code><br>
+        <strong>Restore with permissions:</strong> <code>sudo tar -xzpf archive.tar.gz</code>
+        <p><strong>Why:</strong> <code>tar</code> preserves permissions/timestamps by default. <code>-p</code> on extraction preserves exact permissions (needs sudo for ownership). Useful for backups.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tar -czpf archive.tar.gz directory/</code> (-p explicitly preserve)</li>
+            <li><code>tar --same-owner -xzf archive.tar.gz</code> (preserve ownership)</li>
+            <li><code>rsync -a</code> (alternative for local backups with metadata)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tar permissions EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You need to verify the integrity of an archive before extracting. How do you test archives? What if the archive is corrupted?
+    </div>
+    <div class="back">
+        <strong>Test tar.gz integrity:</strong> <code>gunzip -t archive.tar.gz</code><br>
+        <strong>Test zip integrity:</strong> <code>unzip -t archive.zip</code>
+        <p><strong>Why:</strong> <code>-t</code> tests archive integrity without extracting. Catches corruption early. For tar.gz, test compression first, then tar if needed.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tar -tzf archive.tar.gz > /dev/null</code> (test by listing)</li>
+            <li><code>7z t archive.7z</code> (test 7z archive)</li>
+            <li><code>gzip -t file.gz && echo "OK" || echo "CORRUPT"</code></li>
+            <li>Use checksums (md5sum, sha256sum) for verification</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux compression testing EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You want to create incremental backups with tar. How do you create a snapshot? How do you create incremental based on changes?
+    </div>
+    <div class="back">
+        <strong>Full backup with snapshot:</strong> <code>tar -czf full.tar.gz -g snapshot.file directory/</code><br>
+        <strong>Incremental backup:</strong> <code>tar -czf incremental.tar.gz -g snapshot.file directory/</code>
+        <p><strong>Why:</strong> <code>-g</code> creates/uses snapshot file to track changes. First run = full backup. Subsequent runs = only changed files. Snapshot file maintains state.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tar -czf backup-$(date +%Y%m%d).tar.gz dir/</code> (dated backups)</li>
+            <li><code>rsync -a --link-dest=../previous/ src/ dest/</code> (rsync incremental)</li>
+            <li>Professional tools: duplicity, restic, borg</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tar backup EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You need to extract an archive but preserve the directory structure without creating a top-level directory. How do you strip leading components? How do you flatten the structure?
+    </div>
+    <div class="back">
+        <strong>Strip 1 directory level:</strong> <code>tar -xzf archive.tar.gz --strip-components=1</code><br>
+        <strong>Flatten to current dir:</strong> <code>tar -xzf archive.tar.gz --transform='s/.*\///'</code>
+        <p><strong>Why:</strong> <code>--strip-components=N</code> removes N leading directories from paths. <code>--transform</code> uses sed to modify paths. Useful when archive has unwanted wrapper directory.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>tar -xzf archive.tar.gz -C tempdir/ && mv tempdir/*/* .</code></li>
+            <li><code>unzip -j archive.zip</code> (-j junks paths, extracts flat)</li>
+        </ul>
+    </div>
+    <div class="tags">cs linux tar EN</div>
+</div>
+
+</body>
+</html>

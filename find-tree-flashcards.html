@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find & Tree Commands Flashcards</title>
+        <style>
+        .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        /* Code blocks */
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        /* Note boxes */
+        .note {
+            background-color: rgba(23, 162, 184, 0.15);
+            border-left: 4px solid rgba(23, 162, 184, 0.8);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+
+        .warning {
+            background-color: rgba(220, 53, 69, 0.15);
+            border-left: 4px solid rgba(220, 53, 69, 0.8);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+
+        .tip {
+            background-color: rgba(255, 193, 7, 0.15);
+            border-left: 4px solid rgba(255, 193, 7, 0.8);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid rgba(127, 127, 127, 0.3);
+            margin: 15px 0;
+        }
+
+        /* Night mode specific adjustments */
+        .nightMode code {
+            color: #ff79c6;
+        }
+
+        .nightMode strong {
+            color: #8be9fd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Find & Tree Commands Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            You need to find all .txt files in your home directory and its subdirectories. How do you search for them? What if you want case-insensitive search?
+        </div>
+        <div class="back">
+            <strong>Find .txt files:</strong> <code>find ~ -name "*.txt"</code><br>
+            <strong>Case-insensitive:</strong> <code>find ~ -iname "*.txt"</code>
+
+            <p><strong>Why:</strong> <code>find</code> recursively searches directories. <code>-name</code> is case-sensitive, <code>-iname</code> ignores case.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find all Python files
+find . -name "*.py"
+
+# Find README (any case)
+find . -iname "readme*"
+
+# Find in specific directory
+find /var/log -name "*.log"
+
+# Find multiple extensions
+find . -name "*.txt" -o -name "*.md"</pre>
+
+            <p><strong>Path shortcuts:</strong></p>
+            <ul>
+                <li><code>.</code> - Current directory</li>
+                <li><code>~</code> - Home directory</li>
+                <li><code>/</code> - Root (entire system)</li>
+            </ul>
+
+            <div class="note"><strong>Tip:</strong> Always quote wildcards in find: <code>"*.txt"</code> not <code>*.txt</code></div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            You want to see a visual tree of your project directory. What command shows the directory structure? How do you limit depth? How do you show only directories?
+        </div>
+        <div class="back">
+            <strong>Show tree:</strong> <code>tree</code><br>
+            <strong>Limit depth:</strong> <code>tree -L 2</code> (2 levels deep)<br>
+            <strong>Only directories:</strong> <code>tree -d</code>
+
+            <p><strong>Why:</strong> <code>tree</code> gives a visual representation of directory structure. Much clearer than <code>ls -R</code>.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Basic tree
+tree
+
+# Limit to 3 levels
+tree -L 3
+
+# Only directories, 2 levels
+tree -d -L 2
+
+# Show hidden files
+tree -a
+
+# Colorful output
+tree -C
+
+# Show file sizes
+tree -h
+
+# Save to file
+tree > structure.txt</pre>
+
+            <p><strong>Useful flags:</strong></p>
+            <ul>
+                <li><code>-L N</code> - Max depth N levels</li>
+                <li><code>-d</code> - Directories only</li>
+                <li><code>-a</code> - Show hidden files</li>
+                <li><code>-h</code> - Human-readable sizes</li>
+                <li><code>-I pattern</code> - Ignore pattern</li>
+            </ul>
+
+            <div class="note"><strong>Install:</strong> <code>sudo apt install tree</code> (if not installed)</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            You need to find files larger than 100MB to free up space. How do you find large files? What about finding files smaller than a certain size?
+        </div>
+        <div class="back">
+            <strong>Larger than 100MB:</strong> <code>find . -size +100M</code><br>
+            <strong>Smaller than 10MB:</strong> <code>find . -size -10M</code><br>
+            <strong>Exactly 50MB:</strong> <code>find . -size 50M</code>
+
+            <p><strong>Why:</strong> <code>-size</code> searches by file size. <code>+</code> means greater, <code>-</code> means less than.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find files > 1GB
+find . -size +1G
+
+# Find files > 100MB, show sizes
+find . -size +100M -exec ls -lh {} \;
+
+# Find large files, sorted by size
+find . -size +50M -exec du -h {} \; | sort -h
+
+# Find empty files
+find . -size 0
+
+# Find files between 10MB and 50MB
+find . -size +10M -size -50M</pre>
+
+            <p><strong>Size units:</strong></p>
+            <ul>
+                <li><code>c</code> - bytes</li>
+                <li><code>k</code> - kilobytes (1024 bytes)</li>
+                <li><code>M</code> - megabytes</li>
+                <li><code>G</code> - gigabytes</li>
+            </ul>
+
+            <div class="note"><strong>Disk cleanup:</strong> Combine with <code>du -sh * | sort -h</code> to see what's using space</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            You want to find files modified in the last 7 days. How do you search by modification time? What about files accessed recently? Files changed more than 30 days ago?
+        </div>
+        <div class="back">
+            <strong>Modified last 7 days:</strong> <code>find . -mtime -7</code><br>
+            <strong>Accessed last 7 days:</strong> <code>find . -atime -7</code><br>
+            <strong>Modified 30+ days ago:</strong> <code>find . -mtime +30</code>
+
+            <p><strong>Why:</strong> Time-based searches help find recent changes or old files to clean up.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Modified in last 24 hours
+find . -mtime -1
+
+# Modified exactly 7 days ago
+find . -mtime 7
+
+# Modified in last 2 hours
+find . -mmin -120
+
+# Accessed today
+find . -atime 0
+
+# Status changed (permissions, ownership) last week
+find . -ctime -7
+
+# Modified last 30 minutes
+find . -mmin -30</pre>
+
+            <p><strong>Time options:</strong></p>
+            <ul>
+                <li><code>-mtime</code> - Modification time (days)</li>
+                <li><code>-atime</code> - Access time (days)</li>
+                <li><code>-ctime</code> - Change time (days)</li>
+                <li><code>-mmin</code> - Modification time (minutes)</li>
+                <li><code>-amin</code> - Access time (minutes)</li>
+            </ul>
+
+            <div class="note"><strong>Negative = within, Positive = older than:</strong> <code>-mtime -7</code> = last 7 days, <code>-mtime +30</code> = older than 30 days</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            You need to find all directories named "node_modules" to delete them. How do you find only directories? What about finding only regular files?
+        </div>
+        <div class="back">
+            <strong>Find directories:</strong> <code>find . -type d -name "node_modules"</code><br>
+            <strong>Find files only:</strong> <code>find . -type f -name "*.txt"</code>
+
+            <p><strong>Why:</strong> <code>-type</code> filters by file type. Essential for targeting specific kinds of files.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find all directories
+find . -type d
+
+# Find node_modules and show size
+find . -type d -name "node_modules" -exec du -sh {} \;
+
+# Find symbolic links
+find . -type l
+
+# Find executable files
+find . -type f -executable
+
+# Find broken symbolic links
+find . -type l ! -exec test -e {} \; -print
+
+# Find only Python files (not dirs named .py)
+find . -type f -name "*.py"</pre>
+
+            <p><strong>File types:</strong></p>
+            <ul>
+                <li><code>f</code> - Regular file</li>
+                <li><code>d</code> - Directory</li>
+                <li><code>l</code> - Symbolic link</li>
+                <li><code>b</code> - Block device</li>
+                <li><code>c</code> - Character device</li>
+                <li><code>s</code> - Socket</li>
+                <li><code>p</code> - Named pipe</li>
+            </ul>
+
+            <div class="warning"><strong>Careful:</strong> <code>find . -name "node_modules"</code> without <code>-type d</code> might match files too!</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            You found files with find and want to delete them, or run a command on each. How do you execute commands on found files? What's the safe way to delete?
+        </div>
+        <div class="back">
+            <strong>Execute command:</strong> <code>find . -name "*.tmp" -exec rm {} \;</code><br>
+            <strong>Safe delete (confirm):</strong> <code>find . -name "*.tmp" -ok rm {} \;</code><br>
+            <strong>Better (parallel):</strong> <code>find . -name "*.tmp" -delete</code>
+
+            <p><strong>Why:</strong> <code>-exec</code> runs commands on results. <code>{}</code> is replaced with filename. <code>\;</code> ends the command.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Delete all .tmp files
+find . -name "*.tmp" -delete
+
+# Or with -exec (same thing)
+find . -name "*.tmp" -exec rm {} \;
+
+# Confirm before each delete
+find . -name "*.tmp" -ok rm {} \;
+
+# Move files
+find . -name "*.log" -exec mv {} /tmp/ \;
+
+# Change permissions
+find . -type f -name "*.sh" -exec chmod +x {} \;
+
+# Show file sizes
+find . -name "*.pdf" -exec ls -lh {} \;
+
+# Run multiple commands (use + for efficiency)
+find . -name "*.txt" -exec wc -l {} +</pre>
+
+            <p><strong>Exec syntax:</strong></p>
+            <ul>
+                <li><code>{}</code> - Placeholder for found file</li>
+                <li><code>\;</code> - Run command once per file</li>
+                <li><code>+</code> - Run command once with all files as args (faster)</li>
+                <li><code>-ok</code> - Like <code>-exec</code> but asks confirmation</li>
+            </ul>
+
+            <div class="warning"><strong>Danger:</strong> Always test with <code>-print</code> first! <code>find . -name "*.txt" -print</code> before deleting</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            You want to find files by permissions - like all files readable by everyone, or all files with execute permission. How do you search by permissions?
+        </div>
+        <div class="back">
+            <strong>Exact permissions:</strong> <code>find . -perm 644</code><br>
+            <strong>At least these bits:</strong> <code>find . -perm -644</code><br>
+            <strong>Any of these bits:</strong> <code>find . -perm /644</code>
+
+            <p><strong>Why:</strong> Finding files by permissions helps with security audits and fixing permission issues.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find executable files
+find . -type f -perm -111
+
+# Find world-writable files (security risk!)
+find . -perm -002
+
+# Find setuid files (security audit)
+find / -perm -4000 2>/dev/null
+
+# Find files owned by specific user
+find . -user alice
+
+# Find files by group
+find . -group developers
+
+# Find files NOT owned by you
+find . ! -user $USER
+
+# Files with permission exactly 755
+find . -perm 755
+
+# Files readable by others
+find . -perm -004</pre>
+
+            <p><strong>Permission syntax:</strong></p>
+            <ul>
+                <li><code>-perm 755</code> - Exactly 755</li>
+                <li><code>-perm -755</code> - At least these bits set</li>
+                <li><code>-perm /755</code> - Any of these bits set</li>
+                <li><code>-perm -u+x</code> - User has execute</li>
+            </ul>
+
+            <div class="note"><strong>Security check:</strong> <code>find / -perm -002 -type f 2>/dev/null</code> finds world-writable files</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            You want to exclude certain directories from your search, like .git or node_modules. How do you tell find to skip directories?
+        </div>
+        <div class="back">
+            <strong>Skip directory:</strong> <code>find . -path "./node_modules" -prune -o -name "*.js" -print</code><br>
+            <strong>Skip multiple:</strong> <code>find . \( -path "./node_modules" -o -path "./.git" \) -prune -o -print</code>
+
+            <p><strong>Why:</strong> <code>-prune</code> tells find to skip directories. Speeds up searches and avoids noise.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find Python files, skip .git
+find . -path "./.git" -prune -o -name "*.py" -print
+
+# Skip node_modules and .git
+find . \( -name node_modules -o -name .git \) -prune -o -type f -print
+
+# Find files, skip multiple dirs
+find . \( -path "./build" -o -path "./dist" -o -path "./node_modules" \) -prune -o -name "*.js" -print
+
+# Skip all hidden directories
+find . -path "*/.*" -prune -o -type f -print
+
+# Find but ignore __pycache__
+find . -name "__pycache__" -prune -o -name "*.py" -print</pre>
+
+            <p><strong>Pattern:</strong></p>
+            <pre>find . -path "./skip_this" -prune -o [your search] -print</pre>
+
+            <ul>
+                <li><code>-path</code> - Match full path</li>
+                <li><code>-prune</code> - Don't descend into this dir</li>
+                <li><code>-o</code> - OR operator</li>
+                <li><code>-print</code> - Print the non-pruned results</li>
+            </ul>
+
+            <div class="note"><strong>Tip:</strong> Use <code>-path</code> not <code>-name</code> for directories to avoid matching at any level</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            You want a faster alternative to find that uses a pre-built database. What command is faster for finding files by name? How do you update its database?
+        </div>
+        <div class="back">
+            <strong>Fast search:</strong> <code>locate filename</code><br>
+            <strong>Update database:</strong> <code>sudo updatedb</code><br>
+            <strong>Case-insensitive:</strong> <code>locate -i filename</code>
+
+            <p><strong>Why:</strong> <code>locate</code> searches a pre-built index, much faster than <code>find</code>. But index may be outdated.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find files named config
+locate config
+
+# Case-insensitive
+locate -i README
+
+# Count matches
+locate -c "*.pdf"
+
+# Show only existing files (in case db is outdated)
+locate -e filename
+
+# Limit results
+locate -l 10 "*.txt"
+
+# Update database (run as root/sudo)
+sudo updatedb
+
+# Search in specific path
+locate /etc/*.conf</pre>
+
+            <p><strong>locate vs find:</strong></p>
+            <ul>
+                <li><strong>locate:</strong> Fast, simple name search, may be outdated</li>
+                <li><strong>find:</strong> Slower, searches live filesystem, more options (size, time, perms)</li>
+            </ul>
+
+            <p><strong>When to use each:</strong></p>
+            <ul>
+                <li><strong>locate:</strong> "Where is this file?" (by name)</li>
+                <li><strong>find:</strong> "Find all large .log files modified today"</li>
+            </ul>
+
+            <div class="warning"><strong>Database updated:</strong> Usually nightly via cron. New files won't show until <code>updatedb</code> runs</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            You want to find where a command's executable is located. What command shows the full path of a binary? What about seeing all locations if there are multiple?
+        </div>
+        <div class="back">
+            <strong>Find executable:</strong> <code>which command</code><br>
+            <strong>All locations:</strong> <code>whereis command</code> or <code>type -a command</code><br>
+            <strong>Show what it is:</strong> <code>type command</code>
+
+            <p><strong>Why:</strong> Different commands show different info about where programs are installed.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Where is python?
+which python3
+# Output: /usr/bin/python3
+
+# All python locations
+type -a python3
+# Output: python3 is /usr/bin/python3
+#         python3 is /usr/local/bin/python3
+
+# More detailed info (binary, source, man page)
+whereis python3
+# Output: python3: /usr/bin/python3 /usr/share/man/man1/python3.1.gz
+
+# What is this command?
+type ls
+# Output: ls is aliased to `ls --color=auto'
+
+type cd
+# Output: cd is a shell builtin
+
+# Show actual file, not alias
+which -a ls</pre>
+
+            <p><strong>Differences:</strong></p>
+            <ul>
+                <li><code>which</code> - Shows first match in PATH</li>
+                <li><code>type</code> - Shows if it's alias, function, builtin, or executable</li>
+                <li><code>type -a</code> - Shows all matches</li>
+                <li><code>whereis</code> - Shows binary, source, and man page locations</li>
+            </ul>
+
+            <div class="note"><strong>Debugging PATH issues:</strong> Use <code>type -a</code> to see why wrong version is running</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">
+            You want to understand what type of file something is - text, binary, image, etc. What command identifies file types? What about checking multiple files?
+        </div>
+        <div class="back">
+            <strong>Check file type:</strong> <code>file filename</code><br>
+            <strong>Multiple files:</strong> <code>file *</code><br>
+            <strong>Brief output:</strong> <code>file -b filename</code>
+
+            <p><strong>Why:</strong> <code>file</code> examines file contents (not just extension) to determine type. Essential for unknown files.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Check one file
+file document.pdf
+# Output: document.pdf: PDF document, version 1.4
+
+# Check all files in directory
+file *
+
+# Brief mode (no filename)
+file -b image.jpg
+# Output: JPEG image data
+
+# Check if file is text
+file script.sh
+# Output: script.sh: Bourne-Again shell script, ASCII text executable
+
+# Find all text files
+find . -type f -exec file {} \; | grep "text"
+
+# MIME type
+file -i document.pdf
+# Output: document.pdf: application/pdf; charset=binary</pre>
+
+            <p><strong>Common outputs:</strong></p>
+            <ul>
+                <li><code>ASCII text</code> - Plain text file</li>
+                <li><code>ELF 64-bit executable</code> - Compiled binary</li>
+                <li><code>PNG image data</code> - Image file</li>
+                <li><code>symbolic link to</code> - Symlink</li>
+                <li><code>directory</code> - It's a directory</li>
+                <li><code>empty</code> - Empty file</li>
+            </ul>
+
+            <div class="note"><strong>Ignores extensions:</strong> Renamed .txt to .jpg? <code>file</code> will still say it's text</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">
+            You want to see disk usage for directories to find what's taking up space. How do you see sizes? How do you sort by size? What about showing only the top level?
+        </div>
+        <div class="back">
+            <strong>Directory size:</strong> <code>du -sh directory</code><br>
+            <strong>All subdirs:</strong> <code>du -h directory</code><br>
+            <strong>Sort by size:</strong> <code>du -h | sort -h</code>
+
+            <p><strong>Why:</strong> <code>du</code> (disk usage) shows how much space directories and files use. Essential for cleanup.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Size of current directory
+du -sh .
+
+# Size of all items in current dir
+du -sh *
+
+# All subdirectories, sorted
+du -h | sort -h
+
+# Top level only (max depth 1)
+du -h --max-depth=1
+
+# Top 10 largest
+du -h | sort -h | tail -10
+
+# Human readable, sorted
+du -h . | sort -h
+
+# Find largest directories
+du -h --max-depth=1 | sort -h | tail -5
+
+# Exclude certain dirs
+du -h --exclude=node_modules</pre>
+
+            <p><strong>Useful flags:</strong></p>
+            <ul>
+                <li><code>-h</code> - Human readable (KB, MB, GB)</li>
+                <li><code>-s</code> - Summary (total only)</li>
+                <li><code>--max-depth=N</code> - Limit depth</li>
+                <li><code>-c</code> - Grand total at end</li>
+                <li><code>--exclude</code> - Skip directories</li>
+            </ul>
+
+            <div class="note"><strong>Quick cleanup:</strong> <code>du -sh * | sort -h</code> shows what's using space</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">
+            You want to find empty files or directories to clean up. How do you find empty files? What about empty directories?
+        </div>
+        <div class="back">
+            <strong>Empty files:</strong> <code>find . -type f -empty</code><br>
+            <strong>Empty directories:</strong> <code>find . -type d -empty</code><br>
+            <strong>Delete empty dirs:</strong> <code>find . -type d -empty -delete</code>
+
+            <p><strong>Why:</strong> Empty files and directories often accumulate. Finding them helps clean up your filesystem.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find all empty files
+find . -type f -empty
+
+# Find and delete empty files
+find . -type f -empty -delete
+
+# Find empty directories
+find . -type d -empty
+
+# Delete empty directories
+find . -type d -empty -delete
+
+# Find and list with details
+find . -type f -empty -ls
+
+# Find empty files in specific dir
+find /tmp -type f -empty
+
+# Find 0-byte files created today
+find . -type f -empty -mtime 0</pre>
+
+            <p><strong>Safe cleanup workflow:</strong></p>
+            <pre># 1. Find and list
+find . -type f -empty
+
+# 2. Review the list
+
+# 3. Delete if safe
+find . -type f -empty -delete</pre>
+
+            <div class="warning"><strong>Careful with -delete:</strong> Always run without <code>-delete</code> first to see what would be deleted!</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">
+            You want to find duplicate files to save space. How can you identify files with the same content? What about finding files with same name but different locations?
+        </div>
+        <div class="back">
+            <strong>Find by name:</strong> <code>find . -name "config.txt" -type f</code><br>
+            <strong>Find duplicates by content:</strong> <code>fdupes -r directory</code><br>
+            <strong>With find + md5sum:</strong> <code>find . -type f -exec md5sum {} + | sort</code>
+
+            <p><strong>Why:</strong> Duplicate files waste space. Finding them by content (not just name) catches true duplicates.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find files with same name
+find . -name "README.md"
+
+# Find duplicate content (needs fdupes)
+fdupes -r .
+
+# Delete duplicate content (careful!)
+fdupes -rd .
+
+# Find duplicates manually with checksums
+find . -type f -exec md5sum {} + | sort | uniq -w32 -D
+
+# Find files with same size (quick pre-filter)
+find . -type f -exec ls -l {} \; | awk '{print $5}' | sort | uniq -d
+
+# Group by size, then check content
+find . -type f -exec stat -c "%s %n" {} + | sort -n</pre>
+
+            <p><strong>Tools for finding duplicates:</strong></p>
+            <ul>
+                <li><code>fdupes</code> - Find duplicate files (install: <code>sudo apt install fdupes</code>)</li>
+                <li><code>rdfind</code> - Another duplicate finder</li>
+                <li><code>jdupes</code> - Faster version of fdupes</li>
+            </ul>
+
+            <div class="note"><strong>Install fdupes:</strong> <code>sudo apt install fdupes</code> or <code>sudo dnf install fdupes</code></div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">
+            You want to find all symbolic links in a directory, or find broken links. How do you find symlinks? How do you identify broken ones?
+        </div>
+        <div class="back">
+            <strong>Find symlinks:</strong> <code>find . -type l</code><br>
+            <strong>Find broken links:</strong> <code>find . -type l ! -exec test -e {} \; -print</code><br>
+            <strong>Show targets:</strong> <code>find . -type l -ls</code>
+
+            <p><strong>Why:</strong> Symlinks can break if targets move or get deleted. Finding broken links helps maintain your system.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find all symbolic links
+find . -type l
+
+# Find broken symbolic links
+find . -type l ! -exec test -e {} \; -print
+
+# Show link targets
+find . -type l -exec ls -l {} \;
+
+# Delete broken links
+find . -type l ! -exec test -e {} \; -delete
+
+# Find links pointing to specific target
+find . -type l -lname "*python*"
+
+# Find links in /usr/bin
+find /usr/bin -type l
+
+# Show where links point
+find . -type l -exec readlink -f {} \;</pre>
+
+            <p><strong>Understanding output:</strong></p>
+            <pre>$ find . -type l -ls
+lrwxrwxrwx  1 user group  11 Nov 18 10:00 ./link -> target.txt
+#                                                    ↑ target path</pre>
+
+            <div class="note"><strong>Fix broken links:</strong> Delete them or recreate with correct target</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">
+            You want to find files containing specific text. How do you combine find with grep to search file contents? What's a faster way to search code?
+        </div>
+        <div class="back">
+            <strong>Find + grep:</strong> <code>find . -type f -name "*.py" -exec grep -l "function" {} \;</code><br>
+            <strong>Simpler:</strong> <code>grep -r "pattern" .</code><br>
+            <strong>Faster (for code):</strong> <code>rg "pattern"</code> (ripgrep)
+
+            <p><strong>Why:</strong> Finding files by content, not just name. Essential for code search.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Find Python files containing "import os"
+find . -name "*.py" -exec grep -l "import os" {} \;
+
+# Simpler with grep -r
+grep -r "import os" --include="*.py" .
+
+# Even simpler with ripgrep
+rg "import os" --type py
+
+# Find files containing "TODO"
+grep -r "TODO" .
+
+# Find files with line numbers
+grep -rn "TODO" .
+
+# Find in specific file types
+grep -r "error" --include="*.log" /var/log/
+
+# Case-insensitive content search
+grep -ri "password" .</pre>
+
+            <p><strong>Tools comparison:</strong></p>
+            <ul>
+                <li><code>find + grep</code> - Universal, available everywhere</li>
+                <li><code>grep -r</code> - Simpler syntax</li>
+                <li><code>rg</code> (ripgrep) - Fastest, respects .gitignore</li>
+                <li><code>ag</code> (silver searcher) - Also fast</li>
+            </ul>
+
+            <div class="note"><strong>Install ripgrep:</strong> <code>sudo apt install ripgrep</code> - much faster than grep!</div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">
+            You want to copy the directory structure without files, or create a mirror structure. How do you copy just the directory tree? What about creating the same structure elsewhere?
+        </div>
+        <div class="back">
+            <strong>Copy structure only:</strong> <code>find . -type d -exec mkdir -p /dest/{} \;</code><br>
+            <strong>Using rsync:</strong> <code>rsync -av -f"+ */" -f"- *" source/ dest/</code><br>
+            <strong>Create from tree output:</strong> <code>tree -dfi --noreport > dirs.txt</code>
+
+            <p><strong>Why:</strong> Sometimes you need the folder structure without files (templates, backups, mirroring).</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Copy directory structure with find
+cd source
+find . -type d -exec mkdir -p /dest/{} \;
+
+# Using rsync (cleaner)
+rsync -av -f"+ */" -f"- *" source/ dest/
+
+# Create directory structure from list
+mkdir -p dir1/subdir1 dir1/subdir2 dir2/subdir1
+
+# Replicate structure with tar
+tar cf - $(find . -type d) | (cd /dest && tar xf -)
+
+# List directory structure to file
+tree -dfi --noreport . > structure.txt
+
+# Create from structure file
+while read dir; do mkdir -p "$dir"; done < structure.txt</pre>
+
+            <p><strong>Use cases:</strong></p>
+            <ul>
+                <li>Creating project templates</li>
+                <li>Mirroring folder organization</li>
+                <li>Backup planning</li>
+                <li>Testing scripts on structure</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">
+            You want to monitor a directory for new files being created. How can you watch for file system changes? What about tracking file creation in real-time?
+        </div>
+        <div class="back">
+            <strong>Watch directory:</strong> <code>watch -n 1 'ls -lt | head'</code><br>
+            <strong>Real-time monitoring:</strong> <code>inotifywait -m -r -e create .</code><br>
+            <strong>Find recent files:</strong> <code>find . -type f -mmin -5</code>
+
+            <p><strong>Why:</strong> Monitoring helps debug scripts, track downloads, or watch for specific files.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre># Watch directory (refresh every 2 seconds)
+watch -n 2 'ls -lt | head -20'
+
+# Find files created in last 5 minutes
+find . -type f -mmin -5
+
+# Real-time monitoring with inotifywait
+inotifywait -m -r -e create,modify,delete .
+
+# Watch for specific file type
+inotifywait -m -r -e create --include='\.txt$' .
+
+# Log file changes
+inotifywait -m -r -e create . >> file_log.txt
+
+# Alert on new files
+while inotifywait -e create .; do
+    echo "New file created!"
+    notify-send "New file created"
+done</pre>
+
+            <p><strong>Monitoring tools:</strong></p>
+            <ul>
+                <li><code>watch</code> - Periodic refresh</li>
+                <li><code>inotifywait</code> - Real-time events (install inotify-tools)</li>
+                <li><code>find -mmin</code> - Find recent changes</li>
+            </ul>
+
+            <div class="note"><strong>Install inotify-tools:</strong> <code>sudo apt install inotify-tools</code></div>
+        </div>
+        <div class="tags">cs linux find tree EN</div>
+    </div>
+
+</body>
+</html>
