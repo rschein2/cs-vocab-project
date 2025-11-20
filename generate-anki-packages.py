@@ -224,6 +224,7 @@ if __name__ == '__main__':
         ('xargs-chaining-flashcards.html', 'CS Vocab::xargs & Command Chaining', 'cs-vocab-xargs.apkg', 2059400131),
         ('grep-deep-dive-flashcards.html', 'CS Vocab::Grep Deep Dive', 'cs-vocab-grep.apkg', 2059400132),
         ('gcloud-ml-training-flashcards.html', 'CS Vocab::GCloud ML Training', 'cs-vocab-gcloud.apkg', 2059400133),
+        ('vscode-productivity-flashcards.html', 'CS Vocab::VSCode Productivity', 'cs-vocab-vscode.apkg', 2059400134),
     ]
 
     for html_file, deck_name, output_file, deck_id in deck_configs:
@@ -269,8 +270,9 @@ if __name__ == '__main__':
     print('  - cs-vocab-xargs.apkg       (xargs & Command Chaining only)')
     print('  - cs-vocab-grep.apkg        (Grep Deep Dive only)')
     print('  - cs-vocab-gcloud.apkg      (GCloud ML Training only)')
+    print('  - cs-vocab-vscode.apkg      (VSCode Productivity only)')
     print()
     print('Combined package:')
     print('  - cs-vocab-all.apkg         (All topics)')
     print()
-    print('Import creates subdeck structure: CS Vocab → [24 subdecks]')
+    print('Import creates subdeck structure: CS Vocab → [25 subdecks]')

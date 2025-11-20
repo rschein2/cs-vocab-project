@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSCode Productivity & Shortcuts - CS Vocab Flashcards</title>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You wrote a README.md file and want to preview how it will look rendered. How do you open the markdown preview?
+    </div>
+    <div class="back">
+        <strong>Preview markdown:</strong> <code>Ctrl+Shift+V</code> (or <code>Cmd+Shift+V</code> on Mac)
+        <br><strong>Preview side-by-side:</strong> <code>Ctrl+K V</code> (press Ctrl+K, release, then press V)
+        <p><strong>Why:</strong> Opens rendered markdown preview. Side-by-side shows live preview while you edit.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>The preview auto-scrolls to match your cursor position</li>
+            <li>You can click links in the preview to open them</li>
+            <li>Install "Markdown All in One" extension for enhanced features (TOC, shortcuts, etc.)</li>
+            <li>Preview works for any .md file, not just README</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts markdown productivity EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You need to quickly open a file in your project but don't want to navigate through the file tree. What's the fastest way to open any file by name?
+    </div>
+    <div class="back">
+        <strong>Quick file open:</strong> <code>Ctrl+P</code> (or <code>Cmd+P</code> on Mac)
+        <p><strong>Why:</strong> Opens "Quick Open" - fuzzy search for any file in your workspace. Just start typing part of the filename.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Fuzzy matching: type "usmo" to find "UserModel.js"</li>
+            <li>Use path separators: "src/comp" finds files in src/components/</li>
+            <li><code>Ctrl+P</code> twice: toggles between current and last file</li>
+            <li>Add <code>:</code> after filename to jump to line: <code>file.js:42</code></li>
+            <li>Use <code>@</code> to search symbols in current file: <code>@functionName</code></li>
+            <li>Use <code>#</code> to search symbols across workspace: <code>#className</code></li>
+        </ul>
+        <p><strong>Related:</strong> <code>Ctrl+Shift+O</code> to see all symbols in current file (functions, classes, etc.)</p>
+    </div>
+    <div class="tags">cs vscode shortcuts navigation quick-open productivity EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You want to access any VSCode command or feature but don't remember the keyboard shortcut. What's the universal way to access all commands?
+    </div>
+    <div class="back">
+        <strong>Command Palette:</strong> <code>Ctrl+Shift+P</code> or <code>F1</code> (Mac: <code>Cmd+Shift+P</code>)
+        <p><strong>Why:</strong> Opens searchable list of ALL VSCode commands. If you forget a shortcut, you can always find it here.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Just start typing what you want: "format", "git", "theme", etc.</li>
+            <li>Shows keyboard shortcuts next to commands so you can learn them</li>
+            <li>Use <code>&gt;</code> prefix to search commands, <code>@</code> for symbols, <code>#</code> for workspace symbols</li>
+            <li>Recently used commands appear at the top</li>
+            <li>Commands show which extension provides them</li>
+        </ul>
+        <p><strong>Power user tip:</strong> Type "?" in Command Palette to see all available prefixes and modes.</p>
+    </div>
+    <div class="tags">cs vscode shortcuts command-palette productivity EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You need to change the same variable name in 20 places in your file. How do you select and edit all occurrences at once?
+    </div>
+    <div class="back">
+        <strong>Select all occurrences:</strong> <code>Ctrl+Shift+L</code> (after selecting text) or <code>Ctrl+F2</code>
+        <br><strong>Add next occurrence:</strong> <code>Ctrl+D</code> (select word, then press repeatedly)
+        <br><strong>Skip one occurrence:</strong> <code>Ctrl+K Ctrl+D</code> (while adding with Ctrl+D)
+        <p><strong>Why:</strong> Multi-cursor editing - edit multiple places simultaneously. Game-changer for refactoring.</p>
+        <p><strong>Workflow:</strong></p>
+        <ol>
+            <li>Place cursor on variable name (or select it)</li>
+            <li>Press <code>Ctrl+D</code> repeatedly to select more occurrences</li>
+            <li>Type to replace all at once</li>
+        </ol>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>Alt+Click</code> to manually place multiple cursors anywhere</li>
+            <li><code>Ctrl+Alt+↑/↓</code> to add cursors above/below current line</li>
+            <li>Press <code>Esc</code> to exit multi-cursor mode</li>
+            <li>Works with copy/paste - each cursor gets its own clipboard content</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts multi-cursor editing refactoring productivity EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want to search for text across your entire project (all files). How do you do a global search? How about search and replace?
+    </div>
+    <div class="back">
+        <strong>Global search:</strong> <code>Ctrl+Shift+F</code> (Mac: <code>Cmd+Shift+F</code>)
+        <br><strong>Search and replace:</strong> Open search, then click arrow icon or press <code>Ctrl+Shift+H</code>
+        <p><strong>Why:</strong> Searches all files in workspace. Essential for finding function calls, variable usage, etc.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Click the <code>.*</code> button to enable regex search</li>
+            <li>Click <code>Aa</code> for case-sensitive search</li>
+            <li>Click <code>ab|</code> for whole word matching</li>
+            <li>Use "files to include/exclude" to narrow search: <code>*.js</code>, <code>src/**</code></li>
+            <li>Exclude folders: <code>!node_modules/**</code></li>
+            <li>Click on result to see context and jump to file</li>
+            <li>Replace in all files or review each change individually</li>
+        </ul>
+        <p><strong>Performance tip:</strong> Exclude large folders (node_modules, build, .git) in settings for faster searches.</p>
+    </div>
+    <div class="tags">cs vscode shortcuts search find-replace productivity EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You're working with a long function and want to collapse/expand code sections to see the structure better. How do you fold and unfold code?
+    </div>
+    <div class="back">
+        <strong>Fold current block:</strong> <code>Ctrl+Shift+[</code>
+        <br><strong>Unfold current block:</strong> <code>Ctrl+Shift+]</code>
+        <br><strong>Fold all:</strong> <code>Ctrl+K Ctrl+0</code> (zero)
+        <br><strong>Unfold all:</strong> <code>Ctrl+K Ctrl+J</code>
+        <br><strong>Fold level N:</strong> <code>Ctrl+K Ctrl+1</code> through <code>Ctrl+K Ctrl+7</code>
+        <p><strong>Why:</strong> Code folding helps you focus on relevant sections and understand file structure at a glance.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Click the <code>v</code> or <code>&gt;</code> icons in the gutter (left margin) to fold/unfold</li>
+            <li>Hover over folded code to see preview tooltip</li>
+            <li><code>Ctrl+K Ctrl+2</code> folds everything except top 2 levels (great for seeing class/function structure)</li>
+            <li>Fold recursively: <code>Ctrl+K Ctrl+[</code></li>
+            <li>Custom regions: Use <code>// #region Name</code> and <code>// #endregion</code> to create foldable sections</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts code-folding navigation productivity EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You want to jump to the definition of a function or see where a variable is defined. How do you quickly navigate to definitions and references?
+    </div>
+    <div class="back">
+        <strong>Go to definition:</strong> <code>F12</code> or <code>Ctrl+Click</code> on symbol
+        <br><strong>Peek definition (inline):</strong> <code>Alt+F12</code>
+        <br><strong>Go back:</strong> <code>Alt+←</code> (navigate back in history)
+        <br><strong>Go forward:</strong> <code>Alt+→</code>
+        <br><strong>Find all references:</strong> <code>Shift+F12</code>
+        <p><strong>Why:</strong> Navigate code quickly without scrolling. "Peek" shows definition in popup without leaving current file.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Peek definition shows inline editor - you can edit right there</li>
+            <li>"Find all references" shows everywhere the symbol is used</li>
+            <li>Breadcrumbs at top show current file structure - click to navigate</li>
+            <li><code>Ctrl+Shift+O</code> shows outline of current file (all functions/classes)</li>
+            <li>Right-click symbol → "Go to Type Definition" for TypeScript/Python</li>
+            <li>Install language servers for better navigation (Pylance for Python, etc.)</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts navigation code-intelligence productivity EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to rename a variable everywhere it's used in your project (not just current file). How do you do a smart rename that understands code structure?
+    </div>
+    <div class="back">
+        <strong>Rename symbol:</strong> <code>F2</code> (with cursor on variable/function name)
+        <p><strong>Why:</strong> Language-aware rename - only renames the actual symbol, not string matches. Works across all files in workspace.</p>
+        <p><strong>Workflow:</strong></p>
+        <ol>
+            <li>Place cursor on variable/function/class name</li>
+            <li>Press <code>F2</code></li>
+            <li>Type new name</li>
+            <li>Press <code>Enter</code> to apply everywhere</li>
+        </ol>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Shows preview of all changes before applying</li>
+            <li>Only renames the symbol, not comments or strings (unless they're JSDoc/docstrings)</li>
+            <li>Works across files - renames imports too</li>
+            <li>Requires language server for best results (TypeScript/JavaScript work great)</li>
+            <li>Alternative: Right-click → "Rename Symbol"</li>
+        </ul>
+        <p><strong>Comparison:</strong> Better than search-replace because it understands scope (won't rename unrelated variables with same name).</p>
+    </div>
+    <div class="tags">cs vscode shortcuts refactoring rename productivity EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You have the sidebar taking up space and want to focus only on code. How do you toggle the sidebar and other panels? How do you enter "zen mode" for distraction-free coding?
+    </div>
+    <div class="back">
+        <strong>Toggle sidebar:</strong> <code>Ctrl+B</code>
+        <br><strong>Toggle panel (terminal/problems/output):</strong> <code>Ctrl+J</code>
+        <br><strong>Zen Mode (distraction-free):</strong> <code>Ctrl+K Z</code>
+        <br><strong>Toggle activity bar:</strong> Command Palette → "Toggle Activity Bar Visibility"
+        <br><strong>Exit Zen Mode:</strong> <code>Esc Esc</code> (press twice)
+        <p><strong>Why:</strong> Maximize screen space for coding. Zen mode hides everything except editor.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Zen mode settings: File → Preferences → Settings → search "zen mode"</li>
+            <li>Configure Zen mode to hide/show line numbers, tabs, etc.</li>
+            <li><code>Ctrl+K Ctrl+T</code> to change color theme (try "Dark+ (default dark)")</li>
+            <li><code>Ctrl+\</code> to split editor (work on 2 files side-by-side even in Zen mode)</li>
+            <li>Toggle breadcrumbs: View → Show Breadcrumbs</li>
+        </ul>
+        <p><strong>Layout tip:</strong> <code>Alt+Z</code> toggles word wrap for long lines</p>
+    </div>
+    <div class="tags">cs vscode shortcuts ui layout zen-mode productivity EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You want to move or copy entire lines up or down without selecting them. How do you quickly move lines around?
+    </div>
+    <div class="back">
+        <strong>Move line up:</strong> <code>Alt+↑</code>
+        <br><strong>Move line down:</strong> <code>Alt+↓</code>
+        <br><strong>Copy line up:</strong> <code>Shift+Alt+↑</code>
+        <br><strong>Copy line down:</strong> <code>Shift+Alt+↓</code>
+        <br><strong>Delete line:</strong> <code>Ctrl+Shift+K</code>
+        <p><strong>Why:</strong> Reorder code without cut/paste. Works with multiple lines selected too.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>No need to select the line - just have cursor anywhere on it</li>
+            <li>Works with multiple lines: select multiple lines and move/copy them together</li>
+            <li>Smart indentation: automatically indents to match destination</li>
+            <li><code>Ctrl+Shift+K</code> deletes line without putting it in clipboard</li>
+            <li><code>Ctrl+X</code> with no selection cuts entire line</li>
+            <li><code>Ctrl+C</code> with no selection copies entire line</li>
+        </ul>
+        <p><strong>Bonus:</strong> <code>Ctrl+Enter</code> inserts line below, <code>Ctrl+Shift+Enter</code> inserts line above (without breaking current line)</p>
+    </div>
+    <div class="tags">cs vscode shortcuts editing lines productivity EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        Your code is messy and poorly formatted. How do you auto-format your entire file or just a selection?
+    </div>
+    <div class="back">
+        <strong>Format entire document:</strong> <code>Shift+Alt+F</code>
+        <br><strong>Format selection:</strong> <code>Ctrl+K Ctrl+F</code>
+        <br><strong>Auto-format on save:</strong> Settings → "Format On Save" → enable
+        <p><strong>Why:</strong> Consistent formatting makes code readable. Uses language-specific formatters (Prettier, Black, etc.)</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Install formatters: Prettier (JS/TS/CSS/HTML), Black (Python), rustfmt (Rust)</li>
+            <li>Set default formatter: Right-click in editor → "Format Document With..." → "Configure Default Formatter"</li>
+            <li>Format on paste: Settings → "Format On Paste"</li>
+            <li>Format on type: Settings → "Format On Type" (auto-formats as you type)</li>
+            <li>Configure formatting rules in project files: <code>.prettierrc</code>, <code>pyproject.toml</code>, etc.</li>
+        </ul>
+        <p><strong>Recommended settings:</strong></p>
+        <pre>"editor.formatOnSave": true,
+"editor.defaultFormatter": "esbenp.prettier-vscode"</pre>
+    </div>
+    <div class="tags">cs vscode shortcuts formatting code-quality productivity EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You want to open an integrated terminal inside VSCode instead of switching to a separate terminal window. How do you open and manage terminals?
+    </div>
+    <div class="back">
+        <strong>Toggle terminal:</strong> <code>Ctrl+`</code> (backtick) or <code>Ctrl+J</code> to toggle bottom panel
+        <br><strong>Create new terminal:</strong> <code>Ctrl+Shift+`</code>
+        <br><strong>Split terminal:</strong> <code>Ctrl+Shift+5</code> or click split icon
+        <br><strong>Switch between terminals:</strong> Dropdown in terminal panel or <code>Alt+↓/↑</code> in terminal
+        <p><strong>Why:</strong> Keep terminal in context with code. Run commands, tests, servers without leaving VSCode.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Right-click in terminal → "Rename" to label terminals ("Server", "Tests", etc.)</li>
+            <li>Kill terminal: Click trash icon or <code>exit</code> command</li>
+            <li>Multiple terminal types: Click <code>+</code> dropdown for bash, pwsh, cmd, etc.</li>
+            <li>Terminal tabs appear at top - click to switch</li>
+            <li>Drag terminal tabs to reorder or split them</li>
+            <li><code>Ctrl+C</code> in terminal to copy (with text selected) or kill process (no selection)</li>
+            <li>Set default shell: Command Palette → "Terminal: Select Default Profile"</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts terminal integrated-terminal productivity EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to split your editor to view two files side-by-side (or the same file in two places). How do you manage split editors?
+    </div>
+    <div class="back">
+        <strong>Split editor:</strong> <code>Ctrl+\</code> (splits current file into new pane)
+        <br><strong>Switch between editor groups:</strong> <code>Ctrl+1</code>, <code>Ctrl+2</code>, <code>Ctrl+3</code>
+        <br><strong>Move file to another group:</strong> <code>Ctrl+Alt+→</code> or <code>Ctrl+Alt+←</code>
+        <br><strong>Close all in group:</strong> <code>Ctrl+K W</code>
+        <p><strong>Why:</strong> Compare files, reference code while writing, view test and implementation together.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Open file to the side: <code>Ctrl+Enter</code> in file explorer or Quick Open</li>
+            <li>Drag file tabs to create new editor groups</li>
+            <li>Right-click tab → "Split Up/Down/Left/Right"</li>
+            <li>Toggle editor layout: View → Editor Layout → choose grid layout</li>
+            <li><code>Ctrl+K Ctrl+↓/↑/←/→</code> to move focus between groups</li>
+            <li>Maximize editor group: Double-click its title bar</li>
+            <li>View same file in 2 places: split, then scroll independently</li>
+        </ul>
+        <p><strong>Workflow tip:</strong> Split vertically for normal code, horizontally for comparing similar files</p>
+    </div>
+    <div class="tags">cs vscode shortcuts layout split-editor productivity EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You see a lightbulb icon 💡 next to your code. What does it mean and how do you use it? What about quick fixes for errors?
+    </div>
+    <div class="back">
+        <strong>Show quick fixes / lightbulb menu:</strong> <code>Ctrl+.</code> or click the lightbulb
+        <p><strong>Why:</strong> VSCode suggests fixes for errors, refactorings, and code improvements. Language servers provide these suggestions.</p>
+        <p><strong>Common quick fixes:</strong></p>
+        <ul>
+            <li>Auto-import missing modules/functions</li>
+            <li>Fix typos in variable names</li>
+            <li>Convert to arrow function / async function</li>
+            <li>Add missing method implementations</li>
+            <li>Extract to variable / function / method</li>
+            <li>Organize imports (remove unused, sort)</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Yellow lightbulb = suggestions/improvements available</li>
+            <li>Red/orange squiggle = error, <code>Ctrl+.</code> to see fix options</li>
+            <li>Some fixes have "Fix all" option for entire file</li>
+            <li><code>Ctrl+Shift+P</code> → "Organize Imports" to clean up imports manually</li>
+            <li>Auto-fix on save: Settings → "Code Actions On Save" → configure</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts quick-fixes refactoring code-actions productivity EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You want to see all errors and warnings in your project at once instead of scrolling through files. How do you view the Problems panel?
+    </div>
+    <div class="back">
+        <strong>Toggle Problems panel:</strong> <code>Ctrl+Shift+M</code>
+        <br><strong>Next error:</strong> <code>F8</code>
+        <br><strong>Previous error:</strong> <code>Shift+F8</code>
+        <p><strong>Why:</strong> Centralized view of all errors, warnings, and info messages from linters, type checkers, etc.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Click error to jump to file and line</li>
+            <li>Filter by type: Click filter icon to show only errors, warnings, or info</li>
+            <li>Filter by file: Type filename in filter box</li>
+            <li>Shows error count in status bar (bottom) - click to open Problems panel</li>
+            <li>Errors update live as you type</li>
+            <li>Red underlines = errors, yellow = warnings, blue = info</li>
+            <li>Hover over underlined code to see error message</li>
+        </ul>
+        <p><strong>Power tip:</strong> Install ESLint, Pylint, or language-specific linters for better error detection</p>
+    </div>
+    <div class="tags">cs vscode shortcuts problems errors debugging productivity EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You're working on a Python/JavaScript project and want autocomplete suggestions. How do you trigger IntelliSense and navigate suggestions?
+    </div>
+    <div class="back">
+        <strong>Trigger IntelliSense:</strong> <code>Ctrl+Space</code>
+        <br><strong>Trigger parameter hints:</strong> <code>Ctrl+Shift+Space</code>
+        <br><strong>Accept suggestion:</strong> <code>Tab</code> or <code>Enter</code>
+        <br><strong>Navigate suggestions:</strong> <code>↑/↓</code> arrow keys
+        <p><strong>Why:</strong> IntelliSense provides autocomplete, function signatures, documentation while you type.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>IntelliSense auto-appears as you type - <code>Ctrl+Space</code> if it disappears</li>
+            <li><code>Tab</code> accepts suggestion and moves cursor, <code>Enter</code> accepts and adds newline</li>
+            <li>Type more letters to filter suggestions</li>
+            <li>Hover over items in suggestion list to see documentation</li>
+            <li>Snippets appear in IntelliSense (marked with icon) - Tab to fill placeholders</li>
+            <li>Install language servers: Pylance (Python), TypeScript, Go, Rust Analyzer, etc.</li>
+            <li>Configure: Settings → "Editor: Suggest" for various autocomplete options</li>
+        </ul>
+        <p><strong>Parameter hints:</strong> While inside function call, <code>Ctrl+Shift+Space</code> shows parameter types and descriptions</p>
+    </div>
+    <div class="tags">cs vscode shortcuts intellisense autocomplete productivity EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to comment out multiple lines of code quickly. How do you add and remove comments?
+    </div>
+    <div class="back">
+        <strong>Toggle line comment:</strong> <code>Ctrl+/</code>
+        <br><strong>Toggle block comment:</strong> <code>Shift+Alt+A</code>
+        <p><strong>Why:</strong> Quick way to disable code for testing or add comment explanations.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Works with multiple lines: select lines and press <code>Ctrl+/</code></li>
+            <li>No selection needed: cursor on line is enough</li>
+            <li>Language-aware: uses <code>//</code> for JS/TS/C++, <code>#</code> for Python, etc.</li>
+            <li>Block comments: <code>/* ... */</code> style (useful for multi-line comments)</li>
+            <li>Uncommenting: same shortcut toggles comments off</li>
+            <li>Doesn't break indentation - comments align with code</li>
+        </ul>
+        <p><strong>Workflow tip:</strong> Select multiple lines, <code>Ctrl+/</code> to comment, test, <code>Ctrl+/</code> again to uncomment</p>
+    </div>
+    <div class="tags">cs vscode shortcuts commenting editing productivity EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You're debugging and want to set breakpoints and step through code. How do you start debugging in VSCode?
+    </div>
+    <div class="back">
+        <strong>Toggle breakpoint:</strong> <code>F9</code> (or click in gutter, left of line numbers)
+        <br><strong>Start debugging:</strong> <code>F5</code>
+        <br><strong>Step over:</strong> <code>F10</code>
+        <br><strong>Step into:</strong> <code>F11</code>
+        <br><strong>Step out:</strong> <code>Shift+F11</code>
+        <br><strong>Continue:</strong> <code>F5</code>
+        <br><strong>Stop debugging:</strong> <code>Shift+F5</code>
+        <p><strong>Why:</strong> Integrated debugger lets you inspect variables, step through execution, find bugs.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Create <code>launch.json</code>: Run → Add Configuration → choose language</li>
+            <li>Conditional breakpoints: Right-click breakpoint → "Edit Breakpoint" → add condition</li>
+            <li>Logpoints: Like breakpoints but log to console instead of stopping</li>
+            <li>Watch expressions: Debug sidebar → "Watch" → add variables to monitor</li>
+            <li>Call stack shows function call hierarchy</li>
+            <li>Hover over variables while paused to see values</li>
+            <li>Debug Console: Evaluate expressions while paused</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts debugging breakpoints productivity EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You want to view Git changes, commit, and push without leaving VSCode. How do you use the built-in Git integration?
+    </div>
+    <div class="back">
+        <strong>Open Source Control:</strong> <code>Ctrl+Shift+G</code>
+        <br><strong>View file changes (diff):</strong> Click file in Source Control panel
+        <br><strong>Stage file:</strong> Click <code>+</code> next to file
+        <br><strong>Commit:</strong> Type message in box, click ✓ or <code>Ctrl+Enter</code>
+        <br><strong>Push/Pull:</strong> Click <code>...</code> menu in Source Control panel
+        <p><strong>Why:</strong> Full Git workflow without terminal. See diffs, stage changes, commit, push, all in GUI.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Gutter indicators: Green = added lines, Blue = modified, Red triangle = deleted</li>
+            <li>Click gutter indicators to see inline diff and revert</li>
+            <li>Stage specific lines: Open diff, right-click lines → "Stage Selected Ranges"</li>
+            <li>View Git history: Install "GitLens" extension (highly recommended)</li>
+            <li><code>Ctrl+Shift+P</code> → "Git: " shows all Git commands</li>
+            <li>Checkout branches: Click branch name in status bar (bottom-left)</li>
+            <li>Resolve merge conflicts: Click "Accept Incoming/Current/Both" buttons in editor</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts git source-control productivity EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You want to find and replace text in the current file, possibly using regex. How do you open find/replace and use advanced features?
+    </div>
+    <div class="back">
+        <strong>Find in file:</strong> <code>Ctrl+F</code>
+        <br><strong>Replace in file:</strong> <code>Ctrl+H</code>
+        <br><strong>Next match:</strong> <code>F3</code> or <code>Enter</code>
+        <br><strong>Previous match:</strong> <code>Shift+F3</code>
+        <br><strong>Select all matches:</strong> <code>Alt+Enter</code> (then type to edit all)
+        <p><strong>Why:</strong> Find and replace text with options for case-sensitivity, whole word, and regex.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Toggle regex: Click <code>.*</code> icon or <code>Alt+R</code></li>
+            <li>Toggle case-sensitive: Click <code>Aa</code> or <code>Alt+C</code></li>
+            <li>Toggle whole word: Click <code>ab|</code> or <code>Alt+W</code></li>
+            <li>Regex example: <code>function\s+(\w+)</code> finds function names, <code>$1</code> in replace uses captured group</li>
+            <li>Replace next: <code>Ctrl+Shift+1</code> (or click replace button)</li>
+            <li>Replace all: <code>Ctrl+Alt+Enter</code> (or click replace all button)</li>
+            <li><code>Esc</code> to close find widget</li>
+        </ul>
+        <p><strong>Power tip:</strong> <code>Alt+Enter</code> selects all matches → instant multi-cursor at every match</p>
+    </div>
+    <div class="tags">cs vscode shortcuts find-replace regex editing productivity EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        You want to quickly jump to a specific line number in a large file. How do you navigate to a line?
+    </div>
+    <div class="back">
+        <strong>Go to line:</strong> <code>Ctrl+G</code>
+        <p><strong>Why:</strong> Direct jump to any line number. Useful when error messages show line numbers.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Type line number and press <code>Enter</code></li>
+            <li>Also works in Quick Open: <code>Ctrl+P</code> then type <code>:42</code> (colon + line number)</li>
+            <li>Go to column: <code>:42:10</code> goes to line 42, column 10</li>
+            <li>Current line/column shown in status bar (bottom-right)</li>
+            <li>Click line number in status bar to open "Go to Line" dialog</li>
+        </ul>
+        <p><strong>Related shortcuts:</strong></p>
+        <ul>
+            <li><code>Ctrl+Home</code> - Jump to start of file</li>
+            <li><code>Ctrl+End</code> - Jump to end of file</li>
+            <li><code>Ctrl+↑/↓</code> - Scroll up/down without moving cursor</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts navigation go-to-line productivity EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        You want to install an extension (like Prettier, GitLens, or Python). How do you browse and install extensions?
+    </div>
+    <div class="back">
+        <strong>Open Extensions view:</strong> <code>Ctrl+Shift+X</code>
+        <br><strong>Install:</strong> Search for extension, click "Install" button
+        <p><strong>Why:</strong> Extensions add language support, themes, debuggers, formatters, and productivity tools.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Search by name or category: "python", "theme", "git", etc.</li>
+            <li>Read description and reviews before installing</li>
+            <li>Check install count (popular = usually reliable)</li>
+            <li>Click extension name to see full details, changelog, and settings</li>
+            <li>Disable/uninstall: Click gear icon next to extension</li>
+            <li>Recommended extensions: VSCode shows suggestions based on your workspace</li>
+        </ul>
+        <p><strong>Essential extensions:</strong></p>
+        <ul>
+            <li><strong>Prettier:</strong> Code formatter for JS/TS/CSS/HTML</li>
+            <li><strong>GitLens:</strong> Enhanced Git features (blame, history, etc.)</li>
+            <li><strong>Python / Pylance:</strong> Python support</li>
+            <li><strong>ESLint:</strong> JavaScript linting</li>
+            <li><strong>Live Share:</strong> Real-time collaboration</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts extensions marketplace productivity EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        You're working on multiple projects and want to switch between workspace folders quickly. How do you manage and switch workspaces?
+    </div>
+    <div class="back">
+        <strong>Open folder:</strong> <code>Ctrl+K Ctrl+O</code>
+        <br><strong>Close folder:</strong> <code>Ctrl+K F</code>
+        <br><strong>Switch workspace:</strong> File → Open Recent → choose workspace
+        <br><strong>Add folder to workspace:</strong> File → Add Folder to Workspace
+        <p><strong>Why:</strong> Workspaces organize projects. Each workspace has its own settings, extensions, and Git repos.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Multi-root workspaces: Add multiple folders to one workspace (useful for microservices)</li>
+            <li>Save workspace: File → Save Workspace As → creates <code>.code-workspace</code> file</li>
+            <li>Workspace settings override user settings (project-specific config)</li>
+            <li><code>Ctrl+R</code> shows recent folders and workspaces for quick switching</li>
+            <li>Each workspace has its own Git state, terminal CWD, etc.</li>
+            <li>Pin workspace: Right-click in "Open Recent" to pin to top</li>
+        </ul>
+        <p><strong>Workflow:</strong> Create workspace for each project, save it, switch between saved workspaces</p>
+    </div>
+    <div class="tags">cs vscode shortcuts workspaces project-management productivity EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        You want to select and edit text more efficiently using keyboard. What are the key selection shortcuts?
+    </div>
+    <div class="back">
+        <strong>Select word:</strong> <code>Ctrl+D</code> (repeat to select next occurrence)
+        <br><strong>Select line:</strong> <code>Ctrl+L</code>
+        <br><strong>Expand selection:</strong> <code>Shift+Alt+→</code>
+        <br><strong>Shrink selection:</strong> <code>Shift+Alt+←</code>
+        <br><strong>Select all:</strong> <code>Ctrl+A</code>
+        <br><strong>Column (box) selection:</strong> <code>Shift+Alt+Drag</code> or <code>Ctrl+Shift+Alt+Arrow</code>
+        <p><strong>Why:</strong> Precise text selection without mouse. Expand selection is especially powerful - selects by syntax scope.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>Shift+Alt+→</code> expands to next syntax scope: word → expression → statement → function</li>
+            <li><code>Ctrl+D</code> repeatedly selects next match (multi-cursor editing)</li>
+            <li><code>Ctrl+L</code> repeatedly selects next line</li>
+            <li>Column selection: Select rectangular block (useful for aligned text)</li>
+            <li><code>Shift+End</code> selects to end of line, <code>Shift+Home</code> to start</li>
+            <li><code>Ctrl+Shift+End</code> selects to end of file</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts selection editing productivity EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        You want to customize VSCode settings like font size, theme, or auto-save. How do you access and modify settings?
+    </div>
+    <div class="back">
+        <strong>Open Settings UI:</strong> <code>Ctrl+,</code>
+        <br><strong>Open Settings JSON:</strong> <code>Ctrl+Shift+P</code> → "Preferences: Open Settings (JSON)"
+        <br><strong>Keyboard Shortcuts:</strong> <code>Ctrl+K Ctrl+S</code>
+        <p><strong>Why:</strong> Customize VSCode to your workflow. Settings sync across machines if enabled.</p>
+        <p><strong>Common settings to change:</strong></p>
+        <ul>
+            <li><strong>Font size:</strong> Search "font size" → Editor: Font Size</li>
+            <li><strong>Theme:</strong> <code>Ctrl+K Ctrl+T</code> or File → Preferences → Color Theme</li>
+            <li><strong>Auto Save:</strong> File → Auto Save (or search "auto save" in settings)</li>
+            <li><strong>Format on save:</strong> Search "format on save" → enable</li>
+            <li><strong>Word wrap:</strong> Search "word wrap" → "on" or "bounded"</li>
+            <li><strong>Tab size:</strong> Search "tab size" → set to 2 or 4</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Settings have User (global) and Workspace (project-specific) scopes</li>
+            <li>Settings JSON is more powerful - can set complex configurations</li>
+            <li>Install Settings Sync to sync settings across machines via GitHub</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts settings customization productivity EN</div>
+</div>
+
+<!-- Card 26 -->
+<div class="card">
+    <div class="front">
+        You want to create code snippets that auto-expand (like typing "for" and getting a full for-loop). How do you use and create custom snippets?
+    </div>
+    <div class="back">
+        <strong>Trigger snippet:</strong> Type prefix, select from IntelliSense, press <code>Tab</code>
+        <br><strong>Next placeholder:</strong> <code>Tab</code>
+        <br><strong>Previous placeholder:</strong> <code>Shift+Tab</code>
+        <br><strong>Create snippet:</strong> <code>Ctrl+Shift+P</code> → "Configure User Snippets" → choose language
+        <p><strong>Why:</strong> Snippets save time typing boilerplate code. VSCode has built-in snippets, and you can add custom ones.</p>
+        <p><strong>Example built-in snippets:</strong></p>
+        <ul>
+            <li>JavaScript: <code>for</code>, <code>if</code>, <code>func</code>, <code>class</code></li>
+            <li>Python: <code>def</code>, <code>class</code>, <code>if</code>, <code>for</code></li>
+            <li>HTML: <code>!</code> (creates HTML5 template)</li>
+        </ul>
+        <p><strong>Custom snippet example (Python):</strong></p>
+        <pre>"Print variable": {
+  "prefix": "pv",
+  "body": "print(f'$1 = {$1}')$0"
+}</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>$1</code>, <code>$2</code> = tab stops, <code>$0</code> = final cursor position</li>
+            <li><code>${1:default}</code> provides default text for placeholder</li>
+            <li>Install snippet extensions: "JavaScript (ES6) code snippets", "Python snippets"</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts snippets code-generation productivity EN</div>
+</div>
+
+<!-- Card 27 -->
+<div class="card">
+    <div class="front">
+        You want to see a minimap of your file or navigate using the breadcrumbs at the top. How do you use these navigation aids?
+    </div>
+    <div class="back">
+        <strong>Toggle minimap:</strong> View → Show Minimap (or Settings → "editor.minimap.enabled")
+        <br><strong>Toggle breadcrumbs:</strong> View → Show Breadcrumbs
+        <br><strong>Navigate breadcrumbs:</strong> Click on any item in breadcrumb trail
+        <br><strong>Focus breadcrumbs:</strong> <code>Ctrl+Shift+.</code>
+        <p><strong>Why:</strong> Minimap shows overview of entire file for quick scrolling. Breadcrumbs show current location in file structure.</p>
+        <p><strong>Minimap tips:</strong></p>
+        <ul>
+            <li>Click minimap to jump to that section</li>
+            <li>Drag minimap slider to scroll</li>
+            <li>Syntax highlighting shows different code regions</li>
+            <li>Configure: Settings → search "minimap" for size, position, etc.</li>
+        </ul>
+        <p><strong>Breadcrumbs tips:</strong></p>
+        <ul>
+            <li>Shows file path and symbol hierarchy (class → method → etc.)</li>
+            <li>Click any breadcrumb to see siblings and navigate</li>
+            <li>Last breadcrumb shows current function/class</li>
+            <li>Use <code>Ctrl+Shift+.</code> to navigate breadcrumbs with keyboard</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts minimap breadcrumbs navigation productivity EN</div>
+</div>
+
+<!-- Card 28 -->
+<div class="card">
+    <div class="front">
+        You're writing a function and want to see the Git blame (who wrote each line). How do you view Git history and blame information?
+    </div>
+    <div class="back">
+        <strong>Built-in (limited):</strong> Hover over line numbers in gutter (if Git enabled)
+        <br><strong>Better option - Install GitLens:</strong> <code>Ctrl+Shift+X</code> → search "GitLens" → Install
+        <p><strong>GitLens features:</strong></p>
+        <ul>
+            <li><strong>Inline blame:</strong> Shows author and commit message at end of current line</li>
+            <li><strong>Hover blame:</strong> Hover over any line to see full commit details</li>
+            <li><strong>File history:</strong> Click GitLens icon in sidebar to see all commits for file</li>
+            <li><strong>Line history:</strong> Right-click line → "Show Line History"</li>
+            <li><strong>Compare:</strong> Compare branches, commits, working tree</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Toggle inline blame: <code>Ctrl+Shift+P</code> → "GitLens: Toggle Line Blame"</li>
+            <li>View commit graph: GitLens sidebar → "Commits" view</li>
+            <li>GitLens is one of the most popular VSCode extensions</li>
+            <li>Configure GitLens: Settings → search "gitlens"</li>
+        </ul>
+        <p><strong>Why:</strong> Understand code history, find who to ask about code, track when bugs were introduced.</p>
+    </div>
+    <div class="tags">cs vscode shortcuts git gitlens blame history productivity EN</div>
+</div>
+
+<!-- Card 29 -->
+<div class="card">
+    <div class="front">
+        You want to run a build task or test runner without leaving VSCode. How do you configure and run tasks?
+    </div>
+    <div class="back">
+        <strong>Run task:</strong> <code>Ctrl+Shift+B</code> (build task) or <code>Ctrl+Shift+P</code> → "Tasks: Run Task"
+        <br><strong>Configure tasks:</strong> <code>Ctrl+Shift+P</code> → "Tasks: Configure Task"
+        <p><strong>Why:</strong> Tasks automate commands like build, test, lint, deploy. VSCode can detect common tasks (npm, make, etc.).</p>
+        <p><strong>Auto-detected tasks:</strong></p>
+        <ul>
+            <li>npm scripts from <code>package.json</code></li>
+            <li>Make targets from <code>Makefile</code></li>
+            <li>Gradle, Maven, etc.</li>
+        </ul>
+        <p><strong>Custom task example (tasks.json):</strong></p>
+        <pre>{
+  "label": "Run tests",
+  "type": "shell",
+  "command": "pytest",
+  "group": "test",
+  "presentation": {
+    "reveal": "always",
+    "panel": "new"
+  }
+}</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Create <code>.vscode/tasks.json</code> in workspace for project tasks</li>
+            <li>Set default build task: Mark task with <code>"group": {"kind": "build", "isDefault": true}</code></li>
+            <li>Problem matchers: Automatically parse output for errors (shows in Problems panel)</li>
+            <li>Run on save: Configure tasks to run automatically when files change</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts tasks build automation productivity EN</div>
+</div>
+
+<!-- Card 30 -->
+<div class="card">
+    <div class="front">
+        You want to compare two files side-by-side to see differences. How do you open a diff view?
+    </div>
+    <div class="back">
+        <strong>Compare files:</strong> Right-click file 1 → "Select for Compare" → Right-click file 2 → "Compare with Selected"
+        <br><strong>Compare with clipboard:</strong> Right-click file → "Compare with Clipboard"
+        <br><strong>Compare with saved version:</strong> <code>Ctrl+K D</code> (shows unsaved changes)
+        <p><strong>Why:</strong> Side-by-side diff view shows additions (green), deletions (red), and modifications (blue).</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use arrow buttons in diff view to jump between changes</li>
+            <li>Inline diff: Click icon to toggle between side-by-side and inline view</li>
+            <li>Git changes: Source Control panel shows diffs automatically for modified files</li>
+            <li>Compare across branches: GitLens extension enhances this</li>
+            <li>Copy changes: Right-click in diff view for options</li>
+        </ul>
+        <p><strong>Command line option:</strong></p>
+        <pre>code --diff file1.txt file2.txt</pre>
+        <p><strong>Workflow:</strong> Compare current work with main branch, old versions, or collaborator's version</p>
+    </div>
+    <div class="tags">cs vscode shortcuts diff compare files productivity EN</div>
+</div>
+
+<!-- Card 31 -->
+<div class="card">
+    <div class="front">
+        You're collaborating remotely and want to code together in real-time. How do you use Live Share for pair programming?
+    </div>
+    <div class="back">
+        <strong>Install Live Share:</strong> <code>Ctrl+Shift+X</code> → search "Live Share" → Install
+        <br><strong>Start sharing session:</strong> Click "Live Share" in status bar → "Start collaboration session"
+        <br><strong>Share link:</strong> Copy link from notification and send to collaborator
+        <br><strong>Join session:</strong> Click "Live Share" → "Join collaboration session" → paste link
+        <p><strong>Why:</strong> Real-time collaborative editing. Multiple people can edit same files, share terminals, debug together.</p>
+        <p><strong>Live Share features:</strong></p>
+        <ul>
+            <li><strong>Shared editing:</strong> See each other's cursors and edits in real-time</li>
+            <li><strong>Follow mode:</strong> Automatically follow collaborator's cursor</li>
+            <li><strong>Shared terminals:</strong> Run commands in each other's terminals</li>
+            <li><strong>Shared servers:</strong> Access each other's localhost servers</li>
+            <li><strong>Voice/text chat:</strong> Built-in communication</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Read-only mode: Share as read-only for demos</li>
+            <li>Focus follow: Double-click participant to follow them</li>
+            <li>Works across different OSes and VSCode instances</li>
+            <li>No firewall/network config needed - uses secure relay</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts live-share collaboration pair-programming productivity EN</div>
+</div>
+
+<!-- Card 32 -->
+<div class="card">
+    <div class="front">
+        You want to write a regular expression and test it in real-time. How can VSCode help with regex testing?
+    </div>
+    <div class="back">
+        <strong>Find with regex:</strong> <code>Ctrl+F</code> → click <code>.*</code> button → type regex
+        <br><strong>Visual feedback:</strong> Matches highlight as you type
+        <br><strong>Capture groups:</strong> Use <code>Ctrl+H</code> to replace and reference groups with <code>$1</code>, <code>$2</code>, etc.
+        <p><strong>Why:</strong> Live regex testing shows what matches immediately. No need for separate regex tester.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Regex errors show in red in find box</li>
+            <li>Match count shown: "1 of 42" etc.</li>
+            <li><code>F3</code> to jump through matches one by one</li>
+            <li>Test replacement patterns before applying</li>
+            <li>Common patterns:
+                <ul>
+                    <li><code>\d+</code> = numbers</li>
+                    <li><code>\w+</code> = word characters</li>
+                    <li><code>.*?</code> = non-greedy match</li>
+                    <li><code>^</code> and <code>$</code> = start/end of line</li>
+                </ul>
+            </li>
+        </ul>
+        <p><strong>Advanced:</strong> Install "Regex Previewer" extension for even better visualization and explanation</p>
+        <p><strong>Workflow:</strong> Write regex in find box, see live matches, refine until correct, then use in replace or code</p>
+    </div>
+    <div class="tags">cs vscode shortcuts regex find-replace testing productivity EN</div>
+</div>
+
+<!-- Card 33 -->
+<div class="card">
+    <div class="front">
+        You want to see a timeline of changes to the current file. How do you access the file timeline?
+    </div>
+    <div class="back">
+        <strong>Open Timeline view:</strong> Explorer sidebar → "Timeline" section (at bottom)
+        <br><strong>Alternative:</strong> Right-click file → "Open Timeline"
+        <p><strong>Why:</strong> See all Git commits and local file saves that affected current file. Click to view file at that point in time.</p>
+        <p><strong>Timeline shows:</strong></p>
+        <ul>
+            <li><strong>Git commits:</strong> All commits that changed this file</li>
+            <li><strong>Local saves:</strong> Auto-saved versions (if enabled)</li>
+            <li>Timestamp and author for each change</li>
+            <li>Commit message</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Click timeline entry to open that version in editor</li>
+            <li>Compare with current version to see what changed</li>
+            <li>Useful for recovering accidentally deleted code</li>
+            <li>Local history requires "Files: Auto Save" to be enabled</li>
+            <li>Filter timeline: Click filter icon to show only commits or only local saves</li>
+        </ul>
+        <p><strong>Workflow:</strong> "I deleted a function last week, how do I get it back?" → Timeline → find commit before deletion → copy code</p>
+    </div>
+    <div class="tags">cs vscode shortcuts timeline git history productivity EN</div>
+</div>
+
+<!-- Card 34 -->
+<div class="card">
+    <div class="front">
+        You're working in a large file and want to see the outline/structure of all functions and classes. How do you view the file outline?
+    </div>
+    <div class="back">
+        <strong>Outline view:</strong> Explorer sidebar → "Outline" section
+        <br><strong>Quick outline:</strong> <code>Ctrl+Shift+O</code> (fuzzy search symbols in current file)
+        <br><strong>Workspace symbols:</strong> <code>Ctrl+T</code> (search symbols across all files)
+        <p><strong>Why:</strong> See file structure at a glance. Quick navigation to functions, classes, methods without scrolling.</p>
+        <p><strong>Outline view features:</strong></p>
+        <ul>
+            <li>Hierarchical tree: classes → methods → nested functions</li>
+            <li>Click item to jump to definition</li>
+            <li>Shows icons for different symbol types (function, class, variable, etc.)</li>
+            <li>Updates live as you type</li>
+            <li>Sort by name or position</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>Ctrl+Shift+O</code> then type to filter: "@func" finds all functions</li>
+            <li>Add <code>:</code> to group by type: <code>@:</code></li>
+            <li>Works best with language servers installed (Pylance, TypeScript, etc.)</li>
+            <li>Breadcrumbs (top of editor) show current symbol - click to see outline</li>
+        </ul>
+        <p><strong>Workflow:</strong> Big file → <code>Ctrl+Shift+O</code> → type function name → jump directly to it</p>
+    </div>
+    <div class="tags">cs vscode shortcuts outline symbols navigation productivity EN</div>
+</div>
+
+<!-- Card 35 -->
+<div class="card">
+    <div class="front">
+        You want to record and replay a sequence of edits (macro). Does VSCode support macros?
+    </div>
+    <div class="back">
+        <strong>Native support:</strong> No built-in macro recording (unlike Vim/Emacs)
+        <br><strong>Alternative - Install extension:</strong> "Macro Commander" or "macros" extension
+        <p><strong>Why no built-in macros:</strong> VSCode focuses on language-aware features (refactoring, snippets, multi-cursor) that often replace macro needs.</p>
+        <p><strong>Instead of macros, use:</strong></p>
+        <ul>
+            <li><strong>Multi-cursor editing:</strong> <code>Ctrl+D</code>, <code>Alt+Click</code>, <code>Ctrl+Shift+L</code></li>
+            <li><strong>Find and replace with regex:</strong> <code>Ctrl+H</code> with <code>.*</code> enabled</li>
+            <li><strong>Snippets:</strong> Define reusable code templates</li>
+            <li><strong>Tasks:</strong> Automate command sequences</li>
+            <li><strong>Refactoring tools:</strong> <code>F2</code> for rename, <code>Ctrl+.</code> for quick fixes</li>
+        </ul>
+        <p><strong>If you need macros:</strong></p>
+        <ul>
+            <li>Install "macros" extension by geddski</li>
+            <li>Define macro in settings.json with command sequence</li>
+            <li>Bind to keyboard shortcut</li>
+        </ul>
+        <p><strong>Tip:</strong> Most macro use cases are better solved with VSCode's built-in features. Try multi-cursor first!</p>
+    </div>
+    <div class="tags">cs vscode shortcuts macros automation productivity EN</div>
+</div>
+
+<!-- Card 36 -->
+<div class="card">
+    <div class="front">
+        You want to indent or outdent multiple lines quickly. What are the shortcuts?
+    </div>
+    <div class="back">
+        <strong>Indent:</strong> <code>Ctrl+]</code> or <code>Tab</code> (with lines selected)
+        <br><strong>Outdent:</strong> <code>Ctrl+[</code> or <code>Shift+Tab</code>
+        <br><strong>Auto-indent:</strong> <code>Ctrl+Shift+I</code> or <code>Shift+Alt+F</code> (format document)
+        <p><strong>Why:</strong> Fix indentation quickly. Essential for Python, YAML, and other indent-sensitive languages.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Select multiple lines and press <code>Tab</code> / <code>Shift+Tab</code> to indent/outdent all</li>
+            <li>No selection needed: just have cursor on line</li>
+            <li><code>Ctrl+Shift+I</code> auto-indents based on language rules</li>
+            <li>Format document (<code>Shift+Alt+F</code>) fixes all indentation automatically</li>
+            <li>Configure indent size: Settings → "Tab Size" (usually 2 or 4)</li>
+            <li>Spaces vs tabs: Settings → "Insert Spaces" (most use spaces now)</li>
+        </ul>
+        <p><strong>Workflow:</strong> Paste code → select all → <code>Shift+Alt+F</code> → perfectly formatted</p>
+    </div>
+    <div class="tags">cs vscode shortcuts indentation formatting productivity EN</div>
+</div>
+
+<!-- Card 37 -->
+<div class="card">
+    <div class="front">
+        You want to see all keyboard shortcuts or customize them. How do you view and edit keyboard shortcuts?
+    </div>
+    <div class="back">
+        <strong>Keyboard Shortcuts editor:</strong> <code>Ctrl+K Ctrl+S</code>
+        <br><strong>Alternative:</strong> File → Preferences → Keyboard Shortcuts
+        <p><strong>Why:</strong> See all shortcuts, search for commands, rebind keys to your preference.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Search by command name: "format", "fold", "git", etc.</li>
+            <li>Search by current keybinding: Press keys in search box</li>
+            <li>Shows conflicts: If you assign same key to multiple commands</li>
+            <li>Click pencil icon to rebind any command</li>
+            <li>Remove keybinding: Right-click → "Remove Keybinding"</li>
+            <li>Filter by extension: "@ext:vscode.git" shows Git-related shortcuts</li>
+            <li>Export shortcuts: Click <code>{}</code> icon to open keybindings.json</li>
+        </ul>
+        <p><strong>Keybindings.json example:</strong></p>
+        <pre>[
+  {
+    "key": "ctrl+shift+c",
+    "command": "workbench.action.terminal.new"
+  }
+]</pre>
+        <p><strong>Tip:</strong> Print cheat sheet: <code>Ctrl+K Ctrl+R</code> opens keyboard reference PDF</p>
+    </div>
+    <div class="tags">cs vscode shortcuts keybindings customization productivity EN</div>
+</div>
+
+<!-- Card 38 -->
+<div class="card">
+    <div class="front">
+        You're switching from another editor (Vim, Sublime, Atom) and want familiar keybindings. How do you use keymaps from other editors?
+    </div>
+    <div class="back">
+        <strong>Install keymap extension:</strong> <code>Ctrl+Shift+X</code> → search for your editor keymap
+        <p><strong>Available keymaps:</strong></p>
+        <ul>
+            <li><strong>Vim:</strong> "Vim" extension (most popular, very complete)</li>
+            <li><strong>Emacs:</strong> "Emacs Keymap"</li>
+            <li><strong>Sublime Text:</strong> "Sublime Text Keymap and Settings Importer"</li>
+            <li><strong>Atom:</strong> "Atom Keymap"</li>
+            <li><strong>IntelliJ:</strong> "IntelliJ IDEA Keybindings"</li>
+            <li><strong>Eclipse:</strong> "Eclipse Keymap"</li>
+        </ul>
+        <p><strong>Why:</strong> Muscle memory is powerful. Keep your familiar shortcuts while gaining VSCode's features.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Vim extension is extremely popular (2M+ installs) and actively maintained</li>
+            <li>Keymaps override default VSCode shortcuts</li>
+            <li>Can still customize: keymaps are just starting points</li>
+            <li>Some extensions import settings too (color themes, etc.)</li>
+        </ul>
+        <p><strong>Workflow:</strong> Install extension → restart VSCode → use your familiar shortcuts → gradually learn VSCode-specific features</p>
+    </div>
+    <div class="tags">cs vscode shortcuts keymaps vim emacs migration productivity EN</div>
+</div>
+
+<!-- Card 39 -->
+<div class="card">
+    <div class="front">
+        You want to work on a remote server or in a container. How do you use VSCode Remote Development?
+    </div>
+    <div class="back">
+        <strong>Install Remote extensions:</strong> Search "Remote Development" extension pack (includes SSH, Containers, WSL)
+        <br><strong>Connect to SSH:</strong> <code>Ctrl+Shift+P</code> → "Remote-SSH: Connect to Host"
+        <br><strong>Open in container:</strong> <code>Ctrl+Shift+P</code> → "Remote-Containers: Open Folder in Container"
+        <br><strong>WSL (Windows):</strong> <code>Ctrl+Shift+P</code> → "WSL: Open Folder in WSL"
+        <p><strong>Why:</strong> Edit files on remote servers, inside Docker containers, or WSL with full VSCode features (IntelliSense, debugging, extensions).</p>
+        <p><strong>Remote-SSH features:</strong></p>
+        <ul>
+            <li>Edit files on remote server as if local</li>
+            <li>Integrated terminal runs on remote machine</li>
+            <li>Extensions run on remote (language servers, linters, etc.)</li>
+            <li>Port forwarding: access remote web servers in local browser</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Configure SSH config file: <code>~/.ssh/config</code> for saved connections</li>
+            <li>Remote indicator in bottom-left shows connection status</li>
+            <li>Some extensions need to be installed on remote side</li>
+            <li>Works over slow connections (unlike X11 forwarding)</li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts remote-development ssh containers wsl productivity EN</div>
+</div>
+
+<!-- Card 40 -->
+<div class="card">
+    <div class="front">
+        You want VSCode to be your default editor for Git commits and command-line file editing. How do you set VSCode as default editor?
+    </div>
+    <div class="back">
+        <strong>Set as Git editor:</strong>
+        <pre>git config --global core.editor "code --wait"</pre>
+        <strong>Open file from terminal:</strong> <code>code filename.txt</code>
+        <br><strong>Open folder:</strong> <code>code .</code> (opens current directory)
+        <br><strong>Open diff:</strong> <code>code --diff file1.txt file2.txt</code>
+        <p><strong>Why:</strong> Use VSCode for Git commits, rebases, merge conflicts from terminal. Better than nano/vim for long commit messages.</p>
+        <p><strong>Command-line options:</strong></p>
+        <ul>
+            <li><code>code .</code> - Open current folder</li>
+            <li><code>code -r .</code> - Reuse window (don't open new one)</li>
+            <li><code>code --wait</code> - Wait for file to be closed (needed for Git)</li>
+            <li><code>code -g file.txt:42</code> - Open at line 42</li>
+            <li><code>code --diff a.txt b.txt</code> - Open diff view</li>
+            <li><code>code --add folder</code> - Add folder to current workspace</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Add <code>code</code> to PATH: <code>Ctrl+Shift+P</code> → "Shell Command: Install 'code' command in PATH"</li>
+            <li>Works great with Git interactive rebase</li>
+            <li>Set merge tool: <code>git config --global merge.tool vscode</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs vscode shortcuts command-line git integration productivity EN</div>
+</div>
+
+</body>
+</html>
