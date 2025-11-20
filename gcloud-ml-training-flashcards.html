@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCloud ML Training Workflow - CS Vocab Flashcards</title>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You want to SSH into your training instance named "instance-20251115-061950" in zone us-west1-b. How do you connect to it?
+    </div>
+    <div class="back">
+        <strong>SSH to instance:</strong> <code>gcloud compute ssh instance-20251115-061950 --zone=us-west1-b</code>
+        <p><strong>Why:</strong> <code>gcloud compute ssh</code> is the GCP way to SSH into compute instances. It automatically handles SSH key management and uses your gcloud credentials. The <code>--zone</code> flag specifies which zone the instance is in.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>gcloud compute ssh INSTANCE --zone=ZONE</code> - Standard format</li>
+            <li><code>gcloud compute ssh INSTANCE</code> - Works if zone is configured or can be inferred</li>
+            <li>Regular SSH: <code>ssh username@EXTERNAL_IP</code> - But requires manual key setup</li>
+        </ul>
+        <p><strong>Context:</strong> GCP (Google Cloud Platform) uses similar concepts to AWS EC2 and Azure VMs - you create compute instances (virtual machines) and SSH into them. The main difference is that gcloud CLI handles authentication automatically using your Google credentials.</p>
+    </div>
+    <div class="tags">cs gcloud gcp ssh ml-training cloud EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You need to create a new GPU instance for training a reinforcement learning model. What's the basic command structure? What zones typically have GPU availability?
+    </div>
+    <div class="back">
+        <strong>Create GPU instance:</strong>
+        <pre>gcloud compute instances create my-training-instance \
+  --zone=us-west1-b \
+  --machine-type=n1-standard-8 \
+  --accelerator=type=nvidia-tesla-t4,count=1 \
+  --image-family=pytorch-latest-gpu \
+  --image-project=deeplearning-platform-release \
+  --boot-disk-size=200GB \
+  --maintenance-policy=TERMINATE</pre>
+        <p><strong>Why:</strong> This creates an instance with a GPU attached. <code>--accelerator</code> specifies GPU type/count, <code>--maintenance-policy=TERMINATE</code> is required for GPU instances, and the deep learning image comes pre-configured with CUDA/PyTorch.</p>
+        <p><strong>Good GPU zones:</strong> us-west1-b, us-central1-a, us-central1-c, europe-west4-a (check current availability)</p>
+        <p><strong>Context:</strong> Similar to AWS's <code>aws ec2 run-instances</code> with GPU instance types. GCP's deep learning images are analogous to AWS Deep Learning AMIs.</p>
+    </div>
+    <div class="tags">cs gcloud gcp gpu ml-training instance-creation EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You started a training job on your instance but need to disconnect without killing the job. How do you ensure the job keeps running? What's your workflow?
+    </div>
+    <div class="back">
+        <strong>Use tmux or screen before starting:</strong>
+        <pre># SSH in
+gcloud compute ssh my-instance --zone=us-west1-b
+
+# Start tmux session
+tmux new -s training
+
+# Run your training
+python train.py
+
+# Detach: Ctrl+b then d
+# Disconnect from SSH safely</pre>
+        <strong>Reattach later:</strong> <code>tmux attach -t training</code>
+        <p><strong>Why:</strong> Tmux/screen create persistent sessions that survive SSH disconnection. Your training job runs in the tmux session, not tied to your SSH connection.</p>
+        <p><strong>Alternatives:</strong> <code>screen -S training</code>, <code>nohup python train.py &amp;</code>, or use systemd services for production.</p>
+        <p><strong>Context:</strong> This is standard practice across all cloud platforms (AWS, Azure, GCP) - never run long jobs directly in SSH sessions.</p>
+    </div>
+    <div class="tags">cs gcloud tmux screen persistent-sessions ml-training EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        How do you list all your compute instances and see their status? How do you filter to just one zone?
+    </div>
+    <div class="back">
+        <strong>List all instances:</strong> <code>gcloud compute instances list</code><br>
+        <strong>Filter by zone:</strong> <code>gcloud compute instances list --zones=us-west1-b</code><br>
+        <strong>Show specific fields:</strong> <code>gcloud compute instances list --format="table(name,zone,status,machineType)"</code>
+        <p><strong>Why:</strong> Shows all instances across your project with their current state (RUNNING, STOPPED, etc.). Useful for checking what's running and where.</p>
+        <p><strong>Alternatives:</strong></p>
+        <ul>
+            <li><code>gcloud compute instances list --filter="zone:us-west1-b"</code></li>
+            <li>Use GCP Console web interface for visual overview</li>
+        </ul>
+        <p><strong>Context:</strong> Similar to <code>aws ec2 describe-instances</code> or <code>az vm list</code>. All major cloud providers have similar instance listing commands.</p>
+    </div>
+    <div class="tags">cs gcloud gcp instances list management EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        Your training is done and you want to stop the instance to avoid charges but keep it for later. What do you do? What about deleting it permanently?
+    </div>
+    <div class="back">
+        <strong>Stop instance (keep disk):</strong> <code>gcloud compute instances stop instance-20251115-061950 --zone=us-west1-b</code><br>
+        <strong>Start it again:</strong> <code>gcloud compute instances start instance-20251115-061950 --zone=us-west1-b</code><br>
+        <strong>Delete permanently:</strong> <code>gcloud compute instances delete instance-20251115-061950 --zone=us-west1-b</code>
+        <p><strong>Why:</strong> Stopping an instance releases compute resources (you only pay for disk storage). Starting resumes with same configuration. Deleting removes everything.</p>
+        <p><strong>Cost tip:</strong> Stopped instances still incur disk storage costs. Delete if you don't need the instance anymore.</p>
+        <p><strong>Context:</strong> Same behavior as AWS EC2 stop/start/terminate or Azure VM deallocate/start/delete. Standard cloud VM lifecycle.</p>
+    </div>
+    <div class="tags">cs gcloud gcp instances lifecycle cost-management EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You need to copy your trained model weights from the instance back to your local machine. How do you transfer files between your local machine and a GCP instance?
+    </div>
+    <div class="back">
+        <strong>Copy from instance to local:</strong>
+        <pre>gcloud compute scp instance-20251115-061950:~/models/checkpoint.pth . \
+  --zone=us-west1-b</pre>
+        <strong>Copy from local to instance:</strong>
+        <pre>gcloud compute scp ./data.zip instance-20251115-061950:~/data/ \
+  --zone=us-west1-b</pre>
+        <strong>Copy entire directory (recursive):</strong>
+        <pre>gcloud compute scp --recurse instance-20251115-061950:~/models/ ./models/ \
+  --zone=us-west1-b</pre>
+        <p><strong>Why:</strong> <code>gcloud compute scp</code> uses SCP protocol with automatic gcloud authentication. Similar syntax to regular <code>scp</code> but handles keys automatically.</p>
+        <p><strong>Alternatives:</strong> Use Cloud Storage as intermediary: <code>gsutil cp model.pth gs://my-bucket/</code>, then download locally.</p>
+    </div>
+    <div class="tags">cs gcloud gcp scp file-transfer ml-training EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        What's the difference between regular instances and preemptible instances for training? When would you use each?
+    </div>
+    <div class="back">
+        <strong>Create preemptible instance:</strong>
+        <pre>gcloud compute instances create my-preemptible \
+  --zone=us-west1-b \
+  --machine-type=n1-standard-8 \
+  --preemptible</pre>
+        <p><strong>Differences:</strong></p>
+        <ul>
+            <li><strong>Preemptible:</strong> Up to 80% cheaper, but Google can terminate anytime (max 24h runtime)</li>
+            <li><strong>Regular:</strong> Full price, runs until you stop it</li>
+        </ul>
+        <p><strong>Use preemptible when:</strong> Training can checkpoint frequently, you can handle interruptions, cost is critical</p>
+        <p><strong>Use regular when:</strong> Training is time-sensitive, can't afford interruptions, or runs &gt;24h</p>
+        <p><strong>Context:</strong> AWS calls these "Spot Instances", Azure calls them "Spot VMs". Same concept across cloud providers - spare capacity at discount with termination risk.</p>
+    </div>
+    <div class="tags">cs gcloud gcp preemptible spot-instances cost-optimization ml-training EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        How do you check the current costs and resource usage for your project? What about setting up billing alerts?
+    </div>
+    <div class="back">
+        <strong>Check billing in console:</strong> Go to Billing → Reports in GCP Console<br>
+        <strong>Command line estimate:</strong> <code>gcloud compute instances list --format="table(name,zone,machineType)"</code> (then check pricing)<br>
+        <strong>Set budget alert:</strong>
+        <ol>
+            <li>GCP Console → Billing → Budgets &amp; alerts</li>
+            <li>Create budget → Set amount → Configure email alerts</li>
+        </ol>
+        <p><strong>Why:</strong> GPU instances can be expensive ($1-3+ per hour). Setting budget alerts at 50%, 75%, 90% helps avoid surprise bills.</p>
+        <p><strong>Best practice:</strong> Always set billing alerts, tag instances with purpose/owner, delete instances when done, use preemptible for dev/testing.</p>
+        <p><strong>Context:</strong> All cloud providers (GCP, AWS, Azure) offer similar billing dashboards and budget alerts. Essential for cost control.</p>
+    </div>
+    <div class="tags">cs gcloud gcp billing cost-management monitoring EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You want to see what GPU types are available in your region. How do you check available accelerator types and quotas?
+    </div>
+    <div class="back">
+        <strong>List accelerator types:</strong>
+        <pre>gcloud compute accelerator-types list --filter="zone:us-west1-b"</pre>
+        <strong>Check your quotas:</strong>
+        <pre>gcloud compute project-info describe --project=YOUR_PROJECT</pre>
+        Or: GCP Console → IAM &amp; Admin → Quotas → Filter "GPU"
+        <p><strong>Why:</strong> Not all GPU types are available in all zones. You might need to request quota increase for certain GPUs (especially A100s/V100s).</p>
+        <p><strong>Common GPU types:</strong></p>
+        <ul>
+            <li><strong>nvidia-tesla-t4:</strong> Good price/performance, widely available</li>
+            <li><strong>nvidia-tesla-v100:</strong> High-end training, may need quota request</li>
+            <li><strong>nvidia-tesla-a100:</strong> Latest/fastest, usually requires quota increase</li>
+        </ul>
+        <p><strong>Context:</strong> AWS uses similar GPU types (p3.*, p4.*), Azure has N-series. All cloud providers have GPU quotas to prevent overuse.</p>
+    </div>
+    <div class="tags">cs gcloud gcp gpu accelerators quotas ml-training EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        How do you SSH into an instance and immediately run a command without starting an interactive session? How do you check if your training process is running?
+    </div>
+    <div class="back">
+        <strong>Run remote command:</strong>
+        <pre>gcloud compute ssh instance-20251115-061950 \
+  --zone=us-west1-b \
+  --command="ps aux | grep train.py"</pre>
+        <strong>Check GPU usage:</strong>
+        <pre>gcloud compute ssh instance-20251115-061950 \
+  --zone=us-west1-b \
+  --command="nvidia-smi"</pre>
+        <strong>Check tmux sessions:</strong>
+        <pre>gcloud compute ssh instance-20251115-061950 \
+  --zone=us-west1-b \
+  --command="tmux ls"</pre>
+        <p><strong>Why:</strong> Useful for quick checks without interactive SSH. The <code>--command</code> flag runs the command and returns output.</p>
+        <p><strong>Context:</strong> Similar to <code>ssh user@host "command"</code> on any SSH connection. Works the same across all cloud platforms.</p>
+    </div>
+    <div class="tags">cs gcloud gcp ssh remote-commands monitoring EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You want to increase the disk size of your instance because you're running out of space for training data. How do you resize the boot disk?
+    </div>
+    <div class="back">
+        <strong>Resize disk (instance must be stopped first):</strong>
+        <pre># 1. Stop instance
+gcloud compute instances stop instance-20251115-061950 --zone=us-west1-b
+
+# 2. Resize the boot disk
+gcloud compute disks resize instance-20251115-061950 \
+  --size=500GB \
+  --zone=us-west1-b
+
+# 3. Start instance
+gcloud compute instances start instance-20251115-061950 --zone=us-west1-b
+
+# 4. SSH in and expand filesystem
+sudo resize2fs /dev/sda1  # For ext4
+# or: sudo xfs_growfs /  # For XFS</pre>
+        <p><strong>Why:</strong> Disk resize increases the disk capacity, but you need to expand the filesystem to use the new space.</p>
+        <p><strong>Note:</strong> Can only increase size, not decrease. Will incur additional storage costs.</p>
+    </div>
+    <div class="tags">cs gcloud gcp disk-management storage ml-training EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        How do you create a snapshot of your instance before making major changes? How do you restore from a snapshot?
+    </div>
+    <div class="back">
+        <strong>Create disk snapshot:</strong>
+        <pre>gcloud compute disks snapshot instance-20251115-061950 \
+  --zone=us-west1-b \
+  --snapshot-names=training-backup-2025-01-19</pre>
+        <strong>List snapshots:</strong> <code>gcloud compute snapshots list</code><br>
+        <strong>Create instance from snapshot:</strong>
+        <pre>gcloud compute instances create restored-instance \
+  --zone=us-west1-b \
+  --source-snapshot=training-backup-2025-01-19</pre>
+        <p><strong>Why:</strong> Snapshots create point-in-time backups. Useful before upgrading CUDA, changing environments, or testing risky changes. Can restore entire instance state.</p>
+        <p><strong>Cost:</strong> Snapshots incur storage costs but are incremental (only changes stored after first snapshot).</p>
+        <p><strong>Context:</strong> Similar to AWS EBS snapshots or Azure VM snapshots. Standard cloud backup practice.</p>
+    </div>
+    <div class="tags">cs gcloud gcp snapshots backup disaster-recovery EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to use Google Cloud Storage to store training data and checkpoints instead of keeping everything on the instance disk. How do you interact with Cloud Storage buckets?
+    </div>
+    <div class="back">
+        <strong>List buckets:</strong> <code>gsutil ls</code><br>
+        <strong>Create bucket:</strong> <code>gsutil mb gs://my-training-bucket</code><br>
+        <strong>Upload files:</strong>
+        <pre># Single file
+gsutil cp checkpoint.pth gs://my-training-bucket/checkpoints/
+
+# Entire directory
+gsutil -m cp -r ./models/ gs://my-training-bucket/models/</pre>
+        <strong>Download files:</strong>
+        <pre>gsutil cp gs://my-training-bucket/data.zip ./data/</pre>
+        <strong>Sync directories:</strong>
+        <pre>gsutil -m rsync -r ./local_dir gs://my-training-bucket/remote_dir</pre>
+        <p><strong>Why:</strong> Cloud Storage is cheaper for large datasets, persists after instance deletion, and can be accessed by multiple instances.</p>
+        <p><strong>Context:</strong> GCS is like AWS S3 or Azure Blob Storage. <code>gsutil</code> is like <code>aws s3</code> CLI. All cloud platforms separate compute (instances) from storage (object storage).</p>
+    </div>
+    <div class="tags">cs gcloud gcp cloud-storage gsutil ml-training EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        How do you mount a Cloud Storage bucket as a filesystem on your instance using gcsfuse? When is this useful?
+    </div>
+    <div class="back">
+        <strong>Install gcsfuse (if not already installed):</strong>
+        <pre>export GCSFUSE_REPO=gcsfuse-`lsb_release -c -s`
+echo "deb https://packages.cloud.google.com/apt $GCSFUSE_REPO main" | sudo tee /etc/apt/sources.list.d/gcsfuse.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install gcsfuse</pre>
+        <strong>Mount bucket:</strong>
+        <pre>mkdir ~/gcs_mount
+gcsfuse my-training-bucket ~/gcs_mount</pre>
+        <strong>Use like normal directory:</strong> <code>ls ~/gcs_mount/</code>
+        <p><strong>Why:</strong> Allows reading GCS data like local files without explicit downloads. Useful for large datasets that don't fit on disk.</p>
+        <p><strong>Warning:</strong> Slower than local disk, not suitable for high-performance training. Good for large dataset storage + streaming reads.</p>
+        <p><strong>Context:</strong> Similar to AWS's s3fs or Azure's blobfuse.</p>
+    </div>
+    <div class="tags">cs gcloud gcp cloud-storage gcsfuse filesystem ml-training EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        How do you set up automatic startup and shutdown scripts for your instance? For example, to clone your repo on startup or save results on shutdown?
+    </div>
+    <div class="back">
+        <strong>Create instance with startup script:</strong>
+        <pre>gcloud compute instances create my-instance \
+  --zone=us-west1-b \
+  --metadata=startup-script='#!/bin/bash
+    cd /home/username
+    git clone https://github.com/user/repo.git
+    pip install -r requirements.txt'</pre>
+        <strong>Add startup script to existing instance:</strong>
+        <pre>gcloud compute instances add-metadata instance-20251115-061950 \
+  --zone=us-west1-b \
+  --metadata-from-file=startup-script=startup.sh</pre>
+        <strong>Shutdown script:</strong> Use <code>--metadata=shutdown-script='...'</code> (runs before instance stops)
+        <p><strong>Why:</strong> Startup scripts automate environment setup. Shutdown scripts can save state, upload results to Cloud Storage, etc.</p>
+        <p><strong>Note:</strong> Startup scripts run as root. Use <code>sudo -u username</code> for user-specific commands.</p>
+    </div>
+    <div class="tags">cs gcloud gcp metadata startup-scripts automation EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        How do you check real-time logs from your instance? What about checking the serial console output?
+    </div>
+    <div class="back">
+        <strong>Get serial console output:</strong>
+        <pre>gcloud compute instances get-serial-port-output instance-20251115-061950 \
+  --zone=us-west1-b</pre>
+        <strong>Tail serial output (follow):</strong>
+        <pre>gcloud compute instances tail-serial-port-output instance-20251115-061950 \
+  --zone=us-west1-b</pre>
+        <strong>Check Cloud Logging:</strong> GCP Console → Logging → Logs Explorer → Filter by instance name
+        <p><strong>Why:</strong> Serial console shows boot logs, startup script output, and system messages. Useful when SSH isn't working or debugging instance startup issues.</p>
+        <p><strong>Context:</strong> Similar to AWS EC2 "Get System Log" or Azure "Boot diagnostics". Standard cloud debugging tool.</p>
+    </div>
+    <div class="tags">cs gcloud gcp logging debugging serial-console EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to attach an additional persistent disk to your instance for storing large datasets. How do you create and attach a disk?
+    </div>
+    <div class="back">
+        <strong>Create persistent disk:</strong>
+        <pre>gcloud compute disks create my-data-disk \
+  --size=1TB \
+  --zone=us-west1-b \
+  --type=pd-standard  # or pd-ssd for faster</pre>
+        <strong>Attach to running instance:</strong>
+        <pre>gcloud compute instances attach-disk instance-20251115-061950 \
+  --disk=my-data-disk \
+  --zone=us-west1-b</pre>
+        <strong>Format and mount (SSH into instance first):</strong>
+        <pre>sudo mkfs.ext4 -F /dev/sdb
+sudo mkdir /mnt/data
+sudo mount /dev/sdb /mnt/data
+sudo chmod 777 /mnt/data</pre>
+        <p><strong>Why:</strong> Persistent disks survive instance deletion and can be detached/reattached. Useful for separating compute and storage.</p>
+        <p><strong>Disk types:</strong> pd-standard (HDD, cheap), pd-ssd (SSD, faster), pd-balanced (good middle ground)</p>
+    </div>
+    <div class="tags">cs gcloud gcp persistent-disk storage ml-training EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        How do you change the machine type of an existing instance to scale up or down? For example, adding more CPUs or RAM?
+    </div>
+    <div class="back">
+        <strong>Change machine type (must stop first):</strong>
+        <pre># 1. Stop instance
+gcloud compute instances stop instance-20251115-061950 --zone=us-west1-b
+
+# 2. Change machine type
+gcloud compute instances set-machine-type instance-20251115-061950 \
+  --zone=us-west1-b \
+  --machine-type=n1-standard-16
+
+# 3. Start instance
+gcloud compute instances start instance-20251115-061950 --zone=us-west1-b</pre>
+        <p><strong>Why:</strong> Allows scaling resources up (for intensive training) or down (to save costs when idle).</p>
+        <p><strong>Common machine types for ML:</strong></p>
+        <ul>
+            <li>n1-standard-8: 8 vCPU, 30GB RAM (general purpose)</li>
+            <li>n1-highmem-8: 8 vCPU, 52GB RAM (memory intensive)</li>
+            <li>n1-highcpu-16: 16 vCPU, 14.4GB RAM (CPU intensive)</li>
+        </ul>
+        <p><strong>Context:</strong> Similar to AWS "Change Instance Type" or Azure "Resize VM". Common cloud operation for right-sizing resources.</p>
+    </div>
+    <div class="tags">cs gcloud gcp machine-type scaling resources EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        What's the difference between <code>gcloud compute ssh</code> and regular <code>ssh</code>? Can you use regular SSH with GCP instances?
+    </div>
+    <div class="back">
+        <strong>Using gcloud compute ssh:</strong>
+        <pre>gcloud compute ssh instance-name --zone=us-west1-b</pre>
+        <ul>
+            <li>Automatically manages SSH keys</li>
+            <li>Uses your gcloud credentials</li>
+            <li>No manual key setup needed</li>
+            <li>Works with OS Login if enabled</li>
+        </ul>
+        <strong>Using regular SSH:</strong>
+        <pre># First, add SSH key to instance metadata
+# Then: ssh username@EXTERNAL_IP</pre>
+        <ul>
+            <li>Need to manually add SSH public key to instance</li>
+            <li>Need to know external IP address</li>
+            <li>More control over SSH options</li>
+        </ul>
+        <p><strong>Best practice:</strong> Use <code>gcloud compute ssh</code> for convenience. Use regular SSH if you need custom SSH config or have specific key requirements.</p>
+        <p><strong>Context:</strong> AWS has similar tool (<code>aws ssm start-session</code>), Azure has <code>az ssh</code>. Cloud providers add auth layer on top of standard SSH.</p>
+    </div>
+    <div class="tags">cs gcloud gcp ssh authentication EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        How do you configure your default region and zone so you don't have to specify <code>--zone</code> every time?
+    </div>
+    <div class="back">
+        <strong>Set default zone:</strong> <code>gcloud config set compute/zone us-west1-b</code><br>
+        <strong>Set default region:</strong> <code>gcloud config set compute/region us-west1</code><br>
+        <strong>View current config:</strong> <code>gcloud config list</code><br>
+        <strong>View all zones:</strong> <code>gcloud compute zones list</code>
+        <p><strong>Why:</strong> After setting defaults, you can omit <code>--zone</code> flag: <code>gcloud compute ssh instance-name</code></p>
+        <p><strong>Multiple configs:</strong> Create separate configurations for different projects/regions:
+        <pre>gcloud config configurations create dev-config
+gcloud config configurations activate dev-config
+gcloud config set compute/zone us-central1-a</pre>
+        </p>
+        <p><strong>Context:</strong> AWS uses <code>aws configure</code>, Azure uses <code>az configure --defaults</code>. All cloud CLIs support default regions/zones.</p>
+    </div>
+    <div class="tags">cs gcloud gcp configuration defaults EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        You're sharing a GCP project with teammates. How do you tag instances so everyone knows who owns what? How do you filter instances by tags?
+    </div>
+    <div class="back">
+        <strong>Create instance with labels:</strong>
+        <pre>gcloud compute instances create my-instance \
+  --zone=us-west1-b \
+  --labels=owner=alice,purpose=rl-training,experiment=run-42</pre>
+        <strong>Add labels to existing instance:</strong>
+        <pre>gcloud compute instances add-labels instance-20251115-061950 \
+  --zone=us-west1-b \
+  --labels=owner=alice,purpose=training</pre>
+        <strong>List instances with specific labels:</strong>
+        <pre>gcloud compute instances list --filter="labels.owner=alice"</pre>
+        <strong>Remove labels:</strong>
+        <pre>gcloud compute instances remove-labels instance-20251115-061950 \
+  --zone=us-west1-b \
+  --labels=experiment</pre>
+        <p><strong>Why:</strong> Labels help organize resources, track costs by owner/project, and quickly identify instances in shared environments.</p>
+        <p><strong>Best practice:</strong> Use labels like: owner, purpose, environment (dev/prod), experiment-id, cost-center.</p>
+    </div>
+    <div class="tags">cs gcloud gcp labels metadata organization EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        How do you set up SSH port forwarding to access Jupyter or TensorBoard running on your instance? What about accessing via browser?
+    </div>
+    <div class="back">
+        <strong>Method 1: SSH tunnel via gcloud:</strong>
+        <pre>gcloud compute ssh instance-20251115-061950 \
+  --zone=us-west1-b \
+  -- -L 8888:localhost:8888</pre>
+        Then open browser: <code>http://localhost:8888</code>
+        <strong>Method 2: Using gcloud's built-in tunnel:</strong>
+        <pre># For Jupyter
+gcloud compute ssh instance-20251115-061950 \
+  --zone=us-west1-b \
+  --ssh-flag="-L 8888:localhost:8888"
+
+# For TensorBoard
+gcloud compute ssh instance-20251115-061950 \
+  --zone=us-west1-b \
+  --ssh-flag="-L 6006:localhost:6006"</pre>
+        <p><strong>Why:</strong> Port forwarding creates secure tunnel from your local machine to instance port. Safer than opening firewall ports.</p>
+        <p><strong>Run Jupyter on instance:</strong> <code>jupyter notebook --no-browser --port=8888</code></p>
+        <p><strong>Context:</strong> Standard SSH port forwarding (<code>ssh -L</code>) works identically across all platforms (GCP, AWS, Azure, bare metal).</p>
+    </div>
+    <div class="tags">cs gcloud gcp ssh port-forwarding jupyter tensorboard EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        You want to run a training script on startup automatically (not just setup). How do you make the instance start training immediately after boot?
+    </div>
+    <div class="back">
+        <strong>Option 1: Startup script with tmux:</strong>
+        <pre>gcloud compute instances create my-instance \
+  --metadata=startup-script='#!/bin/bash
+    # Wait for user environment
+    sleep 30
+    # Run as user, not root
+    sudo -u username bash -c "
+      cd /home/username/project
+      tmux new-session -d -s training '\''python train.py'\''
+    "'</pre>
+        <strong>Option 2: Systemd service (more robust):</strong>
+        Create startup script that installs service:
+        <pre>#!/bin/bash
+cat > /etc/systemd/system/training.service << EOF
+[Unit]
+Description=Training Job
+After=network.target
+
+[Service]
+User=username
+WorkingDirectory=/home/username/project
+ExecStart=/usr/bin/python3 train.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl enable training
+systemctl start training</pre>
+        <p><strong>Why:</strong> Startup scripts run on every boot. Combined with auto-restart policies, can create fully automated training pipeline.</p>
+    </div>
+    <div class="tags">cs gcloud gcp startup-scripts automation systemd ml-training EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        What's the relationship between GCP, AWS, and Azure? Are the concepts transferable?
+    </div>
+    <div class="back">
+        <strong>Core concepts are nearly identical across cloud providers:</strong>
+        <table>
+            <tr><th>GCP</th><th>AWS</th><th>Azure</th><th>Concept</th></tr>
+            <tr><td>Compute Engine</td><td>EC2</td><td>Virtual Machines</td><td>Virtual servers</td></tr>
+            <tr><td>Cloud Storage</td><td>S3</td><td>Blob Storage</td><td>Object storage</td></tr>
+            <tr><td>Cloud SQL</td><td>RDS</td><td>Azure SQL</td><td>Managed databases</td></tr>
+            <tr><td>gcloud CLI</td><td>aws CLI</td><td>az CLI</td><td>Command line tools</td></tr>
+            <tr><td>Preemptible VMs</td><td>Spot Instances</td><td>Spot VMs</td><td>Cheap interruptible compute</td></tr>
+        </table>
+        <p><strong>Learning curve:</strong> If you know one cloud platform well, you can pick up another in days. The underlying concepts (VMs, storage, networking, IAM) are universal.</p>
+        <p><strong>GCP specifics:</strong> Better for ML/AI (TPUs, Vertex AI), simpler pricing, Google's network. AWS has most services/maturity. Azure integrates with Microsoft ecosystem.</p>
+        <p><strong>Context:</strong> Most ML engineers learn GCP for training, AWS for general cloud, Azure if company uses Microsoft stack.</p>
+    </div>
+    <div class="tags">cs gcloud gcp aws azure cloud-comparison EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        How do you describe the full configuration of an instance? How do you clone an instance with the same configuration?
+    </div>
+    <div class="back">
+        <strong>Describe instance details:</strong>
+        <pre>gcloud compute instances describe instance-20251115-061950 \
+  --zone=us-west1-b</pre>
+        Shows: machine type, disks, GPUs, metadata, network, etc.
+        <strong>Export to YAML:</strong>
+        <pre>gcloud compute instances describe instance-20251115-061950 \
+  --zone=us-west1-b \
+  --format=yaml > instance-config.yaml</pre>
+        <strong>Clone instance (create similar one):</strong>
+        <pre>gcloud compute instances create cloned-instance \
+  --zone=us-west1-b \
+  --source-instance-template=TEMPLATE_NAME
+
+# Or manually specify same flags:
+gcloud compute instances create cloned-instance \
+  --zone=us-west1-b \
+  --machine-type=n1-standard-8 \
+  --accelerator=type=nvidia-tesla-t4,count=1 \
+  --boot-disk-size=200GB \
+  --image-family=pytorch-latest-gpu \
+  --image-project=deeplearning-platform-release</pre>
+        <p><strong>Best practice:</strong> Use instance templates for reproducible configs.</p>
+    </div>
+    <div class="tags">cs gcloud gcp instances configuration templates EN</div>
+</div>
+
+<!-- Card 26 -->
+<div class="card">
+    <div class="front">
+        You want to monitor GPU utilization over time during training. What tools can you use? How do you log metrics?
+    </div>
+    <div class="back">
+        <strong>Real-time monitoring on instance:</strong>
+        <pre># Watch GPU usage (updates every 1s)
+watch -n 1 nvidia-smi
+
+# Or use gpustat (pip install gpustat)
+gpustat -i 1</pre>
+        <strong>Log GPU metrics to file:</strong>
+        <pre>nvidia-smi --query-gpu=timestamp,name,temperature.gpu,utilization.gpu,utilization.memory,memory.used,memory.total \
+  --format=csv \
+  --loop=10 > gpu_log.csv</pre>
+        <strong>Cloud Monitoring (via agent):</strong>
+        <ol>
+            <li>Install Cloud Monitoring agent</li>
+            <li>View in GCP Console → Monitoring → Metrics Explorer</li>
+            <li>Query GPU metrics: <code>compute.googleapis.com/instance/gpu/utilization</code></li>
+        </ol>
+        <p><strong>Why:</strong> Monitoring ensures GPUs are actually being utilized (not CPU-bottlenecked) and helps justify costs.</p>
+        <p><strong>TensorBoard logging:</strong> Use <code>torch.utils.tensorboard</code> or <code>wandb</code> for training metrics.</p>
+    </div>
+    <div class="tags">cs gcloud gcp gpu monitoring nvidia-smi ml-training EN</div>
+</div>
+
+<!-- Card 27 -->
+<div class="card">
+    <div class="front">
+        What's the difference between using Deep Learning VM images vs. starting from a base Ubuntu image? When would you use each?
+    </div>
+    <div class="back">
+        <strong>Deep Learning VM image:</strong>
+        <pre>--image-family=pytorch-latest-gpu \
+--image-project=deeplearning-platform-release</pre>
+        <ul>
+            <li>Pre-installed: CUDA, cuDNN, PyTorch/TensorFlow, Jupyter</li>
+            <li>GPU drivers already configured</li>
+            <li>Ready to train immediately</li>
+            <li>Regularly updated by Google</li>
+        </ul>
+        <strong>Base Ubuntu image:</strong>
+        <pre>--image-family=ubuntu-2204-lts \
+--image-project=ubuntu-os-cloud</pre>
+        <ul>
+            <li>Clean slate, install what you need</li>
+            <li>Must install CUDA, drivers, frameworks manually</li>
+            <li>More control over versions</li>
+            <li>Smaller initial disk usage</li>
+        </ul>
+        <p><strong>Use Deep Learning VM when:</strong> You want to start training quickly, standard versions are fine</p>
+        <p><strong>Use base Ubuntu when:</strong> You need specific versions, minimal install, or non-standard setup</p>
+        <p><strong>Context:</strong> Similar to AWS Deep Learning AMIs vs. base AMIs. DL images save hours of setup time.</p>
+    </div>
+    <div class="tags">cs gcloud gcp images deep-learning ml-training setup EN</div>
+</div>
+
+<!-- Card 28 -->
+<div class="card">
+    <div class="front">
+        You're running multiple experiments and want to organize them. How do you use different GCP projects? How do you switch between projects?
+    </div>
+    <div class="back">
+        <strong>List your projects:</strong> <code>gcloud projects list</code><br>
+        <strong>Switch active project:</strong> <code>gcloud config set project PROJECT_ID</code><br>
+        <strong>Create new project:</strong> (Usually done in GCP Console)<br>
+        <strong>View current project:</strong> <code>gcloud config get-value project</code>
+        <p><strong>Why use separate projects:</strong></p>
+        <ul>
+            <li>Separate billing (track costs per project)</li>
+            <li>Isolate resources (dev/staging/prod)</li>
+            <li>Different team access controls</li>
+            <li>Avoid resource quota conflicts</li>
+        </ul>
+        <p><strong>Workflow example:</strong></p>
+        <pre># Personal experiments
+gcloud config set project alice-rl-research
+
+# Shared team project
+gcloud config set project team-ml-training</pre>
+        <p><strong>Context:</strong> AWS uses "accounts" + "organizations", Azure uses "subscriptions". Projects/accounts are the top-level isolation boundary in all clouds.</p>
+    </div>
+    <div class="tags">cs gcloud gcp projects organization configuration EN</div>
+</div>
+
+<!-- Card 29 -->
+<div class="card">
+    <div class="front">
+        How do you set up automatic instance scheduling to save costs? For example, auto-stop at night, auto-start in morning?
+    </div>
+    <div class="back">
+        <strong>Option 1: Cloud Scheduler + Cloud Functions:</strong>
+        <ol>
+            <li>Create Cloud Function to stop/start instance</li>
+            <li>Set up Cloud Scheduler cron jobs to trigger function</li>
+            <li>Example: Stop at 6pm, start at 8am weekdays</li>
+        </ol>
+        <strong>Option 2: Instance schedules (newer feature):</strong>
+        <pre># Create schedule
+gcloud compute resource-policies create instance-schedule my-schedule \
+  --region=us-west1 \
+  --vm-start-schedule="0 8 * * 1-5" \
+  --vm-stop-schedule="0 18 * * 1-5" \
+  --timezone="America/Los_Angeles"
+
+# Attach to instance
+gcloud compute instances add-resource-policies instance-20251115-061950 \
+  --zone=us-west1-b \
+  --resource-policies=my-schedule</pre>
+        <p><strong>Why:</strong> Automatic stop/start can save 50-75% on compute costs if you're not training 24/7.</p>
+        <p><strong>Cron format:</strong> <code>minute hour day month weekday</code> (same as standard cron)</p>
+        <p><strong>Best practice:</strong> Use for dev instances, not production training that must run continuously.</p>
+    </div>
+    <div class="tags">cs gcloud gcp scheduling automation cost-optimization EN</div>
+</div>
+
+<!-- Card 30 -->
+<div class="card">
+    <div class="front">
+        How do you handle SSH connection drops during long operations? What about reconnecting to the same tmux session automatically?
+    </div>
+    <div class="back">
+        <strong>SSH with automatic reconnect (using mosh):</strong>
+        <pre># Install mosh on both local and remote
+sudo apt-get install mosh  # Or: brew install mosh
+
+# Connect with mosh instead of SSH
+mosh username@EXTERNAL_IP</pre>
+        Mosh survives network changes, IP changes, laptop sleep.
+        <strong>Auto-reconnect to tmux with alias:</strong>
+        <pre># Add to ~/.bashrc on local machine:
+alias train-connect="gcloud compute ssh instance-20251115-061950 --zone=us-west1-b -- -t 'tmux attach -t training || tmux new -s training'"</pre>
+        Then just run: <code>train-connect</code>
+        <strong>Check tmux from outside:</strong>
+        <pre>gcloud compute ssh instance-20251115-061950 \
+  --zone=us-west1-b \
+  --command="tmux capture-pane -p -t training"</pre>
+        <p><strong>Why:</strong> SSH drops on network changes, laptop sleep, etc. Mosh + tmux = robust remote sessions.</p>
+        <p><strong>Alternative:</strong> Use screen instead of tmux (similar but slightly different commands).</p>
+    </div>
+    <div class="tags">cs gcloud gcp ssh mosh tmux reliability EN</div>
+</div>
+
+</body>
+</html>
