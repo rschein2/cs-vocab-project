@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Control & Background Processes - CS Vocab Flashcards</title>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You started a long-running process but forgot to add "&" at the end to run it in background. Now your terminal is stuck waiting. How do you move it to the background without killing it?
+    </div>
+    <div class="back">
+        <strong>Suspend and background:</strong>
+        <ol>
+            <li><code>Ctrl+Z</code> - Suspends (pauses) the process</li>
+            <li><code>bg</code> - Resumes it in background</li>
+        </ol>
+        <p><strong>Why:</strong> <code>Ctrl+Z</code> sends SIGTSTP (stop signal), pausing the process. <code>bg</code> continues it in background with SIGCONT.</p>
+        <p><strong>Example:</strong></p>
+        <pre>$ python long_training.py
+# Oops, terminal stuck...
+# Press Ctrl+Z
+[1]+ Stopped    python long_training.py
+$ bg
+[1]+ python long_training.py &amp;
+# Now running in background, terminal free!</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Suspended processes are PAUSED, not running - must use <code>bg</code> to continue</li>
+            <li>Number in brackets [1] is the job number</li>
+            <li>The <code>&amp;</code> shown after <code>bg</code> indicates background status</li>
+            <li>Next time: Start with <code>python long_training.py &amp;</code></li>
+            <li>Or use <code>nohup</code> or <code>screen</code>/<code>tmux</code> for important jobs</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control background processes EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You have a process running in the background but need to bring it back to interact with it (provide input, see output clearly, etc.). How do you bring background jobs to foreground?
+    </div>
+    <div class="back">
+        <strong>Bring to foreground:</strong> <code>fg</code>
+        <br><strong>Specific job:</strong> <code>fg %1</code> (job number 1)
+        <br><strong>By job name:</strong> <code>fg %python</code> (matches "python")
+        <p><strong>Why:</strong> Background jobs can't receive keyboard input. Foreground lets you interact with the process.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># List jobs first
+$ jobs
+[1]   Running    python train.py &amp;
+[2]-  Running    npm run dev &amp;
+[3]+  Running    tail -f log.txt &amp;
+
+# Bring most recent (marked with +) to foreground
+$ fg
+tail -f log.txt
+
+# Bring specific job
+$ fg %1
+python train.py
+
+# Or by name
+$ fg %npm
+npm run dev</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>+</code> marks current job (default for <code>fg</code>)</li>
+            <li><code>-</code> marks previous job</li>
+            <li>After bringing to foreground: <code>Ctrl+C</code> to kill, or <code>Ctrl+Z</code> then <code>bg</code> to return to background</li>
+            <li><code>fg %py</code> works for partial name matches</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control foreground processes EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You want to see what jobs are running in the current shell session. How do you list all jobs?
+    </div>
+    <div class="back">
+        <strong>List all jobs:</strong> <code>jobs</code>
+        <br><strong>With process IDs:</strong> <code>jobs -l</code>
+        <br><strong>Only running:</strong> <code>jobs -r</code>
+        <br><strong>Only stopped:</strong> <code>jobs -s</code>
+        <p><strong>Why:</strong> Shows all processes started from current shell, their status (Running/Stopped), and job numbers.</p>
+        <p><strong>Example output:</strong></p>
+        <pre>$ jobs
+[1]   Running    python train.py &amp;
+[2]-  Running    npm run dev &amp;
+[3]+  Stopped    vim notes.txt
+
+$ jobs -l
+[1]  12345 Running    python train.py &amp;
+[2]  12346 Running    npm run dev &amp;
+[3]  12347 Stopped    vim notes.txt</pre>
+        <p><strong>Job symbols:</strong></p>
+        <ul>
+            <li><code>+</code> - Current job (default for <code>fg</code>, <code>bg</code>)</li>
+            <li><code>-</code> - Previous job</li>
+            <li>Number in brackets [1] - Job ID for referencing with <code>%1</code></li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Jobs are shell-specific - each terminal has its own job list</li>
+            <li>Exit shell → all jobs killed (unless disowned)</li>
+            <li><code>jobs -l</code> shows PID for using with <code>kill</code></li>
+            <li>Different from <code>ps</code> which shows all processes system-wide</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control jobs processes EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You want to start a command that will keep running even after you close the terminal or logout. How do you start a process that persists after shell exit?
+    </div>
+    <div class="back">
+        <strong>Method 1 - nohup:</strong> <code>nohup command &amp;</code>
+        <br><strong>Method 2 - disown:</strong> Start normally, then <code>disown %1</code>
+        <br><strong>Method 3 - screen/tmux:</strong> Run in persistent session
+        <p><strong>Why:</strong> Normally, closing terminal sends SIGHUP to all jobs, killing them. These methods prevent that.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Method 1: nohup (no hangup)
+$ nohup python long_script.py &amp;
+nohup: ignoring input and appending output to 'nohup.out'
+# Output goes to nohup.out file
+# Closing terminal won't kill it
+
+# Method 2: disown
+$ python long_script.py &amp;
+[1] 12345
+$ disown %1
+# Job removed from job table, won't receive SIGHUP
+
+# Method 3: Already running? Ctrl+Z, then disown
+$ python script.py
+^Z
+[1]+  Stopped    python script.py
+$ bg
+$ disown</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><strong>nohup:</strong> Best for planned long-running tasks</li>
+            <li><strong>disown:</strong> Best when you forgot to use nohup</li>
+            <li><strong>screen/tmux:</strong> Best for interactive sessions you want to reconnect to</li>
+            <li>Output redirection: <code>nohup command > output.log 2>&1 &amp;</code></li>
+            <li>After <code>disown</code>, job not shown in <code>jobs</code> but still running (check with <code>ps</code>)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control nohup disown persistent EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You started multiple commands in the background with "&" and want to wait for them all to complete before continuing. How do you wait for background jobs?
+    </div>
+    <div class="back">
+        <strong>Wait for all background jobs:</strong> <code>wait</code>
+        <br><strong>Wait for specific job:</strong> <code>wait %1</code> or <code>wait PID</code>
+        <br><strong>In scripts:</strong> Check exit status with <code>$?</code> after wait
+        <p><strong>Why:</strong> <code>wait</code> blocks until background jobs finish. Essential for scripts that run parallel tasks.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Run multiple tasks in parallel
+$ python process1.py &amp;
+$ python process2.py &amp;
+$ python process3.py &amp;
+$ wait
+# Blocks until all three finish
+$ echo "All done!"
+
+# Wait for specific job
+$ python task1.py &amp;
+[1] 12345
+$ python task2.py &amp;
+[2] 12346
+$ wait %1
+# Continues after task1 finishes, task2 may still be running
+
+# In script - parallel processing
+#!/bin/bash
+for file in *.txt; do
+    process_file "$file" &amp;
+done
+wait  # Wait for all to complete
+echo "All files processed"</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Without <code>wait</code>, script would continue immediately</li>
+            <li>Returns exit status of waited job (0 = success)</li>
+            <li>Great for parallel processing in scripts</li>
+            <li>Can wait on PID: <code>wait 12345</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control wait parallel EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        What's the difference between Ctrl+C and Ctrl+Z? When should you use each?
+    </div>
+    <div class="back">
+        <strong>Ctrl+C:</strong> Sends SIGINT - Interrupts and terminates process
+        <br><strong>Ctrl+Z:</strong> Sends SIGTSTP - Suspends (pauses) process, keeps it in job list
+        <p><strong>Key differences:</strong></p>
+        <table>
+            <tr><th></th><th>Ctrl+C</th><th>Ctrl+Z</th></tr>
+            <tr><td>Effect</td><td>Terminates process</td><td>Pauses process</td></tr>
+            <tr><td>Signal</td><td>SIGINT</td><td>SIGTSTP</td></tr>
+            <tr><td>Can resume?</td><td>No (process dead)</td><td>Yes (bg/fg)</td></tr>
+            <tr><td>In job list?</td><td>No</td><td>Yes (Stopped)</td></tr>
+        </table>
+        <p><strong>Use Ctrl+C when:</strong></p>
+        <ul>
+            <li>You want to stop the process completely</li>
+            <li>Command is done/no longer needed</li>
+            <li>Process is misbehaving</li>
+        </ul>
+        <p><strong>Use Ctrl+Z when:</strong></p>
+        <ul>
+            <li>You want to pause to do something else</li>
+            <li>Forgot to start in background, want to move it there</li>
+            <li>Need terminal temporarily but want to resume later</li>
+        </ul>
+        <p><strong>Common workflow:</strong></p>
+        <pre># Editing file, need to check something
+$ vim file.txt
+# Ctrl+Z to suspend
+[1]+  Stopped    vim file.txt
+$ ls  # Do other stuff
+$ fg  # Return to vim</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Ctrl+C is "cancel", Ctrl+Z is "pause"</li>
+            <li>Don't forget about suspended jobs - they use memory</li>
+            <li>Check stopped jobs: <code>jobs -s</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control signals ctrl-c ctrl-z EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You have many suspended/stopped jobs piling up from accidentally pressing Ctrl+Z. How do you clean them up?
+    </div>
+    <div class="back">
+        <strong>Kill specific job:</strong> <code>kill %1</code> (job 1)
+        <br><strong>Kill by name:</strong> <code>kill %python</code>
+        <br><strong>Kill all jobs:</strong> <code>kill $(jobs -p)</code>
+        <br><strong>Resume and quit properly:</strong> <code>fg</code> then <code>Ctrl+C</code>
+        <p><strong>Why:</strong> Stopped jobs still consume memory. Better to kill or properly resume them.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># See what's stopped
+$ jobs -s
+[1]-  Stopped    vim notes.txt
+[2]+  Stopped    python script.py
+[3]   Stopped    less log.txt
+
+# Kill specific jobs
+$ kill %1
+$ kill %python
+
+# Or kill all jobs at once
+$ kill $(jobs -p)
+[1]   Terminated    vim notes.txt
+[2]   Terminated    python script.py
+[3]-  Terminated    less log.txt
+
+# Alternative: Resume and quit properly
+$ fg %1
+vim notes.txt
+:q  # Quit vim properly</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>jobs -p</code> lists PIDs only (good for kill)</li>
+            <li><code>kill %job</code> uses job number/name</li>
+            <li><code>kill PID</code> uses process ID</li>
+            <li>Exiting shell kills all jobs anyway, but better to clean up</li>
+            <li>For stubborn processes: <code>kill -9 %1</code> (SIGKILL)</li>
+        </ul>
+        <p><strong>Prevention:</strong> Don't reflexively hit Ctrl+Z - use Ctrl+C if you're done with the process</p>
+    </div>
+    <div class="tags">cs bash job-control kill cleanup EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You started a command with "&" to run in background, but it's still printing output to your terminal, making it hard to work. How do you redirect output when backgrounding?
+    </div>
+    <div class="back">
+        <strong>Redirect stdout and stderr:</strong> <code>command > output.log 2>&1 &</code>
+        <br><strong>Discard all output:</strong> <code>command > /dev/null 2>&1 &</code>
+        <br><strong>With nohup:</strong> <code>nohup command > output.log 2>&1 &</code>
+        <p><strong>Why:</strong> Background processes still write to terminal by default. Redirection sends output elsewhere.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Bad: output still clutters terminal
+$ python train.py &amp;
+[1] 12345
+Epoch 1/100...
+Epoch 2/100...  # Annoying!
+
+# Good: redirect to file
+$ python train.py > training.log 2>&1 &amp;
+[1] 12345
+# Clean terminal, output in training.log
+
+# Discard output entirely
+$ python script.py > /dev/null 2>&1 &amp;
+
+# With nohup (persists after logout)
+$ nohup python train.py > training.log 2>&1 &amp;
+[1] 12345
+nohup: ignoring input and appending output to 'training.log'</pre>
+        <p><strong>Redirection breakdown:</strong></p>
+        <ul>
+            <li><code>&gt; output.log</code> - Redirect stdout to file</li>
+            <li><code>2>&1</code> - Redirect stderr to same place as stdout</li>
+            <li><code>&</code> - Run in background</li>
+            <li>Order matters: <code>&gt; file 2>&1</code> not <code>2>&1 &gt; file</code></li>
+        </ul>
+        <p><strong>Monitor output:</strong> <code>tail -f output.log</code> to watch in real-time</p>
+    </div>
+    <div class="tags">cs bash job-control redirection background EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You want to check if a background job is still running or if it finished/crashed. How do you check the status of jobs?
+    </div>
+    <div class="back">
+        <strong>List jobs with status:</strong> <code>jobs</code>
+        <br><strong>Check if specific job exists:</strong> <code>jobs %1</code> (returns exit code 0 if exists)
+        <br><strong>Check exit status:</strong> <code>wait %1; echo $?</code>
+        <br><strong>With process ID:</strong> <code>ps -p PID</code>
+        <p><strong>Why:</strong> Background jobs can finish or fail silently. Check status to know what happened.</p>
+        <p><strong>Examples:</strong></p>
+        <pre>$ jobs
+[1]   Running    python train.py &amp;
+[2]+  Done       npm install
+[3]-  Exit 1     python test.py
+
+# Job 2 finished successfully
+# Job 3 exited with error (Exit 1)
+
+# Check specific job
+$ jobs %1
+[1]   Running    python train.py &amp;
+
+# Wait and check exit status
+$ wait %2
+$ echo $?
+0  # Success!
+
+# Check by PID
+$ jobs -l
+[1]  12345 Running    python train.py &amp;
+$ ps -p 12345
+  PID TTY      TIME CMD
+12345 pts/0    00:01:23 python</pre>
+        <p><strong>Job status indicators:</strong></p>
+        <ul>
+            <li><strong>Running</strong> - Currently executing</li>
+            <li><strong>Stopped</strong> - Suspended with Ctrl+Z</li>
+            <li><strong>Done</strong> - Finished successfully</li>
+            <li><strong>Exit N</strong> - Finished with error code N</li>
+            <li><strong>Terminated</strong> - Killed by signal</li>
+        </ul>
+        <p><strong>Tip:</strong> Shell only reports job status when you run a command. Type <code>Enter</code> to refresh job status</p>
+    </div>
+    <div class="tags">cs bash job-control status monitoring EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        What's the difference between running a command with "&" at the end vs in a subshell with "( )"? When would you use each?
+    </div>
+    <div class="back">
+        <strong>Background (&):</strong> <code>command &</code> - Runs in background of current shell
+        <br><strong>Subshell (()):</strong> <code>(command)</code> - Runs in separate subshell, foreground
+        <br><strong>Background subshell:</strong> <code>(command) &</code> - Best of both
+        <p><strong>Differences:</strong></p>
+        <table>
+            <tr><th>Feature</th><th>command &</th><th>(command)</th><th>(command) &</th></tr>
+            <tr><td>Background?</td><td>Yes</td><td>No</td><td>Yes</td></tr>
+            <tr><td>Separate shell?</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+            <tr><td>Can fg/bg?</td><td>Yes</td><td>N/A</td><td>Yes</td></tr>
+            <tr><td>Env changes affect parent?</td><td>Yes</td><td>No</td><td>No</td></tr>
+        </table>
+        <p><strong>Examples:</strong></p>
+        <pre># Background - shares environment
+$ export VAR=test
+$ python script.py &amp;  # Can see $VAR
+
+# Subshell - isolated environment
+$ (cd /tmp && ls)  # cd doesn't affect parent shell
+$ pwd
+/home/user  # Still in original directory
+
+# Background subshell - isolated AND background
+$ (cd /tmp && python script.py) &amp;
+# Runs in /tmp, background, doesn't affect parent cd
+
+# Multiple commands, background
+$ (command1 && command2 && command3) &amp;
+[1] 12345
+# All three run in background as one job</pre>
+        <p><strong>Use & when:</strong> Simple background task, environment changes OK
+        <p><strong>Use () when:</strong> Need isolation (temp cd, temp variables)
+        <p><strong>Use () & when:</strong> Background task that needs isolation
+    </div>
+    <div class="tags">cs bash job-control subshells background EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You're running a compute-intensive task and want to lower its priority so it doesn't slow down your other work. How do you control process priority?
+    </div>
+    <div class="back">
+        <strong>Start with low priority:</strong> <code>nice -n 19 command</code>
+        <br><strong>Lower priority of running process:</strong> <code>renice +10 PID</code>
+        <br><strong>Background with low priority:</strong> <code>nice -n 19 command &</code>
+        <p><strong>Why:</strong> "nice" sets CPU priority (niceness). Higher niceness = lower priority = "nicer" to other processes.</p>
+        <p><strong>Niceness scale:</strong></p>
+        <ul>
+            <li><strong>-20</strong> - Highest priority (requires root)</li>
+            <li><strong>0</strong> - Default priority</li>
+            <li><strong>19</strong> - Lowest priority (recommended for background tasks)</li>
+        </ul>
+        <p><strong>Examples:</strong></p>
+        <pre># Start heavy computation with low priority
+$ nice -n 19 python train_model.py &amp;
+
+# Check priority (NI column)
+$ ps -l
+F S   UID   PID  PPID  NI  PRI  ADDR SZ WCHAN  TTY     TIME CMD
+0 S  1000 12345 12344  19   80     - 1234 -      pts/0   0:30 python
+
+# Lower priority of running process (get PID from jobs -l or ps)
+$ jobs -l
+[1]  12345 Running    python train.py &amp;
+$ renice +10 12345
+12345 (process ID) old priority 0, new priority 10
+
+# Maximum niceness for batch job
+$ nice -n 19 ./batch_process.sh &amp;</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use for batch processing, training, compilation</li>
+            <li>Regular users can only increase niceness (lower priority)</li>
+            <li>Root can set negative niceness (higher priority)</li>
+            <li><code>nice</code> for starting, <code>renice</code> for running processes</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control priority nice renice EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You accidentally suspended (Ctrl+Z) a vim session and can't remember the job number. How do you find and resume it?
+    </div>
+    <div class="back">
+        <strong>Find the job:</strong> <code>jobs</code>
+        <br><strong>Resume by name:</strong> <code>fg %vim</code>
+        <br><strong>Resume by partial match:</strong> <code>fg %vi</code>
+        <br><strong>If multiple vim sessions:</strong> <code>jobs</code> to see all, then <code>fg %N</code>
+        <p><strong>Why:</strong> Job references work with pattern matching. Partial command name is enough.</p>
+        <p><strong>Examples:</strong></p>
+        <pre>$ jobs
+[1]   Stopped    vim notes.txt
+[2]-  Running    python train.py &amp;
+[3]+  Stopped    vim todo.md
+
+# Resume any vim job (matches first)
+$ fg %vim
+vim notes.txt
+
+# Or be specific
+$ fg %notes
+vim notes.txt
+
+$ fg %todo
+vim todo.md
+
+# Multiple matches? Use job number
+$ jobs | grep vim
+[1]   Stopped    vim notes.txt
+[3]+  Stopped    vim todo.md
+$ fg %3
+vim todo.md</pre>
+        <p><strong>Job reference patterns:</strong></p>
+        <ul>
+            <li><code>%1</code> - Job number 1</li>
+            <li><code>%vim</code> - Job with "vim" in command</li>
+            <li><code>%?notes</code> - Job with "notes" anywhere in command line</li>
+            <li><code>%%</code> or <code>%+</code> - Current job</li>
+            <li><code>%-</code> - Previous job</li>
+        </ul>
+        <p><strong>Tip:</strong> <code>%</code> alone refers to current job: <code>fg %</code> = <code>fg</code></p>
+    </div>
+    <div class="tags">cs bash job-control fg vim pattern-matching EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to run multiple long-running commands in sequence, with each in background, but only start the next one after the previous finishes. How do you chain background jobs?
+    </div>
+    <div class="back">
+        <strong>Sequential background jobs:</strong>
+        <pre>command1 &amp; wait &amp;&amp; command2 &amp; wait &amp;&amp; command3 &amp;</pre>
+        <strong>In script:</strong>
+        <pre>command1 &amp;
+wait $!
+command2 &amp;
+wait $!
+command3 &amp;</pre>
+        <p><strong>Why:</strong> <code>wait $!</code> waits for last backgrounded job. Combines backgrounding with sequential execution.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Chain three tasks
+$ python preprocess.py &amp; wait &amp;&amp; python train.py &amp; wait &amp;&amp; python evaluate.py &amp;
+
+# Better: in script
+#!/bin/bash
+echo "Starting preprocessing..."
+python preprocess.py &amp;
+wait $!  # Wait for preprocessing
+
+echo "Starting training..."
+python train.py &amp;
+wait $!  # Wait for training
+
+echo "Starting evaluation..."
+python evaluate.py &amp;
+wait $!
+
+echo "All done!"
+
+# Check if any failed
+if [ $? -ne 0 ]; then
+    echo "A job failed!"
+    exit 1
+fi</pre>
+        <p><strong>Special variables:</strong></p>
+        <ul>
+            <li><code>$!</code> - PID of last background job</li>
+            <li><code>$?</code> - Exit status of last command (after wait)</li>
+            <li><code>wait $!</code> - Wait for specific PID</li>
+            <li><code>wait</code> - Wait for all background jobs</li>
+        </ul>
+        <p><strong>Tip:</strong> Capture PID for later: <code>JOB_PID=$!; wait $JOB_PID</code></p>
+    </div>
+    <div class="tags">cs bash job-control wait chaining sequential EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        What happens to background jobs when you exit the shell? How does disown differ from nohup?
+    </div>
+    <div class="back">
+        <strong>Default behavior:</strong> All jobs receive SIGHUP and terminate when shell exits
+        <br><strong>nohup:</strong> Ignores SIGHUP from the start, output to nohup.out
+        <br><strong>disown:</strong> Removes job from shell's job table, no SIGHUP sent
+        <p><strong>Comparison:</strong></p>
+        <table>
+            <tr><th>Feature</th><th>nohup</th><th>disown</th></tr>
+            <tr><td>When to use</td><td>Before starting</td><td>After starting</td></tr>
+            <tr><td>Output handling</td><td>Auto to nohup.out</td><td>Manual redirect</td></tr>
+            <tr><td>In job list?</td><td>Yes (until exit)</td><td>No</td></tr>
+            <tr><td>Can fg/bg?</td><td>Yes (before exit)</td><td>No</td></tr>
+        </table>
+        <p><strong>Examples:</strong></p>
+        <pre># Planned long run - use nohup
+$ nohup python train.py &amp;
+# Output goes to nohup.out automatically
+# Can close terminal safely
+
+# Forgot nohup? Use disown
+$ python train.py &amp;
+[1] 12345
+$ disown %1
+# Or: disown -h %1 (keeps in job list but no SIGHUP)
+# Now safe to close terminal
+
+# Best of both - nohup with custom output
+$ nohup python train.py > training.log 2>&1 &amp;
+
+# Disown with output redirect (must do before disown)
+$ python train.py > training.log 2>&1 &amp;
+$ disown</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>disown -a</code> - Disown all jobs</li>
+            <li><code>disown -h %1</code> - Disown but keep in job list</li>
+            <li>After disown, use <code>ps</code> to find the process (not in <code>jobs</code>)</li>
+            <li>For interactive work: Use screen/tmux instead</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control nohup disown sighup EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You have a CPU-intensive job running in foreground and want to suspend it to do a quick check, then resume. What's the best workflow?
+    </div>
+    <div class="back">
+        <strong>Quick workflow:</strong>
+        <ol>
+            <li><code>Ctrl+Z</code> - Suspend</li>
+            <li>Do quick task (ls, cat, etc.)</li>
+            <li><code>fg</code> - Resume in foreground</li>
+        </ol>
+        <strong>If taking longer:</strong>
+        <ol>
+            <li><code>Ctrl+Z</code> - Suspend</li>
+            <li><code>bg</code> - Continue in background</li>
+            <li>Do other work</li>
+            <li><code>fg</code> when ready - Bring back to foreground</li>
+        </ol>
+        <p><strong>Why:</strong> Suspend→fg is fastest for quick interruptions. Suspend→bg→fg for longer diversions.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Quick check workflow
+$ python train.py  # Running in foreground
+# Need to check something
+^Z  # Ctrl+Z
+[1]+  Stopped    python train.py
+$ ls results/  # Quick check
+$ cat config.json  # Quick look
+$ fg  # Back to training
+python train.py
+
+# Longer interruption workflow
+$ python train.py
+^Z
+[1]+  Stopped    python train.py
+$ bg  # Let it continue in background
+[1]+ python train.py &amp;
+$ vim notes.txt  # Do other work
+$ git commit -am "updates"
+$ fg  # When ready to monitor again
+python train.py</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Suspended processes DON'T run - must <code>bg</code> to continue</li>
+            <li><code>fg</code> without args resumes most recent job</li>
+            <li>Don't forget about suspended jobs - check with <code>jobs -s</code></li>
+            <li>For vim: Ctrl+Z, do stuff, <code>fg</code> is common pattern</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control workflow suspend resume EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You started a process that's taking forever and want to kill it, but Ctrl+C doesn't work. What are your options to forcefully terminate it?
+    </div>
+    <div class="back">
+        <strong>If in foreground and Ctrl+C fails:</strong>
+        <ol>
+            <li><code>Ctrl+Z</code> to suspend</li>
+            <li><code>kill %1</code> or <code>kill -9 %1</code></li>
+        </ol>
+        <strong>If in background:</strong> <code>kill %1</code> or <code>kill -9 %1</code>
+        <br><strong>By PID:</strong> <code>kill -9 PID</code>
+        <p><strong>Why:</strong> Some processes ignore SIGINT (Ctrl+C). SIGKILL (-9) can't be ignored.</p>
+        <p><strong>Kill signals:</strong></p>
+        <ul>
+            <li><strong>SIGTERM</strong> (default): <code>kill %1</code> - Polite "please exit"</li>
+            <li><strong>SIGKILL</strong> (-9): <code>kill -9 %1</code> - Forceful, can't be caught</li>
+            <li><strong>SIGINT</strong> (-2): <code>kill -2 %1</code> - Same as Ctrl+C</li>
+        </ul>
+        <p><strong>Examples:</strong></p>
+        <pre># Process hung, Ctrl+C doesn't work
+$ python frozen_script.py
+^C^C  # Multiple Ctrl+C, nothing happens
+^Z  # Suspend it
+[1]+  Stopped    python frozen_script.py
+$ kill %1  # Try gentle kill first
+$ jobs
+[1]+  Stopped    python frozen_script.py  # Still there?
+$ kill -9 %1  # Force kill
+[1]+  Killed     python frozen_script.py
+
+# Background job
+$ jobs -l
+[1]  12345 Running    infinite_loop.py &amp;
+$ kill 12345  # Try SIGTERM
+$ sleep 2 &amp;&amp; jobs  # Check if still running
+[1]+  Running    infinite_loop.py &amp;
+$ kill -9 12345  # SIGKILL
+[1]+  Killed     infinite_loop.py</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Try <code>kill</code> (SIGTERM) before <code>kill -9</code> (SIGKILL)</li>
+            <li>SIGTERM allows cleanup; SIGKILL immediate but no cleanup</li>
+            <li>Can't kill? Might need sudo for other users' processes</li>
+            <li><code>killall python</code> kills all processes named "python"</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control kill signals sigkill EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to monitor a long-running background job's output without bringing it to foreground. How do you check what a background job is outputting?
+    </div>
+    <div class="back">
+        <strong>If output was redirected to file:</strong> <code>tail -f output.log</code>
+        <br><strong>If no redirection (output to terminal):</strong> <code>fg</code> to bring to foreground
+        <br><strong>Check stdout of running process:</strong> <code>strace -p PID -e write</code>
+        <p><strong>Why:</strong> Background jobs' output handling depends on whether you redirected it.</p>
+        <p><strong>Best practices:</strong></p>
+        <pre># GOOD: Redirect output when starting background job
+$ python train.py > training.log 2>&1 &amp;
+[1] 12345
+$ tail -f training.log  # Monitor in real-time
+Epoch 1/100...
+Epoch 2/100...
+^C  # Exit tail, job continues
+
+# Multitail for multiple logs
+$ tail -f log1.txt log2.txt
+
+# With grep to filter
+$ tail -f training.log | grep "Epoch"</pre>
+        <p><strong>No redirection? Options:</strong></p>
+        <pre># 1. Bring to foreground temporarily
+$ fg %1
+# Watch output, then Ctrl+Z and bg to return to background
+
+# 2. Check with strace (advanced)
+$ jobs -l
+[1]  12345 Running    python train.py &amp;
+$ strace -p 12345 -e write 2>&1 | grep "write(1"  # stdout writes only
+
+# 3. Find output location
+$ lsof -p 12345 | grep -E "1w|2w"  # Where stdout/stderr point</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Always redirect output for long background jobs</li>
+            <li><code>tail -f</code> is your friend for monitoring</li>
+            <li>Use <code>tee</code> to see output AND save: <code>python script.py | tee output.log &</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control monitoring output background EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        What's the difference between using "&", "nohup", "screen/tmux", and systemd services for long-running jobs? When should you use each?
+    </div>
+    <div class="back">
+        <strong>Quick comparison:</strong>
+        <table>
+            <tr><th>Method</th><th>Persists after logout?</th><th>Can reconnect?</th><th>Best for</th></tr>
+            <tr><td>&</td><td>No</td><td>Yes (fg)</td><td>Quick background tasks, same session</td></tr>
+            <tr><td>nohup &</td><td>Yes</td><td>No (output only)</td><td>One-off batch jobs</td></tr>
+            <tr><td>screen/tmux</td><td>Yes</td><td>Yes (interactive)</td><td>Interactive sessions, development</td></tr>
+            <tr><td>systemd</td><td>Yes</td><td>No (logs only)</td><td>Services, daemons, auto-restart</td></tr>
+        </table>
+        <p><strong>Use & when:</strong></p>
+        <ul>
+            <li>Quick task in current session</li>
+            <li>Don't need it after logout</li>
+            <li>Want to use fg/bg to control it</li>
+            <li>Example: <code>python script.py &</code></li>
+        </ul>
+        <p><strong>Use nohup when:</strong></p>
+        <ul>
+            <li>Batch job that takes hours/days</li>
+            <li>Want it to survive logout</li>
+            <li>Don't need to interact with it</li>
+            <li>Example: <code>nohup python train.py > train.log 2>&1 &</code></li>
+        </ul>
+        <p><strong>Use screen/tmux when:</strong></p>
+        <ul>
+            <li>Need interactive access (shell, editor, REPL)</li>
+            <li>Want to reconnect from different locations</li>
+            <li>Multiple panes/windows needed</li>
+            <li>Example: <code>tmux new -s training</code> → run script → detach → reattach later</li>
+        </ul>
+        <p><strong>Use systemd when:</strong></p>
+        <ul>
+            <li>Long-term service (web server, database, etc.)</li>
+            <li>Want auto-restart on failure</li>
+            <li>Start on boot</li>
+            <li>Production environments</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control comparison methods best-practices EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You have multiple background jobs and want to see which one is consuming the most CPU or memory. How do you monitor resource usage of your jobs?
+    </div>
+    <div class="back">
+        <strong>Get PIDs of jobs:</strong> <code>jobs -l</code>
+        <br><strong>Monitor with top:</strong> <code>top -p PID1,PID2,PID3</code>
+        <br><strong>Or htop:</strong> <code>htop -p PID1,PID2,PID3</code>
+        <br><strong>One-time snapshot:</strong> <code>ps -o pid,pcpu,pmem,cmd -p PID</code>
+        <p><strong>Why:</strong> Background jobs can consume resources silently. Monitoring helps identify bottlenecks.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># List jobs with PIDs
+$ jobs -l
+[1]  12345 Running    python train.py &amp;
+[2]  12346 Running    python process.py &amp;
+[3]  12347 Running    node server.js &amp;
+
+# Monitor all jobs in top
+$ top -p 12345,12346,12347
+
+# Or htop (better UI)
+$ htop -p 12345,12346,12347
+
+# Quick snapshot
+$ ps -o pid,pcpu,pmem,cmd -p 12345,12346,12347
+  PID %CPU %MEM CMD
+12345 95.2  4.3 python train.py
+12346 12.5  2.1 python process.py
+12347  0.3  1.5 node server.js
+# train.py using most CPU!
+
+# Monitor all your processes
+$ ps -u $USER -o pid,pcpu,pmem,cmd --sort=-pcpu | head -10</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>top -p PID</code> updates in real-time (press 'q' to quit)</li>
+            <li><code>htop</code> more user-friendly, colors, tree view</li>
+            <li><code>--sort=-pcpu</code> sorts by CPU descending</li>
+            <li><code>ps aux | grep python</code> finds all python processes</li>
+            <li>High CPU (>100%)? Multi-threaded process</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control monitoring resources top ps EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You want a background job to email you or run a command when it finishes. How do you set up notifications for job completion?
+    </div>
+    <div class="back">
+        <strong>Simple: Chain commands:</strong> <code>long_job && notify-send "Done!" || notify-send "Failed!"</code>
+        <br><strong>In background:</strong> <code>(long_job && notify-send "Done!") &</code>
+        <br><strong>With script:</strong>
+        <pre>#!/bin/bash
+python train.py &amp;
+wait $!
+if [ $? -eq 0 ]; then
+    echo "Success!" | mail -s "Training done" user@example.com
+else
+    echo "Failed!" | mail -s "Training failed" user@example.com
+fi</pre>
+        <p><strong>Why:</strong> Long jobs (training, compilation) benefit from notifications so you know when to check results.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Desktop notification (Linux with notify-send)
+$ python train.py && notify-send "Training complete!"
+
+# Both success and failure
+$ python train.py && notify-send "Success!" || notify-send "Failed!"
+
+# Background with notification
+$ (python train.py && notify-send "Training done!") &amp;
+
+# Play sound on completion
+$ make && paplay /usr/share/sounds/complete.wav
+
+# Email notification
+$ python train.py && echo "Done" | mail -s "Training finished" me@example.com
+
+# Slack webhook
+$ python train.py &amp;&amp; curl -X POST -H 'Content-type: application/json' --data '{"text":"Training done!"}' SLACK_WEBHOOK_URL
+
+# Advanced: notification script
+$ cat > notify.sh
+#!/bin/bash
+"$@"  # Run the command passed as arguments
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+    notify-send "✓ Success" "$*"
+else
+    notify-send "✗ Failed (exit $STATUS)" "$*"
+fi
+exit $STATUS
+$ chmod +x notify.sh
+$ ./notify.sh python train.py</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Desktop: <code>notify-send</code> (Linux), <code>osascript</code> (Mac), <code>msg</code> (Windows)</li>
+            <li>Email: <code>mail</code> or <code>sendmail</code></li>
+            <li>Chat: Slack/Discord webhook with <code>curl</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash job-control notifications alerts completion EN</div>
+</div>
+
+</body>
+</html>

@@ -30,8 +30,8 @@ def extract_cards_from_html(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Find all card divs
-    card_pattern = r'<!-- Card \d+ -->\s*<div class="card">(.*?)</div>\s*(?=<!-- Card|\s*</body>)'
+    # Find all card divs (with or without <!-- Card N --> comments)
+    card_pattern = r'(?:<!-- Card \d+ -->\s*)?<div class="card">(.*?)</div>\s*(?=(?:<!-- Card|<div class="card">)|\s*</body>)'
     cards = re.findall(card_pattern, content, re.DOTALL)
 
     extracted = []
@@ -226,6 +226,13 @@ if __name__ == '__main__':
         ('gcloud-ml-training-flashcards.html', 'CS Vocab::GCloud ML Training', 'cs-vocab-gcloud.apkg', 2059400133),
         ('vscode-productivity-flashcards.html', 'CS Vocab::VSCode Productivity', 'cs-vocab-vscode.apkg', 2059400134),
         ('bash-history-flashcards.html', 'CS Vocab::Bash History & Command Recall', 'cs-vocab-history.apkg', 2059400135),
+        ('job-control-flashcards.html', 'CS Vocab::Job Control', 'cs-vocab-job-control.apkg', 2059400136),
+        ('redirection-pipes-flashcards.html', 'CS Vocab::Redirection & Pipes', 'cs-vocab-redirection.apkg', 2059400137),
+        ('environment-variables-flashcards.html', 'CS Vocab::Environment Variables & PATH', 'cs-vocab-env-vars.apkg', 2059400138),
+        ('quoting-escaping-flashcards.html', 'CS Vocab::Quoting & Escaping', 'cs-vocab-quoting.apkg', 2059400139),
+        ('exit-status-flashcards.html', 'CS Vocab::Exit Status & Return Codes', 'cs-vocab-exit-status.apkg', 2059400140),
+        ('brace-expansion-globbing-flashcards.html', 'CS Vocab::Brace Expansion & Globbing', 'cs-vocab-globbing.apkg', 2059400141),
+        ('aliases-functions-scripts-flashcards.html', 'CS Vocab::Aliases, Functions & Scripts', 'cs-vocab-functions.apkg', 2059400142),
     ]
 
     for html_file, deck_name, output_file, deck_id in deck_configs:
@@ -273,8 +280,15 @@ if __name__ == '__main__':
     print('  - cs-vocab-gcloud.apkg      (GCloud ML Training only)')
     print('  - cs-vocab-vscode.apkg      (VSCode Productivity only)')
     print('  - cs-vocab-history.apkg     (Bash History & Command Recall only)')
+    print('  - cs-vocab-job-control.apkg (Job Control only)')
+    print('  - cs-vocab-redirection.apkg (Redirection & Pipes only)')
+    print('  - cs-vocab-env-vars.apkg    (Environment Variables & PATH only)')
+    print('  - cs-vocab-quoting.apkg     (Quoting & Escaping only)')
+    print('  - cs-vocab-exit-status.apkg (Exit Status & Return Codes only)')
+    print('  - cs-vocab-globbing.apkg    (Brace Expansion & Globbing only)')
+    print('  - cs-vocab-functions.apkg   (Aliases, Functions & Scripts only)')
     print()
     print('Combined package:')
     print('  - cs-vocab-all.apkg         (All topics)')
     print()
-    print('Import creates subdeck structure: CS Vocab → [26 subdecks]')
+    print('Import creates subdeck structure: CS Vocab → [33 subdecks]')

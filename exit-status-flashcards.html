@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exit Status & Return Codes - CS Vocab Flashcards</title>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        How do you check if the previous command succeeded or failed? What do the different exit codes mean?
+    </div>
+    <div class="back">
+        <strong>Check last exit status:</strong> <code>echo $?</code>
+        <br><strong>Exit codes:</strong>
+        <ul>
+            <li><strong>0</strong> = Success</li>
+            <li><strong>1-255</strong> = Failure (specific meaning varies by program)</li>
+            <li><strong>127</strong> = Command not found</li>
+            <li><strong>126</strong> = Command found but not executable</li>
+            <li><strong>128+N</strong> = Terminated by signal N</li>
+        </ul>
+        <p><strong>Why:</strong> Exit status is how programs communicate success/failure. Essential for error handling.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Success
+$ ls /tmp
+$ echo $?
+0  # Success!
+
+# Failure
+$ ls /nonexistent
+ls: cannot access '/nonexistent': No such file or directory
+$ echo $?
+2  # Error code 2
+
+# Command not found
+$ nonexistent_command
+bash: nonexistent_command: command not found
+$ echo $?
+127
+
+# Chaining status checks
+$ mkdir test_dir
+$ echo $?
+0
+$ cd test_dir
+$ echo $?
+0</pre>
+        <p><strong>Common exit codes:</strong></p>
+        <ul>
+            <li><strong>0:</strong> Success</li>
+            <li><strong>1:</strong> General error</li>
+            <li><strong>2:</strong> Misuse of shell command</li>
+            <li><strong>126:</strong> Permission denied / not executable</li>
+            <li><strong>127:</strong> Command not found</li>
+            <li><strong>130:</strong> Terminated by Ctrl+C (128 + 2 for SIGINT)</li>
+            <li><strong>137:</strong> Terminated by SIGKILL (128 + 9)</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>$?</code> is overwritten by each command</li>
+            <li>Save immediately if needed: <code>status=$?</code></li>
+            <li>0 = true/success in shell logic</li>
+            <li>Non-zero = false/failure</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status return-codes error-handling EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You want to run a second command only if the first one succeeds. How do you chain commands with conditional execution?
+    </div>
+    <div class="back">
+        <strong>Run if previous succeeded:</strong> <code>command1 && command2</code>
+        <br><strong>Run if previous failed:</strong> <code>command1 || command2</code>
+        <br><strong>Always run both:</strong> <code>command1; command2</code>
+        <p><strong>Why:</strong> <code>&&</code> and <code>||</code> provide short-circuit evaluation based on exit status.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Only compile if tests pass
+$ python -m pytest && python build.py
+# build.py only runs if pytest succeeds (exit 0)
+
+# Create and enter directory
+$ mkdir project && cd project
+# Only cd if mkdir succeeds
+
+# Fallback on failure
+$ cp file.txt backup/ || echo "Backup failed!"
+# Echo only runs if cp fails
+
+# Chain multiple
+$ cd project && make && make install && echo "Success!"
+# Each step only runs if previous succeeded
+
+# Complex logic
+$ command1 && command2 || command3
+# If command1 succeeds: run command2
+# If command1 fails OR command2 fails: run command3</pre>
+        <p><strong>Common patterns:</strong></p>
+        <pre># Safe directory operations
+$ cd /important/directory && rm -rf *
+# Only rm if cd succeeds (prevents deleting wrong location!)
+
+# Backup before overwrite
+$ cp file.txt file.txt.bak && process_file.py file.txt
+
+# Download and extract
+$ wget url && tar -xzf archive.tar.gz
+
+# Compile and run
+$ gcc program.c && ./a.out</pre>
+        <p><strong>Comparison:</strong></p>
+        <pre># Semicolon - always runs both
+$ false; echo "This always prints"
+This always prints
+
+# && - second only if first succeeds
+$ false && echo "This never prints"
+
+# || - second only if first fails
+$ false || echo "This prints"
+This prints</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use <code>&&</code> for "if success, then do..."</li>
+            <li>Use <code>||</code> for "if failure, then do..."</li>
+            <li>Critical for safe scripts (prevent cascading failures)</li>
+            <li>Can chain many: <code>cmd1 && cmd2 && cmd3 && ...</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status conditional-execution chaining EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You're writing a script and want it to exit immediately if any command fails. How do you enable automatic error checking?
+    </div>
+    <div class="back">
+        <strong>Exit on error:</strong> <code>set -e</code>
+        <br><strong>Also exit on undefined variables:</strong> <code>set -u</code>
+        <br><strong>Exit on pipeline failures:</strong> <code>set -o pipefail</code>
+        <br><strong>All three (robust scripts):</strong> <code>set -euo pipefail</code>
+        <p><strong>Why:</strong> Prevents scripts from continuing after errors, catching bugs early.</p>
+        <p><strong>Examples:</strong></p>
+        <pre>#!/bin/bash
+set -e  # Exit if any command fails
+
+cd /important/directory
+rm -rf *  # If cd failed, this won't run!
+echo "Done"  # This won't run if rm failed
+
+# Without set -e (DANGEROUS)
+#!/bin/bash
+cd /nonexistent  # Fails but script continues
+rm -rf *  # Deletes files in WRONG directory!
+
+# With set -u (exit on undefined variables)
+#!/bin/bash
+set -eu
+
+echo $UNDEFINED_VAR  # Script exits here
+echo "This won't print"
+
+# With set -o pipefail
+#!/bin/bash
+set -eo pipefail
+
+cat nonexistent.txt | grep "pattern" | wc -l
+# Exits on cat failure even though wc succeeds
+
+# Without pipefail
+set -e
+cat nonexistent.txt | wc -l
+# Doesn't exit! wc succeeds, so pipeline "succeeds"</pre>
+        <p><strong>Temporarily disable:</strong></p>
+        <pre>#!/bin/bash
+set -e
+
+command_that_may_fail || true  # Won't exit script
+
+# Or disable/re-enable
+set +e
+command_that_may_fail
+set -e</pre>
+        <p><strong>Best practice template:</strong></p>
+        <pre>#!/bin/bash
+set -euo pipefail  # Robust error handling
+
+# Your script here
+# Will exit on: any error, undefined variable, pipeline failure</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>set -e</code> catches most errors</li>
+            <li><code>set -u</code> catches typos in variable names</li>
+            <li><code>set -o pipefail</code> catches pipeline errors</li>
+            <li>Add <code>|| true</code> to commands where failure is OK</li>
+            <li>Start all scripts with <code>set -euo pipefail</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status set-e error-handling scripts EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        How do you return a specific exit code from your script or function? What's the difference between exit and return?
+    </div>
+    <div class="back">
+        <strong>Exit script with code:</strong> <code>exit N</code> (0-255)
+        <br><strong>Return from function:</strong> <code>return N</code>
+        <br><strong>Default exit code:</strong> Status of last command run
+        <p><strong>Why:</strong> <code>exit</code> terminates entire script; <code>return</code> only exits function.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># In script
+#!/bin/bash
+if [ ! -f "$1" ]; then
+    echo "Error: File not found"
+    exit 1  # Exit with error
+fi
+
+process_file "$1"
+exit 0  # Exit with success
+
+# In function
+check_file() {
+    if [ ! -f "$1" ]; then
+        return 1  # Return error to caller
+    fi
+    return 0  # Return success
+}
+
+# Using the function
+if check_file "data.txt"; then
+    echo "File exists!"
+else
+    echo "File not found"
+    exit 1
+fi</pre>
+        <p><strong>Difference:</strong></p>
+        <pre># exit - terminates script
+#!/bin/bash
+func() {
+    echo "In function"
+    exit 1  # ENTIRE SCRIPT EXITS
+    echo "Never prints"
+}
+func
+echo "Never prints either"
+
+# return - only exits function
+#!/bin/bash
+func() {
+    echo "In function"
+    return 1  # Only function exits
+    echo "Never prints"
+}
+func
+echo "This DOES print"  # Script continues</pre>
+        <p><strong>Capturing return codes:</strong></p>
+        <pre># From function
+my_function
+status=$?
+if [ $status -eq 0 ]; then
+    echo "Success"
+fi
+
+# Inline check
+if my_function; then
+    echo "Success"
+else
+    echo "Failed with code $?"
+fi</pre>
+        <p><strong>Common exit codes by convention:</strong></p>
+        <ul>
+            <li><strong>0:</strong> Success</li>
+            <li><strong>1:</strong> General error</li>
+            <li><strong>2:</strong> Misuse (wrong arguments)</li>
+            <li><strong>Other:</strong> Application-specific</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use <code>exit 0</code> for success at script end</li>
+            <li>Use <code>exit 1</code> for errors</li>
+            <li>In functions, use <code>return</code> not <code>exit</code></li>
+            <li>If no explicit exit, script exits with status of last command</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status return exit functions EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want to run cleanup code (like removing temporary files) whether the script succeeds or fails. How do you ensure cleanup always runs?
+    </div>
+    <div class="back">
+        <strong>Trap cleanup on exit:</strong> <code>trap 'cleanup_commands' EXIT</code>
+        <br><strong>Trap specific signals:</strong> <code>trap 'handler' SIGINT SIGTERM</code>
+        <p><strong>Why:</strong> <code>trap EXIT</code> runs commands when script exits (success, failure, or signal).</p>
+        <p><strong>Examples:</strong></p>
+        <pre>#!/bin/bash
+# Create temp file
+TEMP_FILE=$(mktemp)
+
+# Ensure cleanup happens
+trap "rm -f $TEMP_FILE" EXIT
+
+# Use temp file
+echo "data" > "$TEMP_FILE"
+process "$TEMP_FILE"
+
+# File automatically deleted on exit (even if error occurs!)</pre>
+        <pre>#!/bin/bash
+# More complex cleanup
+cleanup() {
+    echo "Cleaning up..."
+    rm -rf "$TEMP_DIR"
+    kill $BACKGROUND_PID 2>/dev/null
+}
+
+trap cleanup EXIT
+
+TEMP_DIR=$(mktemp -d)
+start_background_process &
+BACKGROUND_PID=$!
+
+# Do work...
+# cleanup() runs automatically on exit</pre>
+        <p><strong>Trap signals:</strong></p>
+        <pre>#!/bin/bash
+# Handle Ctrl+C gracefully
+cleanup_on_interrupt() {
+    echo "Interrupted! Cleaning up..."
+    rm -f "$TEMP_FILE"
+    exit 130  # 128 + 2 (SIGINT)
+}
+
+trap cleanup_on_interrupt INT
+
+# Long-running work
+while true; do
+    process_data
+done
+
+# If user hits Ctrl+C, cleanup runs before exit</pre>
+        <p><strong>Multiple signals:</strong></p>
+        <pre>#!/bin/bash
+trap 'echo "Cleaning..."; rm -f temp_*' EXIT INT TERM
+
+# Cleanup runs on:
+# - Normal exit
+# - Ctrl+C (INT)
+# - kill command (TERM)</pre>
+        <p><strong>Disable trap:</strong></p>
+        <pre>trap - EXIT  # Remove EXIT trap
+trap '' INT  # Ignore INT signal</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Always trap EXIT for temp file cleanup</li>
+            <li>Use functions for complex cleanup</li>
+            <li>EXIT trap runs on normal exit AND errors (with set -e)</li>
+            <li>Can trap multiple signals: <code>trap 'cleanup' EXIT INT TERM</code></li>
+            <li>Common signals: EXIT, INT (Ctrl+C), TERM (kill), HUP (hangup)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status trap cleanup error-handling EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        How do you test if a command exists before trying to run it? What's the reliable way to check?
+    </div>
+    <div class="back">
+        <strong>Check if command exists:</strong> <code>command -v cmd >/dev/null 2>&1</code>
+        <br><strong>Or use type:</strong> <code>type cmd >/dev/null 2>&1</code>
+        <br><strong>Or use which:</strong> <code>which cmd >/dev/null 2>&1</code> (less portable)
+        <p><strong>Why:</strong> Prevents errors from running non-existent commands. <code>command -v</code> is POSIX-compliant.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Check before running
+if command -v python3 >/dev/null 2>&1; then
+    python3 script.py
+else
+    echo "python3 not found!"
+    exit 1
+fi
+
+# Compact form
+command -v git >/dev/null 2>&1 || { echo "git required"; exit 1; }
+
+# Find preferred command
+if command -v vim >/dev/null 2>&1; then
+    EDITOR=vim
+elif command -v nano >/dev/null 2>&1; then
+    EDITOR=nano
+else
+    EDITOR=vi
+fi
+
+# Check multiple commands
+for cmd in git python3 node; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "Error: $cmd not found"
+        exit 1
+    fi
+done</pre>
+        <p><strong>Why command -v?</strong></p>
+        <pre># command -v (POSIX, most portable)
+$ command -v ls
+/bin/ls
+
+# type (bash built-in, shows more info)
+$ type ls
+ls is /bin/ls
+
+# which (external command, less portable)
+$ which ls
+/bin/ls
+
+# hash (checks if in hash table)
+$ hash ls 2>/dev/null && echo "Found"</pre>
+        <p><strong>Common pattern:</strong></p>
+        <pre>#!/bin/bash
+# Check dependencies at script start
+deps=(git python3 node npm)
+for dep in "${deps[@]}"; do
+    if ! command -v "$dep" >/dev/null 2>&1; then
+        echo "Error: Required command '$dep' not found"
+        exit 1
+    fi
+done
+
+# All dependencies present, continue...</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use <code>command -v</code> for portability</li>
+            <li>Redirect output: <code>>/dev/null 2>&1</code></li>
+            <li>Check dependencies at script start</li>
+            <li><code>command -v</code> returns 0 if found, 1 if not</li>
+            <li>Works for aliases, functions, built-ins, and external commands</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status command-existence checks validation EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You want to understand why a script failed. How do you debug exit statuses and see which command caused the error?
+    </div>
+    <div class="back">
+        <strong>Enable debug mode:</strong> <code>bash -x script.sh</code> or <code>set -x</code>
+        <br><strong>Show exit status for each command:</strong> Add to script: <code>trap 'echo "Exit: $?"' DEBUG</code>
+        <br><strong>Verbose mode:</strong> <code>set -v</code> (prints commands before execution)
+        <p><strong>Why:</strong> Debug mode shows every command executed and its exit status, making errors visible.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Debug from command line
+$ bash -x script.sh
++ cd /nonexistent
+script.sh: line 2: cd: /nonexistent: No such file or directory
++ echo 'Failed'
+Failed
+
+# Debug mode in script
+#!/bin/bash
+set -x  # Enable debug mode
+
+cd /tmp
+ls -l
+echo "Done"
+# Output shows each command with + prefix
+
+# Conditional debug
+if [ "${DEBUG:-0}" = "1" ]; then
+    set -x
+fi
+
+# Then run: DEBUG=1 ./script.sh
+
+# Trap DEBUG to show exit codes
+#!/bin/bash
+trap 'echo "Command exit code: $?"' DEBUG
+
+false  # Will show: Command exit code: 1
+true   # Will show: Command exit code: 0</pre>
+        <p><strong>Enhanced error reporting:</strong></p>
+        <pre>#!/bin/bash
+set -eE  # -E makes ERR trap inherited by functions
+
+trap 'echo "Error on line $LINENO"' ERR
+
+# Now any error shows line number
+cd /nonexistent  # Output: Error on line 6
+
+# Even better
+trap 'echo "Error on line $LINENO: Command was: $BASH_COMMAND"' ERR</pre>
+        <p><strong>Complete debug template:</strong></p>
+        <pre>#!/bin/bash
+set -euo pipefail  # Strict mode
+
+# Debug if DEBUG=1
+if [ "${DEBUG:-0}" = "1" ]; then
+    set -x
+fi
+
+# Error handler
+error_handler() {
+    echo "Error on line $1"
+    echo "Command: $2"
+    echo "Exit code: $3"
+}
+
+trap 'error_handler $LINENO "$BASH_COMMAND" $?' ERR
+
+# Script content...</pre>
+        <p><strong>Other debug options:</strong></p>
+        <pre># Verbose mode (print commands before execution)
+set -v
+
+# Both verbose and trace
+set -xv
+
+# Disable
+set +x  # Disable trace
+set +v  # Disable verbose</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>set -x</code> essential for debugging</li>
+            <li>Trap ERR for better error messages</li>
+            <li>Use <code>$LINENO</code> to show line numbers</li>
+            <li><code>$BASH_COMMAND</code> shows the command that failed</li>
+            <li>Conditional debug: <code>DEBUG=1 ./script.sh</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status debugging error-handling trace EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        How do you test exit statuses in if statements? What's the difference between [ ], [[ ]], and test?
+    </div>
+    <div class="back">
+        <strong>Command exit status:</strong> <code>if command; then ... fi</code>
+        <br><strong>Test command (old):</strong> <code>if [ condition ]; then ... fi</code>
+        <br><strong>Extended test (bash):</strong> <code>if [[ condition ]]; then ... fi</code>
+        <br><strong>Why:</strong> <code>if</code> checks exit status. <code>[[</code> is safer and more powerful than <code>[</code>.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Direct command test
+if grep "pattern" file.txt; then
+    echo "Found"  # grep exit 0 if found
+fi
+
+# Negation
+if ! grep "pattern" file.txt; then
+    echo "Not found"  # Run if grep fails
+fi
+
+# Old test syntax [ ]
+if [ -f "file.txt" ]; then
+    echo "File exists"
+fi
+
+# Extended test [[ ]]
+if [[ -f "file.txt" ]]; then
+    echo "File exists"
+fi
+
+# String comparison
+# [ ] requires quotes
+if [ "$VAR" = "value" ]; then
+    echo "Match"
+fi
+
+# [[ ]] doesn't require quotes (safer)
+if [[ $VAR = value ]]; then
+    echo "Match"
+fi
+
+# Pattern matching (only in [[ ]])
+if [[ $filename == *.txt ]]; then
+    echo "Text file"
+fi
+
+# Regex matching (only in [[ ]])
+if [[ $email =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+    echo "Valid email"
+fi</pre>
+        <p><strong>Differences:</strong></p>
+        <table>
+            <tr><th>Feature</th><th>[ ]</th><th>[[ ]]</th></tr>
+            <tr><td>POSIX</td><td>Yes</td><td>No (bash)</td></tr>
+            <tr><td>Quotes needed</td><td>Yes</td><td>No</td></tr>
+            <tr><td>Pattern matching</td><td>No</td><td>Yes</td></tr>
+            <tr><td>Regex</td><td>No</td><td>Yes (=~)</td></tr>
+            <tr><td>&&, || inside</td><td>No (use -a, -o)</td><td>Yes</td></tr>
+        </table>
+        <p><strong>Best practices:</strong></p>
+        <pre># Use [[ ]] in bash scripts (safer)
+if [[ -f $file && -r $file ]]; then
+    cat "$file"
+fi
+
+# Use [ ] for portable POSIX scripts
+if [ -f "$file" ] && [ -r "$file" ]; then
+    cat "$file"
+fi</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>[[ ]]</code> preferred in bash (safer, more features)</li>
+            <li><code>[ ]</code> for POSIX portability</li>
+            <li>Always quote variables in <code>[ ]</code></li>
+            <li><code>if command</code> tests exit status directly</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status conditionals test if-statements EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        What's the difference between || true and || : for handling expected failures? Which is better?
+    </div>
+    <div class="back">
+        <strong>Both prevent exit with set -e:</strong>
+        <ul>
+            <li><code>command || true</code> - Runs external command <code>true</code></li>
+            <li><code>command || :</code> - Runs built-in <code>:</code> (no-op)</li>
+        </ul>
+        <strong>Recommendation:</strong> Use <code>|| :</code> (built-in, faster)
+        <p><strong>Why:</strong> Both make compound command succeed even if first part fails. <code>:</code> is built-in (no fork), <code>true</code> is external.</p>
+        <p><strong>Examples:</strong></p>
+        <pre>#!/bin/bash
+set -e  # Exit on error
+
+# Command might fail, that's OK
+grep "optional_pattern" file.txt || true
+# Script continues even if grep finds nothing
+
+# Same with :
+grep "optional_pattern" file.txt || :
+
+# Why it works
+$ false || true
+$ echo $?
+0  # Compound command succeeds!
+
+# Real examples
+rm -f temp_file || :  # OK if file doesn't exist
+mkdir dir 2>/dev/null || :  # OK if already exists
+git pull || :  # OK if no remote configured
+
+# Multiple commands
+{
+    command_that_may_fail
+    another_command
+} || :  # Whole block won't cause exit</pre>
+        <p><strong>Performance difference:</strong></p>
+        <pre># : is built-in (no process fork)
+$ time for i in {1..1000}; do :; done
+real 0.002s
+
+# true is external (forks process each time)
+$ time for i in {1..1000}; do true; done
+real 0.234s
+
+# In script: || : is faster
+for file in *; do
+    process "$file" || :  # Faster
+done</pre>
+        <p><strong>When to use:</strong></p>
+        <pre># Commands where failure is acceptable
+set -e
+
+# Try to stop service (OK if not running)
+systemctl stop myservice || :
+
+# Create directory (OK if exists)
+mkdir -p /path/to/dir || :
+
+# Optional cleanup
+rm -rf /tmp/build-* || :
+
+# Git operations that might fail
+git remote remove old-remote || :</pre>
+        <p><strong>Alternative:</strong></p>
+        <pre># Disable set -e temporarily
+set +e
+command_that_may_fail
+set -e</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use <code>|| :</code> (built-in, faster)</li>
+            <li>Only for commands where failure is acceptable</li>
+            <li>Makes script continue with <code>set -e</code></li>
+            <li><code>:</code> is the POSIX no-op command</li>
+            <li>Add comment explaining why failure OK</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status set-e error-handling true colon EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        How do you write a script that returns meaningful exit codes for different error conditions, so calling scripts can handle them appropriately?
+    </div>
+    <div class="back">
+        <strong>Pattern:</strong> Define exit codes at top, use throughout script
+        <pre># Define constants
+readonly E_SUCCESS=0
+readonly E_FILE_NOT_FOUND=1
+readonly E_PERMISSION_DENIED=2
+readonly E_INVALID_ARGS=3</pre>
+        <p><strong>Why:</strong> Meaningful exit codes let callers distinguish different failure types.</p>
+        <p><strong>Example script:</strong></p>
+        <pre>#!/bin/bash
+# backup.sh - Backup files with meaningful exit codes
+
+# Exit codes
+readonly E_SUCCESS=0
+readonly E_NO_SOURCE=1
+readonly E_NO_DEST=2
+readonly E_BACKUP_FAILED=3
+
+# Check arguments
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 <source> <dest>"
+    exit $E_NO_SOURCE
+fi
+
+SOURCE="$1"
+DEST="$2"
+
+# Validate source
+if [ ! -f "$SOURCE" ]; then
+    echo "Error: Source file not found: $SOURCE"
+    exit $E_NO_SOURCE
+fi
+
+# Validate destination
+if [ ! -d "$DEST" ]; then
+    echo "Error: Destination directory not found: $DEST"
+    exit $E_NO_DEST
+fi
+
+# Perform backup
+if ! cp "$SOURCE" "$DEST/"; then
+    echo "Error: Backup failed"
+    exit $E_BACKUP_FAILED
+fi
+
+echo "Backup successful"
+exit $E_SUCCESS</pre>
+        <p><strong>Calling script:</strong></p>
+        <pre>#!/bin/bash
+./backup.sh source.txt /backup/
+
+case $? in
+    0)
+        echo "Backup completed successfully"
+        ;;
+    1)
+        echo "Source file issue"
+        send_alert "backup_source_error"
+        ;;
+    2)
+        echo "Destination issue"
+        send_alert "backup_dest_error"
+        ;;
+    3)
+        echo "Backup operation failed"
+        send_alert "backup_operation_error"
+        ;;
+    *)
+        echo "Unknown error"
+        ;;
+esac</pre>
+        <p><strong>Best practices:</strong></p>
+        <pre>#!/bin/bash
+set -euo pipefail
+
+# Exit codes (at top of script)
+readonly E_SUCCESS=0
+readonly E_GENERAL=1
+readonly E_MISUSE=2
+readonly E_DEPENDENCY=127
+
+# Document what each means
+# E_SUCCESS - Operation completed successfully
+# E_GENERAL - General error
+# E_MISUSE - Invalid arguments or usage
+# E_DEPENDENCY - Required command not found
+
+# Usage function
+usage() {
+    echo "Usage: $0 [options] file"
+    exit $E_MISUSE
+}
+
+# Dependency check
+check_deps() {
+    local cmd
+    for cmd in "$@"; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            echo "Error: Required command not found: $cmd"
+            exit $E_DEPENDENCY
+        fi
+    done
+}
+
+# Main logic with appropriate exits
+check_deps git python3
+[ $# -eq 0 ] && usage
+
+# ... script logic ...
+
+exit $E_SUCCESS</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use readonly constants for exit codes</li>
+            <li>Document what each code means</li>
+            <li>0 = success always</li>
+            <li>1-125 for application-specific errors</li>
+            <li>126-165 reserved by shell</li>
+            <li>Consistent naming: E_* or ERR_*</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash exit-status error-codes script-design error-handling EN</div>
+</div>
+
+</body>
+</html>

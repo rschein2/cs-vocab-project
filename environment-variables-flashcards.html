@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Variables & PATH - CS Vocab Flashcards</title>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        What's the difference between a shell variable and an environment variable? When would you use each?
+    </div>
+    <div class="back">
+        <strong>Shell variable:</strong> <code>VAR="value"</code> - Only visible in current shell
+        <br><strong>Environment variable:</strong> <code>export VAR="value"</code> - Visible to current shell AND child processes
+        <p><strong>Why:</strong> Export makes variable available to programs you run from the shell.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Shell variable (local only)
+$ MY_VAR="test"
+$ echo $MY_VAR
+test
+$ bash -c 'echo $MY_VAR'
+                          # Empty! Subshell can't see it
+
+# Environment variable (exported)
+$ export MY_VAR="test"
+$ bash -c 'echo $MY_VAR'
+test  # Subshell CAN see it
+
+# Real example: PATH
+$ PATH="/new/path:$PATH"  # Works in current shell only
+$ export PATH="/new/path:$PATH"  # Child processes see it too
+
+# Check if variable is exported
+$ declare -p MY_VAR
+declare -- MY_VAR="test"  # Not exported (no -x)
+$ export MY_VAR
+$ declare -p MY_VAR
+declare -x MY_VAR="test"  # Exported (has -x flag)</pre>
+        <p><strong>Use shell variables when:</strong></p>
+        <ul>
+            <li>Temporary calculation in script</li>
+            <li>Variable only needed in current shell</li>
+            <li>Avoid polluting environment</li>
+        </ul>
+        <p><strong>Use environment variables when:</strong></p>
+        <ul>
+            <li>Programs you run need the value</li>
+            <li>Configuration for tools (PATH, EDITOR, etc.)</li>
+            <li>Need value across subshells</li>
+        </ul>
+        <p><strong>Tip:</strong> Can export and assign in one line: <code>export VAR="value"</code></p>
+    </div>
+    <div class="tags">cs bash environment-variables shell-variables export EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        How does PATH work? When you type a command, how does the shell find the executable?
+    </div>
+    <div class="back">
+        <strong>View PATH:</strong> <code>echo $PATH</code>
+        <br><strong>How it works:</strong> Shell searches directories in PATH (left to right) until it finds an executable with matching name
+        <p><strong>Why:</strong> PATH lets you run commands without typing full paths. First match wins.</p>
+        <p><strong>Example:</strong></p>
+        <pre>$ echo $PATH
+/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+$ which python3
+/usr/bin/python3  # Found in /usr/bin
+
+# When you type 'python3':
+# 1. Check /usr/local/bin/python3 - not found
+# 2. Check /usr/bin/python3 - found! Execute this
+# 3. Never checks /bin, /usr/sbin, /sbin</pre>
+        <p><strong>Order matters:</strong></p>
+        <pre># If python3 exists in multiple locations:
+/usr/local/bin/python3  # Version 3.11
+/usr/bin/python3        # Version 3.9
+
+# PATH=/usr/local/bin:/usr/bin
+# Running 'python3' uses 3.11 (first in PATH)
+
+# PATH=/usr/bin:/usr/local/bin
+# Running 'python3' uses 3.9 (first in PATH)</pre>
+        <p><strong>Not in PATH?</strong></p>
+        <pre>$ ./my_script.sh  # Must use ./ for current directory
+$ /full/path/to/command  # Or use full path</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Colon-separated list of directories</li>
+            <li>Current directory (.) usually NOT in PATH for security</li>
+            <li>Use <code>which command</code> to see which executable runs</li>
+            <li>Use <code>type command</code> for more detail (shows aliases, functions too)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash path environment-variables command-lookup EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You installed a program in a non-standard location and want to add its directory to PATH. What's the correct way to add to PATH?
+    </div>
+    <div class="back">
+        <strong>Add to end of PATH:</strong> <code>export PATH="$PATH:/new/directory"</code>
+        <br><strong>Add to beginning (higher priority):</strong> <code>export PATH="/new/directory:$PATH"</code>
+        <br><strong>Make permanent:</strong> Add to <code>~/.bashrc</code> or <code>~/.bash_profile</code>
+        <p><strong>Why:</strong> Prepending existing PATH ensures you don't lose original directories. Order determines priority.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Add to end (lower priority)
+$ export PATH="$PATH:$HOME/.local/bin"
+# ~/.local/bin programs run if not found earlier in PATH
+
+# Add to beginning (higher priority)
+$ export PATH="$HOME/.local/bin:$PATH"
+# ~/.local/bin programs override system versions
+
+# Multiple additions
+$ export PATH="/opt/bin:$HOME/.local/bin:$PATH"
+
+# In ~/.bashrc for permanent
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
+export PATH="/usr/local/go/bin:$PATH"
+
+# Verify
+$ echo $PATH
+/usr/local/go/bin:/home/user/go/bin:/home/user/.local/bin:...
+
+# Check what runs
+$ which go
+/usr/local/go/bin/go</pre>
+        <p><strong>Common mistakes:</strong></p>
+        <pre># WRONG - Loses original PATH!
+$ export PATH="/new/directory"
+$ echo $PATH
+/new/directory  # All other directories lost!
+
+# WRONG - Double colon creates empty entry
+$ export PATH="$PATH::/new/dir"  # Don't do this
+
+# CORRECT
+$ export PATH="$PATH:/new/directory"</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Always include <code>$PATH</code> in assignment</li>
+            <li>Quote the value: <code>"$PATH:/new/dir"</code></li>
+            <li>Test in current shell before adding to ~/.bashrc</li>
+            <li>Reload config: <code>source ~/.bashrc</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash path environment-variables configuration EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You want to see all environment variables currently set in your shell. How do you list them?
+    </div>
+    <div class="back">
+        <strong>List all environment variables:</strong> <code>printenv</code> or <code>env</code>
+        <br><strong>Specific variable:</strong> <code>printenv VAR_NAME</code> or <code>echo $VAR_NAME</code>
+        <br><strong>All variables (shell + environment):</strong> <code>set</code>
+        <p><strong>Why:</strong> Different commands show different subsets of variables.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Environment variables only
+$ printenv
+PATH=/usr/local/bin:/usr/bin
+HOME=/home/user
+USER=user
+SHELL=/bin/bash
+...
+
+# Specific variable
+$ printenv PATH
+/usr/local/bin:/usr/bin:/bin
+
+# Or with echo
+$ echo $PATH
+/usr/local/bin:/usr/bin:/bin
+
+# All variables (includes shell variables and functions)
+$ set
+BASH=/bin/bash
+HOME=/home/user
+MY_LOCAL_VAR=test  # Not exported, only in 'set' output
+PATH=/usr/local/bin:/usr/bin
+...
+
+# Filtered search
+$ printenv | grep -i python
+PYTHONPATH=/usr/lib/python3.9
+
+# Export status
+$ declare -p | grep -w VAR_NAME</pre>
+        <p><strong>Differences:</strong></p>
+        <ul>
+            <li><code>printenv</code> / <code>env</code> - Only exported (environment) variables</li>
+            <li><code>set</code> - All variables, functions, shell options</li>
+            <li><code>declare -p</code> - Shows which are exported (look for <code>-x</code> flag)</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use <code>printenv</code> for clean list of environment vars</li>
+            <li>Use <code>env</code> to run command with modified environment</li>
+            <li>Pipe to grep to find specific variables</li>
+            <li><code>env -i</code> runs command with empty environment</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables listing printenv EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want to run a single command with a modified environment variable without changing your shell's environment. How do you set variables temporarily for one command?
+    </div>
+    <div class="back">
+        <strong>One-time variable:</strong> <code>VAR=value command</code>
+        <br><strong>Multiple variables:</strong> <code>VAR1=val1 VAR2=val2 command</code>
+        <br><strong>Using env command:</strong> <code>env VAR=value command</code>
+        <p><strong>Why:</strong> Sets variable only for that command's execution, doesn't affect current shell.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Run with custom PATH
+$ PATH="/custom/bin:$PATH" which python
+/custom/bin/python
+$ which python
+/usr/bin/python  # Shell's PATH unchanged
+
+# Debug mode for one command
+$ DEBUG=1 python script.py
+# script.py sees DEBUG=1, but it's not in shell
+
+# Custom config file
+$ CONFIG=/tmp/test.conf my_program
+
+# Multiple variables
+$ API_KEY=secret BASE_URL=http://localhost curl_script.sh
+
+# Empty environment
+$ env -i /bin/bash
+# New bash with no inherited environment
+
+# Add specific vars to empty environment
+$ env -i PATH=/bin:/usr/bin HOME=$HOME bash</pre>
+        <p><strong>Workflow comparison:</strong></p>
+        <pre># Temporary (doesn't affect shell)
+$ DEBUG=1 python script.py
+$ echo $DEBUG
+                    # Empty
+
+# Permanent in shell
+$ export DEBUG=1
+$ python script.py
+$ echo $DEBUG
+1  # Still set
+
+# Temporary with export (subshells only)
+$ (export DEBUG=1; python script.py)
+$ echo $DEBUG
+                    # Empty (subshell's export doesn't escape)</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Great for testing configuration changes</li>
+            <li>Common pattern: <code>LANG=C command</code> for consistent output</li>
+            <li>No <code>export</code> needed - automatically in command's environment</li>
+            <li>Works with aliases and functions too</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables temporary one-shot EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You're working on a project and want to use environment variables from a .env file. How do you load variables from a file?
+    </div>
+    <div class="back">
+        <strong>Source the file:</strong> <code>source .env</code> or <code>. .env</code>
+        <br><strong>Export all:</strong> <code>export $(cat .env | xargs)</code>
+        <br><strong>With export in file:</strong> Put <code>export VAR=value</code> in .env file
+        <p><strong>Why:</strong> .env files keep configuration separate from code. Common in development.</p>
+        <p><strong>Example .env file:</strong></p>
+        <pre># .env file
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=admin
+DB_PASS=secret
+API_KEY=abc123</pre>
+        <p><strong>Loading methods:</strong></p>
+        <pre># Method 1: Source (variables in current shell)
+$ source .env
+$ echo $DB_HOST
+localhost
+
+# Method 2: Export all variables from file
+$ export $(cat .env | xargs)
+$ echo $DB_HOST
+localhost
+
+# Method 3: .env with export statements
+# .env file:
+# export DB_HOST=localhost
+# export DB_PORT=5432
+$ source .env
+
+# Method 4: Use with command (doesn't set in shell)
+$ env $(cat .env | xargs) python app.py
+
+# Method 5: In script
+#!/bin/bash
+if [ -f .env ]; then
+    export $(cat .env | xargs)
+fi
+python app.py</pre>
+        <p><strong>Handling comments and spaces:</strong></p>
+        <pre># Better parsing (handles comments, blank lines)
+$ export $(grep -v '^#' .env | xargs)
+
+# Or with set -a (auto-export)
+$ set -a
+$ source .env
+$ set +a</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Add .env to .gitignore (contains secrets)</li>
+            <li>Use .env.example (with fake values) for documentation</li>
+            <li><code>source</code> executes file in current shell</li>
+            <li><code>set -a</code> auto-exports all variables in script</li>
+            <li>Use tools like <code>dotenv</code> for robust parsing</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables dotenv configuration EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        What are some important standard environment variables every developer should know? What do they control?
+    </div>
+    <div class="back">
+        <strong>Essential environment variables:</strong>
+        <ul>
+            <li><code>PATH</code> - Executable search paths</li>
+            <li><code>HOME</code> - User's home directory</li>
+            <li><code>USER</code> / <code>LOGNAME</code> - Current username</li>
+            <li><code>SHELL</code> - Current shell path</li>
+            <li><code>EDITOR</code> - Default text editor</li>
+            <li><code>LANG</code> / <code>LC_*</code> - Locale settings</li>
+            <li><code>PWD</code> - Current directory</li>
+            <li><code>OLDPWD</code> - Previous directory</li>
+        </ul>
+        <p><strong>Examples and uses:</strong></p>
+        <pre># HOME - User's home directory
+$ echo $HOME
+/home/alice
+$ cd $HOME  # or just: cd
+$ ls $HOME/.bashrc
+
+# EDITOR - What opens for git commit, crontab -e, etc.
+$ export EDITOR=vim
+$ git commit  # Opens vim
+$ export EDITOR=nano  # Switch to nano
+
+# LANG - Affects sorting, date formats, messages
+$ LANG=en_US.UTF-8 date
+$ LANG=fr_FR.UTF-8 date  # French format
+
+# PWD and OLDPWD - Directory tracking
+$ pwd
+/home/alice/project
+$ cd /tmp
+$ echo $OLDPWD
+/home/alice/project
+$ cd -  # Returns to previous directory
+
+# TERM - Terminal type
+$ echo $TERM
+xterm-256color
+
+# PAGER - Default pager for man, less, etc.
+$ export PAGER=less</pre>
+        <p><strong>Development-specific:</strong></p>
+        <pre># Python
+PYTHONPATH=/path/to/modules
+VIRTUAL_ENV=/path/to/venv
+
+# Node
+NODE_ENV=production
+NPM_CONFIG_PREFIX=$HOME/.npm-global
+
+# Java
+JAVA_HOME=/usr/lib/jvm/java-11
+CLASSPATH=/path/to/jars
+
+# Go
+GOPATH=$HOME/go
+GOROOT=/usr/local/go</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Don't override system variables unless necessary</li>
+            <li>Many programs respect these conventions</li>
+            <li>Check program docs for supported env vars</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables standard-vars configuration EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You added a directory to PATH in your terminal, but it's gone when you open a new terminal. How do you make environment variables permanent?
+    </div>
+    <div class="back">
+        <strong>Add to shell config:</strong>
+        <ul>
+            <li>Bash: <code>~/.bashrc</code> (interactive) or <code>~/.bash_profile</code> (login)</li>
+            <li>Zsh: <code>~/.zshrc</code></li>
+            <li>System-wide: <code>/etc/environment</code> or <code>/etc/profile</code></li>
+        </ul>
+        <strong>Reload config:</strong> <code>source ~/.bashrc</code>
+        <p><strong>Why:</strong> Environment is set per-session. Config files run on shell start to set up environment.</p>
+        <p><strong>Example ~/.bashrc additions:</strong></p>
+        <pre># Add to PATH
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="/usr/local/go/bin:$PATH"
+
+# Set EDITOR
+export EDITOR=vim
+
+# Project-specific
+export PROJECT_HOME="$HOME/projects"
+export PYTHONPATH="$HOME/lib/python:$PYTHONPATH"
+
+# API keys (better: use .env files)
+export API_KEY="your-key-here"
+
+# Locale
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# Custom variables
+export FAVORITE_EDITOR=nvim</pre>
+        <p><strong>After editing:</strong></p>
+        <pre># Reload without restarting terminal
+$ source ~/.bashrc
+
+# Or shorter
+$ . ~/.bashrc
+
+# Verify
+$ echo $PATH
+# Should include new directories</pre>
+        <p><strong>Login vs non-login shells:</strong></p>
+        <ul>
+            <li><code>~/.bash_profile</code> - Login shells (initial terminal, SSH)</li>
+            <li><code>~/.bashrc</code> - Interactive non-login (new tabs/windows)</li>
+            <li>Common pattern: .bash_profile sources .bashrc</li>
+        </ul>
+        <p><strong>Tip:</strong> Put most config in ~/.bashrc, have ~/.bash_profile source it</p>
+    </div>
+    <div class="tags">cs bash environment-variables configuration bashrc persistent EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You want to unset an environment variable or remove it completely. How do you delete environment variables?
+    </div>
+    <div class="back">
+        <strong>Unset variable:</strong> <code>unset VARIABLE_NAME</code>
+        <br><strong>Set to empty string:</strong> <code>VARIABLE=""</code> (different from unset!)
+        <p><strong>Why:</strong> <code>unset</code> removes variable entirely; setting to empty keeps variable but with no value.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Create and export variable
+$ export DEBUG=1
+$ echo $DEBUG
+1
+
+# Unset (removes completely)
+$ unset DEBUG
+$ echo $DEBUG
+                    # Empty - variable doesn't exist
+
+# Check existence
+$ declare -p DEBUG
+bash: declare: DEBUG: not found
+
+# Set to empty string (variable exists, no value)
+$ export DEBUG=""
+$ echo $DEBUG
+                    # Empty
+$ declare -p DEBUG
+declare -x DEBUG=""  # Variable exists!
+
+# Unset multiple
+$ unset VAR1 VAR2 VAR3
+
+# Unset in script
+#!/bin/bash
+export TEMP_VAR="temporary"
+# ... use it ...
+unset TEMP_VAR  # Clean up</pre>
+        <p><strong>Difference matters:</strong></p>
+        <pre># Some programs check if variable is set (not its value)
+$ export VERBOSE=""  # Set but empty
+$ [ -n "$VERBOSE" ] && echo "verbose"
+                    # Nothing (empty string)
+$ [ -z "$VERBOSE" ] && echo "not verbose"
+not verbose
+
+$ unset VERBOSE
+$ [ -v VERBOSE ] && echo "set"
+                    # Nothing (unset)
+
+# Bash: -v checks if set, -z checks if empty</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use <code>unset</code> to remove variables completely</li>
+            <li>Empty string (<code>""</code>) keeps variable defined</li>
+            <li>Can't unset readonly variables</li>
+            <li>Unset doesn't affect parent shell if in subshell</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables unset deletion EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You're debugging and want to see the full environment that a specific command will run with. How do you inspect a command's environment before running it?
+    </div>
+    <div class="back">
+        <strong>Show environment:</strong> <code>env</code> (shows what command would inherit)
+        <br><strong>Run with environment printed:</strong> <code>env VAR=val command</code>
+        <br><strong>Print then run:</strong> <code>printenv; command</code>
+        <p><strong>Why:</strong> Debugging environment issues requires seeing exactly what's set before command runs.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># See current environment
+$ env | sort
+HOME=/home/alice
+LANG=en_US.UTF-8
+PATH=/usr/local/bin:/usr/bin
+...
+
+# Compare environments
+$ env > before.txt
+$ export NEW_VAR=test
+$ env > after.txt
+$ diff before.txt after.txt
+
+# See environment a command sees
+$ env DEBUG=1 PATH=/custom/path env | grep -E 'DEBUG|PATH'
+DEBUG=1
+PATH=/custom/path
+
+# Debug why command not found
+$ which python3
+/usr/bin/python3
+$ echo $PATH
+/home/alice/bin:/usr/bin:/bin
+# python3 is in /usr/bin, which is in PATH - good!
+
+# Python script that prints environment
+$ python3 -c "import os; print(os.environ)"
+
+# Check specific variable before running
+$ echo "PATH=$PATH"
+$ echo "Running with PATH: $PATH"
+$ my_command</pre>
+        <p><strong>Debugging workflow:</strong></p>
+        <pre># 1. Check variable exists
+$ echo $MY_VAR
+
+# 2. Check it's exported
+$ declare -p MY_VAR | grep -q "x" && echo "exported"
+
+# 3. Test command sees it
+$ env | grep MY_VAR
+
+# 4. Run command with extra debug
+$ DEBUG=1 MY_VAR=test my_command</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>env</code> with no args shows all environment vars</li>
+            <li>Compare before/after to see what changed</li>
+            <li>Use <code>env -i</code> for empty environment</li>
+            <li><code>strace -e execve command</code> shows exact environment passed</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables debugging inspection EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        Your PATH has gotten messy with duplicates and unnecessary entries. How do you clean up and organize PATH?
+    </div>
+    <div class="back">
+        <strong>View current PATH (one per line):</strong> <code>echo $PATH | tr ':' '\n'</code>
+        <br><strong>Remove duplicates:</strong> Use script or manually rebuild
+        <br><strong>Rebuild from scratch:</strong> Unset and recreate in proper order
+        <p><strong>Why:</strong> Cleaner PATH is faster to search and easier to understand. Duplicates waste time.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># See PATH entries clearly
+$ echo $PATH | tr ':' '\n'
+/usr/local/bin
+/usr/bin
+/bin
+/usr/local/bin  # Duplicate!
+/usr/sbin
+
+# Remove duplicates with awk
+$ PATH=$(echo $PATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's/:$//')
+$ echo $PATH
+/usr/local/bin:/usr/bin:/bin:/usr/sbin
+
+# Rebuild PATH cleanly in ~/.bashrc
+# Remove old messy PATH settings, add:
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
+
+# Function to add to PATH (prevents duplicates)
+path_append() {
+    case ":$PATH:" in
+        *:"$1":*) ;;  # Already in PATH
+        *) PATH="$PATH:$1" ;;
+    esac
+}
+
+path_prepend() {
+    case ":$PATH:" in
+        *:"$1":*) ;;
+        *) PATH="$1:$PATH" ;;
+    esac
+}
+
+# Use it
+path_prepend "$HOME/.local/bin"
+path_append "/opt/custom/bin"</pre>
+        <p><strong>Verify PATH:</strong></p>
+        <pre># Check for duplicates
+$ echo $PATH | tr ':' '\n' | sort | uniq -d
+/usr/local/bin  # Duplicate found
+
+# Check if directory exists
+$ echo $PATH | tr ':' '\n' | while read dir; do
+    [ -d "$dir" ] || echo "Missing: $dir"
+done</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Keep PATH minimal - only what you actually use</li>
+            <li>Order matters - put frequently used dirs first</li>
+            <li>Remove non-existent directories</li>
+            <li>Use functions to prevent duplicates</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash path cleanup organization environment-variables EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You need to distinguish between login shells, interactive shells, and scripts when setting environment variables. What's the difference and which config files should you use?
+    </div>
+    <div class="back">
+        <strong>Shell types:</strong>
+        <ul>
+            <li><strong>Login shell:</strong> First shell on login (SSH, console)</li>
+            <li><strong>Interactive non-login:</strong> New terminal tab/window</li>
+            <li><strong>Non-interactive:</strong> Running scripts</li>
+        </ul>
+        <p><strong>Config files loaded:</strong></p>
+        <table>
+            <tr><th>Shell type</th><th>Files loaded (bash)</th></tr>
+            <tr><td>Login</td><td>~/.bash_profile or ~/.profile</td></tr>
+            <tr><td>Interactive non-login</td><td>~/.bashrc</td></tr>
+            <tr><td>Non-interactive (script)</td><td>None (unless BASH_ENV set)</td></tr>
+        </table>
+        <p><strong>Best practice setup:</strong></p>
+        <pre># ~/.bash_profile (or ~/.profile)
+# Runs for login shells
+if [ -f ~/.bashrc ]; then
+    source ~/.bashrc
+fi
+
+# Login-specific stuff
+# (things that should only run once)
+
+# ~/.bashrc
+# Runs for interactive shells
+# Check if interactive
+[[ $- != *i* ]] && return  # Non-interactive: exit
+
+# Put most configuration here
+export PATH="$HOME/.local/bin:$PATH"
+export EDITOR=vim
+alias ll='ls -la'
+
+# Prompt customization
+PS1='[\u@\h \W]\$ '</pre>
+        <p><strong>Testing:</strong></p>
+        <pre># Check if interactive
+$ [[ $- == *i* ]] && echo "Interactive"
+Interactive
+
+# Check if login
+$ shopt -q login_shell && echo "Login shell"
+
+# In script (usually non-interactive)
+#!/bin/bash
+echo "Script variables must be set here, not in bashrc"</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Put most config in ~/.bashrc (works for all interactive shells)</li>
+            <li>Make ~/.bash_profile source ~/.bashrc</li>
+            <li>Scripts don't load bashrc - set needed vars in script</li>
+            <li>System-wide config: /etc/profile, /etc/bash.bashrc</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables configuration login-shell interactive EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        How do you check if an environment variable is set in a script, and provide a default value if it isn't?
+    </div>
+    <div class="back">
+        <strong>Default if unset:</strong> <code>${VAR:-default}</code>
+        <br><strong>Set if unset:</strong> <code>${VAR:=default}</code>
+        <br><strong>Error if unset:</strong> <code>${VAR:?error message}</code>
+        <br><strong>Alternative if set:</strong> <code>${VAR:+alternative}</code>
+        <p><strong>Why:</strong> Parameter expansion provides default values without explicit if statements.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Use default if VAR is unset or empty
+$ echo "${UNDEFINED:-default_value}"
+default_value
+$ echo "$UNDEFINED"
+                        # Still unset
+
+# Set and use default
+$ VAR=${VAR:=default_value}
+$ echo "$VAR"
+default_value  # VAR is now set
+
+# Common pattern in scripts
+#!/bin/bash
+: ${PORT:=8080}  # Set PORT=8080 if not set
+: ${HOST:=localhost}
+echo "Server at $HOST:$PORT"
+
+# Error if unset
+$ echo "${REQUIRED_VAR:?ERROR: REQUIRED_VAR must be set}"
+bash: REQUIRED_VAR: ERROR: REQUIRED_VAR must be set
+
+# Config with defaults
+#!/bin/bash
+DEBUG=${DEBUG:-0}
+VERBOSE=${VERBOSE:-false}
+MAX_RETRIES=${MAX_RETRIES:-3}
+
+# Alternative value if set
+$ FEATURE_FLAG=enabled
+$ echo "${FEATURE_FLAG:+feature is on}"
+feature is on
+$ unset FEATURE_FLAG
+$ echo "${FEATURE_FLAG:+feature is on}"
+                        # Empty</pre>
+        <p><strong>With/without colon difference:</strong></p>
+        <pre># With colon: checks unset OR empty
+$ VAR=""
+$ echo "${VAR:-default}"
+default  # Empty treated as unset
+
+# Without colon: only checks unset
+$ echo "${VAR-default}"
+         # Empty string, not default</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>:-</code> most common - default if unset/empty</li>
+            <li><code>:=</code> sets the variable permanently</li>
+            <li><code>:?</code> useful for required variables in scripts</li>
+            <li>Always quote: <code>"${VAR:-default}"</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables parameter-expansion defaults EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You want to run a program with a completely empty environment (no inherited variables). How do you start with a clean slate?
+    </div>
+    <div class="back">
+        <strong>Empty environment:</strong> <code>env -i command</code>
+        <br><strong>Empty plus specific vars:</strong> <code>env -i VAR=val command</code>
+        <br><strong>Why:</strong> Testing how program behaves without environment, or running untrusted code in isolation.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Completely empty environment
+$ env -i bash
+bash-5.1$ echo $PATH
+                        # Nothing!
+bash-5.1$ echo $HOME
+                        # Nothing!
+
+# Can't run commands without PATH
+bash-5.1$ ls
+bash: ls: No such file or directory
+bash-5.1$ /bin/ls
+# Works with full path!
+
+# Empty environment with specific variables
+$ env -i PATH=/bin:/usr/bin HOME=$HOME bash
+bash-5.1$ echo $PATH
+/bin:/usr/bin
+bash-5.1$ ls
+# Works now!
+
+# Run program in isolation
+$ env -i PATH=/bin:/usr/bin ./my_program
+
+# Testing - see what program actually needs
+$ env -i ./program
+./program: error: REQUIRED_VAR not set
+$ env -i REQUIRED_VAR=test ./program
+# Works!
+
+# Minimal environment for script
+$ env -i \
+    PATH=/bin:/usr/bin \
+    HOME=$HOME \
+    USER=$USER \
+    ./my_script.sh</pre>
+        <p><strong>Use cases:</strong></p>
+        <ul>
+            <li>Testing program's environment requirements</li>
+            <li>Running untrusted code with minimal exposure</li>
+            <li>Debugging environment-related issues</li>
+            <li>Creating reproducible builds</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Most programs need at least PATH</li>
+            <li>Many need HOME, USER, LANG</li>
+            <li><code>env -i</code> gives you complete control</li>
+            <li>Combine with chroot for stronger isolation</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables isolation clean-environment EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        How do variable scope and export work with subshells? What's visible where?
+    </div>
+    <div class="back">
+        <strong>Rules:</strong>
+        <ul>
+            <li>Shell variables: Only visible in current shell</li>
+            <li>Exported variables: Visible in current shell AND child processes</li>
+            <li>Child changes don't affect parent</li>
+            <li>Subshell: <code>( commands )</code> starts new shell</li>
+        </ul>
+        <p><strong>Examples:</strong></p>
+        <pre># Shell variable (not exported)
+$ VAR="parent"
+$ bash -c 'echo $VAR'
+                        # Child can't see it
+
+# Exported variable
+$ export VAR="parent"
+$ bash -c 'echo $VAR'
+parent  # Child CAN see it
+
+# Child changes don't affect parent
+$ export VAR="parent"
+$ bash -c 'export VAR="child"; echo $VAR'
+child
+$ echo $VAR
+parent  # Parent unchanged!
+
+# Subshell example
+$ VAR="before"
+$ (VAR="inside subshell"; echo $VAR)
+inside subshell
+$ echo $VAR
+before  # Parent unchanged
+
+# But exported vars are inherited
+$ export EXPORTED="value"
+$ (echo $EXPORTED)
+value  # Subshell sees it
+
+# Modification in subshell doesn't escape
+$ export EXPORTED="original"
+$ (export EXPORTED="modified"; echo $EXPORTED)
+modified
+$ echo $EXPORTED
+original  # Still original in parent</pre>
+        <p><strong>Visual:</strong></p>
+        <pre>Parent Shell
+├─ SHELL_VAR (not exported) - not visible to children
+├─ EXPORTED_VAR - visible to all children
+└─ Child Process
+   ├─ Inherits EXPORTED_VAR
+   ├─ Can't see SHELL_VAR
+   └─ Changes don't affect parent</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Export if child processes need it</li>
+            <li>Don't export if only current shell needs it</li>
+            <li>Can't change parent from child (by design)</li>
+            <li>Source scripts to modify current shell</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash environment-variables scope subshells inheritance EN</div>
+</div>
+
+</body>
+</html>

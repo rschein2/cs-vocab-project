@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quoting & Escaping - CS Vocab Flashcards</title>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        What's the difference between single quotes (''), double quotes (""), and no quotes? When should you use each?
+    </div>
+    <div class="back">
+        <strong>Single quotes (''):</strong> Literal - no expansion, no escape except can't include single quote
+        <br><strong>Double quotes (""):</strong> Variables and command substitution expand, can escape with \
+        <br><strong>No quotes:</strong> Word splitting and globbing happen, expansions occur
+        <p><strong>Why:</strong> Different quoting controls what bash processes vs treats literally.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Single quotes - completely literal
+$ echo '$USER is in $PWD'
+$USER is in $PWD  # No expansion!
+
+# Double quotes - variables expand
+$ echo "$USER is in $PWD"
+alice is in /home/alice/project
+
+# No quotes - word splitting + globbing
+$ echo Hello   World  # Multiple spaces
+Hello World  # Collapsed to one
+$ echo "Hello   World"
+Hello   World  # Spaces preserved!
+
+# With wildcards
+$ ls *.txt
+file1.txt file2.txt  # Glob expanded
+$ ls "*.txt"
+ls: cannot access '*.txt': No such file or directory
+
+# Variables
+$ FILE="my file.txt"
+$ cat $FILE  # WRONG - splits on space
+cat: my: No such file or directory
+cat: file.txt: No such file or directory
+$ cat "$FILE"  # CORRECT
+# Contents of my file.txt</pre>
+        <p><strong>When to use:</strong></p>
+        <ul>
+            <li><strong>Single quotes:</strong> Literal strings, no expansion wanted</li>
+            <li><strong>Double quotes:</strong> Strings with variables (most common)</li>
+            <li><strong>No quotes:</strong> When you WANT splitting/globbing (rare)</li>
+        </ul>
+        <p><strong>Best practice:</strong> Always quote variables: <code>"$VAR"</code></p>
+    </div>
+    <div class="tags">cs bash quoting quotes expansion EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You have a filename with spaces and special characters. How do you safely pass it to commands?
+    </div>
+    <div class="back">
+        <strong>Always quote:</strong> <code>"$filename"</code>
+        <br><strong>Why:</strong> Without quotes, spaces cause word splitting - each part treated as separate argument.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Create file with space
+$ touch "my document.txt"
+
+# WRONG - without quotes
+$ cat $FILE
+cat: my: No such file or directory
+cat: document.txt: No such file or directory
+# Tries to cat two files: "my" and "document.txt"
+
+# CORRECT - with quotes
+$ FILE="my document.txt"
+$ cat "$FILE"
+# Works!
+
+# Multiple files
+$ FILES="file1.txt file2.txt"
+$ cat $FILES  # Actually works - splits into two args
+$ cat "$FILES"  # Treats as single filename (wrong if spaces intended as separator)
+
+# Array is better for multiple files
+$ FILES=("file1.txt" "file2.txt")
+$ cat "${FILES[@]}"  # Each element quoted separately</pre>
+        <p><strong>Real-world example:</strong></p>
+        <pre>#!/bin/bash
+# WRONG
+for file in $(find . -name "*.txt"); do
+    cat $file  # Breaks on spaces!
+done
+
+# CORRECT
+find . -name "*.txt" -print0 | while IFS= read -r -d '' file; do
+    cat "$file"  # Safe!
+done
+
+# Or with array
+mapfile -t files < <(find . -name "*.txt")
+for file in "${files[@]}"; do
+    cat "$file"  # Safe!
+done</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>ALWAYS quote variables containing filenames</li>
+            <li>Use arrays for lists of files</li>
+            <li>Quote even if "you know it has no spaces" - safer</li>
+            <li><code>${var[@]}</code> for arrays, <code>"$var"</code> for scalars</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash quoting filenames spaces safety EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        How do you include a literal single quote inside a single-quoted string? What about double quotes inside double quotes?
+    </div>
+    <div class="back">
+        <strong>Single quote in single-quoted string:</strong> End string, escape quote, start new string: <code>'can'\''t'</code>
+        <br><strong>Double quote in double-quoted string:</strong> Escape with backslash: <code>"He said \"hello\""</code>
+        <p><strong>Why:</strong> Can't escape inside single quotes. Must close, insert literal quote, reopen.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Single quote inside single quotes
+$ echo 'I can'\''t do this'
+I can't do this
+
+# Breakdown: 'I can' + \' + 't do this'
+
+# Alternative: use double quotes instead
+$ echo "I can't do this"
+I can't do this
+
+# Double quotes inside double quotes
+$ echo "He said \"Hello, World!\""
+He said "Hello, World!"
+
+# Or mix quote types
+$ echo 'He said "Hello, World!"'
+He said "Hello, World!"
+
+# Complex example
+$ echo 'It'\''s a "complex" example'
+It's a "complex" example
+
+# Multiple approaches for single quote
+$ echo "It's easy with double quotes"
+$ echo 'It'\''s harder with single quotes'
+$ echo $'It\'s easier with $\'...\''  # ANSI-C quoting</pre>
+        <p><strong>Common patterns:</strong></p>
+        <pre># SQL with embedded quotes
+$ mysql -e 'SELECT * FROM table WHERE name='\''John'\'''
+
+# Or easier with double quotes
+$ mysql -e "SELECT * FROM table WHERE name='John'"
+
+# JSON in bash
+$ curl -d "{\"name\":\"Alice\",\"age\":30}" api/endpoint</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Mix quote types when possible (easiest)</li>
+            <li>For single quote in single-quoted: <code>'\''</code></li>
+            <li>For double quote in double-quoted: <code>\"</code></li>
+            <li>Consider ANSI-C quoting: <code>$'...'</code> for complex cases</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash quoting escaping nested-quotes EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        What is ANSI-C quoting ($'...') and when should you use it?
+    </div>
+    <div class="back">
+        <strong>ANSI-C quoting:</strong> <code>$'string'</code>
+        <br><strong>Supports:</strong> Escape sequences like \n, \t, \', \\, \x, \u
+        <br><strong>Why:</strong> Allows C-style escapes in bash strings. Easier for special characters.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Newlines
+$ echo $'Line 1\nLine 2'
+Line 1
+Line 2
+
+# Tabs
+$ echo $'Column1\tColumn2\tColumn3'
+Column1    Column2    Column3
+
+# Single quote (easy way!)
+$ echo $'It\'s easy!'
+It's easy!
+
+# Backslash
+$ echo $'C:\\Users\\Alice'
+C:\Users\Alice
+
+# Hex codes
+$ echo $'\x41\x42\x43'
+ABC
+
+# Unicode
+$ echo $'\u2764 Unicode heart'
+❤ Unicode heart
+
+# Control characters
+$ echo $'Bell:\a'  # System bell
+$ echo $'Escape:\e[31mRed text\e[0m'  # ANSI colors</pre>
+        <p><strong>Common escape sequences:</strong></p>
+        <ul>
+            <li><code>\n</code> - Newline</li>
+            <li><code>\t</code> - Tab</li>
+            <li><code>\'</code> - Single quote</li>
+            <li><code>\"</code> - Double quote</li>
+            <li><code>\\</code> - Backslash</li>
+            <li><code>\r</code> - Carriage return</li>
+            <li><code>\a</code> - Alert (bell)</li>
+            <li><code>\xHH</code> - Hex character</li>
+            <li><code>\uHHHH</code> - Unicode character</li>
+        </ul>
+        <p><strong>Use cases:</strong></p>
+        <pre># Multi-line output
+$ printf $'First\nSecond\nThird'
+
+# Paths with backslashes
+$ FILE=$'C:\\path\\to\\file.txt'
+
+# Embedding quotes easily
+$ SQL=$'SELECT * FROM users WHERE name=\'Alice\''</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Easier than mixing quote types for single quotes</li>
+            <li>Variables still expand inside $'...'</li>
+            <li>Use for portable escape sequences</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash quoting ansi-c escaping special-characters EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You need to pass a literal dollar sign ($) to a command without it being interpreted as a variable. How do you escape it?
+    </div>
+    <div class="back">
+        <strong>In single quotes:</strong> <code>'$'</code> - No escaping needed
+        <br><strong>In double quotes:</strong> <code>"\$"</code> - Escape with backslash
+        <br><strong>No quotes:</strong> <code>\$</code> - Escape with backslash
+        <p><strong>Why:</strong> $ triggers variable expansion in double quotes and no quotes. Single quotes make it literal automatically.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Single quotes - literal $
+$ echo 'Price: $5.00'
+Price: $5.00
+
+# Double quotes - must escape
+$ echo "Price: \$5.00"
+Price: $5.00
+
+# Without escaping in double quotes
+$ echo "Price: $5.00"
+Price: .00  # $5 interpreted as variable (empty)!
+
+# Multiple dollar signs
+$ echo 'Cost: $10, Total: $50'
+Cost: $10, Total: $50
+
+# In command
+$ grep '$[0-9]' file.txt  # Literal regex
+$ grep "\$[0-9]" file.txt  # Same, escaped
+
+# Variable with dollar sign
+$ PRICE='$5.00'
+$ echo "Cost: $PRICE"
+Cost: $5.00  # PRICE variable expands, its content has $</pre>
+        <p><strong>Complex example:</strong></p>
+        <pre># SQL query
+$ mysql -e 'SELECT * FROM prices WHERE cost > "$100"'  # Literal
+$ AMOUNT=100
+$ mysql -e "SELECT * FROM prices WHERE cost > \"\$$AMOUNT\""
+# Outputs: SELECT * FROM prices WHERE cost > "$100"
+# \$ = literal $, $AMOUNT = variable (100)</pre>
+        <p><strong>Special cases:</strong></p>
+        <pre># Command substitution needs protection
+$ echo '$USER'     # Literal
+$USER
+$ echo "$(echo '$USER')"  # Inner single quotes protect $
+$USER
+$ echo "\\$USER"  # Escaped
+$USER</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Single quotes easiest for literal $</li>
+            <li>In double quotes: \ before $</li>
+            <li>Other special chars in double quotes: \, `, $, ", \n</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash quoting escaping dollar-sign variables EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        How do you safely pass arbitrary user input as arguments to commands (avoid injection attacks)?
+    </div>
+    <div class="back">
+        <strong>Always quote:</strong> <code>"$user_input"</code>
+        <br><strong>Use arrays for multiple arguments:</strong> <code>"${args[@]}"</code>
+        <br><strong>Validate input:</strong> Check against whitelist when possible
+        <br><strong>Use -- to end options:</strong> <code>command -- "$input"</code>
+        <p><strong>Why:</strong> Unquoted user input can execute arbitrary commands through special characters.</p>
+        <p><strong>Dangerous examples:</strong></p>
+        <pre># DANGEROUS - never do this!
+$ read -p "Filename: " filename
+$ cat $filename  # User types: file.txt; rm -rf /
+
+# What happens:
+$ cat file.txt; rm -rf /  # DISASTER!
+
+# SAFER
+$ cat "$filename"  # Still dangerous if filename is crafted
+cat: file.txt; rm -rf /: No such file or directory
+
+# SAFEST - validate
+$ if [[ "$filename" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+    cat "$filename"
+else
+    echo "Invalid filename"
+fi
+
+# Dangerous with eval
+$ USER_CMD="echo hello; rm -rf /"
+$ eval $USER_CMD  # NEVER DO THIS!
+
+# Safer alternatives
+$ "$USER_CMD"  # Just executes the command name
+$ ${USER_CMD}  # Variable expansion only</pre>
+        <p><strong>Safe patterns:</strong></p>
+        <pre># Use -- to prevent option injection
+$ grep -- "$pattern" file.txt
+# Even if $pattern is "-r" it won't be treated as option
+
+# Array for complex commands
+$ cmd=("find" "." "-name" "$user_pattern")
+$ "${cmd[@]}"
+
+# printf instead of echo for user input
+$ printf '%s\n' "$user_input"  # Safe
+$ echo "$user_input"  # Can be tricked with -n, -e flags</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Never use eval with user input</li>
+            <li>Always quote variables</li>
+            <li>Use <code>--</code> to separate options from arguments</li>
+            <li>Validate input against whitelist</li>
+            <li>Use <code>printf</code> instead of <code>echo</code> for untrusted data</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash quoting security injection safety EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        What characters are special in bash and need quoting or escaping? Which ones are safe?
+    </div>
+    <div class="back">
+        <strong>Special characters (need quoting/escaping):</strong>
+        <ul>
+            <li><code>$ ` \ " ' </code> - Expansion and quoting</li>
+            <li><code>* ? [ ]</code> - Globbing</li>
+            <li><code>| & ; ( ) < ></code> - Operators</li>
+            <li><code>Space Tab Newline</code> - Whitespace</li>
+            <li><code>! # ~</code> - History, comments, home</li>
+        </ul>
+        <strong>Safe in single quotes:</strong> Everything except <code>'</code>
+        <br><strong>Safe in double quotes:</strong> Most except <code>$ ` \ " \n</code>
+        <p><strong>Examples:</strong></p>
+        <pre># Globbing characters
+$ echo *  # Lists files
+$ echo "*"  # Literal asterisk
+*
+
+$ echo file[1-3].txt  # Glob: file1.txt file2.txt file3.txt
+$ echo "file[1-3].txt"  # Literal
+file[1-3].txt
+
+# Operators
+$ echo "Hello | World"  # Literal pipe
+Hello | World
+$ echo Hello | World  # Pipeline (error)
+
+# Dollar sign
+$ echo $HOME  # Expands
+/home/alice
+$ echo '$HOME'  # Literal
+$HOME
+$ echo "\$HOME"  # Literal
+$HOME
+
+# Semicolon
+$ echo "First; Second"  # One string
+First; Second
+$ echo First; echo Second  # Two commands
+First
+Second
+
+# Backticks (command substitution)
+$ echo `date`  # Runs date
+Mon Jan 19...
+$ echo '`date`'  # Literal
+`date`</pre>
+        <p><strong>Which characters need escaping in double quotes:</strong></p>
+        <pre>$ echo "\"  \$  \`  \\  \n"
+"  $  `  \  \n  # These need \ in double quotes
+
+$ echo "< > | & ; ( ) * ? [ ] # ~ !"
+< > | & ; ( ) * ? [ ] # ~ !  # These are literal in double quotes</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>When in doubt, use single quotes for literals</li>
+            <li>Double quotes for strings with variables</li>
+            <li>List of chars that expand in double quotes: <code>$ ` \ "</code></li>
+            <li>Whitespace always needs quoting</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash quoting special-characters escaping EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You're building a command dynamically and need to properly quote each component. What's the best way to build complex commands safely?
+    </div>
+    <div class="back">
+        <strong>Use arrays:</strong>
+        <pre>cmd=("program" "--option" "value" "$variable")
+"${cmd[@]}"</pre>
+        <strong>Why:</strong> Arrays preserve argument boundaries. Each element is properly quoted automatically.
+        <p><strong>Examples:</strong></p>
+        <pre># WRONG - string concatenation
+$ cmd="find . -name "
+$ cmd="$cmd \"*.txt\""  # Messy quoting
+$ $cmd  # Doesn't work right
+
+# RIGHT - use array
+$ cmd=("find" "." "-name" "*.txt")
+$ "${cmd[@]}"  # Works perfectly!
+
+# Adding arguments conditionally
+$ cmd=("grep")
+$ if [ "$case_sensitive" = true ]; then
+    cmd+=("pattern")
+else
+    cmd+=("-i" "pattern")
+fi
+$ cmd+=("file.txt")
+$ "${cmd[@]}"
+
+# Complex example
+$ file="my document.txt"
+$ pattern="hello world"
+$ cmd=("grep" "-i" "$pattern" "$file")
+$ "${cmd[@]}"  # All properly quoted
+
+# Building from variable args
+$ options=("-l" "-h" "-a")
+$ files=("file 1.txt" "file 2.txt")
+$ ls "${options[@]}" "${files[@]}"</pre>
+        <p><strong>Common mistakes:</strong></p>
+        <pre># WRONG - loses argument boundaries
+$ args="-i pattern file.txt"
+$ grep $args  # Treated as: grep -i pattern file.txt (OK)
+$ args="-i 'hello world' file.txt"
+$ grep $args  # Broken - quotes are literal characters!
+
+# RIGHT - array preserves structure
+$ args=("-i" "hello world" "file.txt")
+$ grep "${args[@]}"  # Perfect!</pre>
+        <p><strong>printf %q for escaping:</strong></p>
+        <pre># Show how variable would be quoted
+$ var="hello world"
+$ printf '%q\n' "$var"
+'hello world'
+
+# Build escaped string
+$ safe=$(printf '%q' "$user_input")
+$ eval "command $safe"  # Safer eval</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Arrays are almost always better than strings for commands</li>
+            <li><code>"${array[@]}"</code> expands to properly quoted arguments</li>
+            <li>Use <code>+=</code> to add to arrays</li>
+            <li>Avoid eval when possible</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash quoting arrays command-building safety EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        What's the difference between $* and $@ for script arguments? How does quoting affect them?
+    </div>
+    <div class="back">
+        <strong>$* unquoted:</strong> All args as separate words (split on IFS)
+        <br><strong>"$*" quoted:</strong> All args as single string (joined by first char of IFS)
+        <br><strong>$@ unquoted:</strong> All args as separate words
+        <br><strong>"$@" quoted:</strong> Each arg as separate quoted string (BEST)
+        <p><strong>Why:</strong> <code>"$@"</code> preserves argument boundaries properly, essential for handling files with spaces.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Script with args: ./script.sh "arg 1" "arg 2" "arg 3"
+
+# $@ unquoted
+$ for arg in $@; do echo "[$arg]"; done
+[arg]
+[1]
+[arg]
+[2]
+[arg]
+[3]  # Word splitting broke them!
+
+# "$@" quoted (CORRECT)
+$ for arg in "$@"; do echo "[$arg]"; done
+[arg 1]
+[arg 2]
+[arg 3]  # Perfect!
+
+# "$*" quoted
+$ echo "$*"
+arg 1 arg 2 arg 3  # All joined as one string
+
+# Individual elements
+$ echo "$1"
+arg 1
+$ echo "$2"
+arg 2</pre>
+        <p><strong>Practical example:</strong></p>
+        <pre>#!/bin/bash
+# Process all files passed as arguments
+
+# WRONG
+for file in $@; do
+    wc -l $file  # Breaks on spaces in filenames!
+done
+
+# CORRECT
+for file in "$@"; do
+    wc -l "$file"  # Handles all filenames properly
+done
+
+# Pass all args to another command
+# WRONG
+grep pattern $@
+
+# CORRECT
+grep pattern "$@"</pre>
+        <p><strong>IFS affects $*:</strong></p>
+        <pre># Default IFS (space)
+$ set -- "arg 1" "arg 2" "arg 3"
+$ echo "$*"
+arg 1 arg 2 arg 3
+
+# Custom IFS
+$ IFS=,
+$ echo "$*"
+arg 1,arg 2,arg 3  # Joined with comma!
+
+# $@ unaffected by IFS
+$ echo "$@"
+arg 1 arg 2 arg 3</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Almost always use <code>"$@"</code></li>
+            <li><code>"$*"</code> useful for joining args into single string</li>
+            <li>Unquoted versions rarely what you want</li>
+            <li>Remember: <code>"$@"</code> = best practice for passing arguments</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash quoting arguments positional-parameters arrays EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You want to pass an argument that starts with a dash (-) without it being interpreted as an option. How do you do it safely?
+    </div>
+    <div class="back">
+        <strong>Use -- to end options:</strong> <code>command -- -filename</code>
+        <br><strong>Use ./ for files:</strong> <code>command ./-filename</code>
+        <br><strong>Quote won't help:</strong> <code>"-filename"</code> still looks like option
+        <p><strong>Why:</strong> <code>--</code> tells command "everything after this is an argument, not an option."</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Problem: filename starts with dash
+$ touch "-rf"
+$ rm "-rf"  # DANGER! Interprets as rm -rf (not filename!)
+
+# Solution 1: Use --
+$ rm -- "-rf"  # Safe! Removes file named "-rf"
+
+# Solution 2: Use path
+$ rm ./-rf  # Also safe
+
+# Grep with pattern starting with -
+$ echo "test" > file.txt
+$ grep "-t" file.txt  # Error: invalid option
+$ grep -- "-t" file.txt  # Works!
+$ grep "\-t" file.txt  # Backslash doesn't help - still option
+
+# Real-world: user-provided pattern
+$ pattern="$1"  # User provided "-i"
+$ grep -- "$pattern" file.txt  # Safe
+
+# Find files starting with dash
+$ find . -name -- "-*"  # Won't work
+$ find . -name "-*"  # This actually works (find specific)
+$ find . -name "./-*"  # Also works</pre>
+        <p><strong>Commands that support --:</strong></p>
+        <ul>
+            <li>Most GNU tools: grep, rm, cat, ls, etc.</li>
+            <li>Not universal (some ignore it)</li>
+            <li>POSIX standard for option termination</li>
+        </ul>
+        <p><strong>Alternative strategies:</strong></p>
+        <pre># Prefix with path
+$ cat ./-file
+$ rm ./-file
+
+# Use full path
+$ rm /path/to/-file
+
+# Some commands have special handling
+$ echo -- -test
+-- -test  # echo treats -- as literal
+$ printf '%s\n' -- -test
+--
+-test  # printf handles it differently</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use <code>--</code> when you don't control the argument value</li>
+            <li>Essential for scripts accepting user input</li>
+            <li>Combine with quoting for full safety: <code>command -- "$arg"</code></li>
+            <li>For files, <code>./</code> prefix works too</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash quoting options arguments safety dash EN</div>
+</div>
+
+</body>
+</html>

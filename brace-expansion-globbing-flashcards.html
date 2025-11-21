@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Brace Expansion & Globbing Flashcards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background: rgba(245, 245, 245, 0.95);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(221, 221, 221, 0.9);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgba(51, 51, 51, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        .back {
+            color: rgba(68, 68, 68, 0.95);
+        }
+        .back code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: rgba(197, 34, 31, 0.95);
+        }
+        .back pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+        }
+        .back pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(238, 238, 238, 0.9);
+            font-size: 12px;
+            color: rgba(128, 128, 128, 0.95);
+        }
+        ol, ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        strong {
+            color: rgba(76, 175, 80, 0.95);
+        }
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Brace Expansion & Globbing Flashcards</h1>
+
+    <div class="card">
+        <div class="front">
+            You need to create backup copies of a config file numbered from 1 to 100. What's the quickest way using shell expansion?
+        </div>
+        <div class="back">
+            <strong>Use brace expansion with numeric ranges:</strong>
+            <pre><code>touch config.bak.{1..100}</code></pre>
+
+            <p><strong>Why:</strong> Brace expansion generates all numbers before the command runs, creating 100 arguments in one command.</p>
+
+            <p><strong>More examples:</strong></p>
+            <ul>
+                <li><code>echo {1..5}</code> → <code>1 2 3 4 5</code></li>
+                <li><code>echo {01..10}</code> → <code>01 02 03 ... 10</code> (zero-padded)</li>
+                <li><code>echo {10..1}</code> → <code>10 9 8 ... 1</code> (reverse)</li>
+                <li><code>echo {1..10..2}</code> → <code>1 3 5 7 9</code> (step by 2)</li>
+                <li><code>mkdir -p test/{a..z}</code> → Creates 26 directories</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Brace expansion happens <em>before</em> variable expansion</li>
+                <li>Use <code>{START..END..STEP}</code> format for increments</li>
+                <li>Zero-padding is determined by START format: <code>{01..10}</code></li>
+                <li>Works with letters too: <code>{a..z}</code>, <code>{Z..A}</code></li>
+                <li>Combine with other text: <code>file{1..5}.txt</code></li>
+            </ul>
+        </div>
+        <div class="tags">cs bash brace-expansion ranges EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You need to create directories for dev, staging, and prod environments, each containing logs, data, and config folders. How can you create all 9 directories efficiently?
+        </div>
+        <div class="back">
+            <strong>Use nested brace expansion:</strong>
+            <pre><code>mkdir -p {dev,staging,prod}/{logs,data,config}</code></pre>
+
+            <p><strong>Why:</strong> Nested braces expand to the Cartesian product of all combinations (3 × 3 = 9 directories).</p>
+
+            <p><strong>How it expands:</strong></p>
+            <pre><code># Expands to:
+dev/logs dev/data dev/config
+staging/logs staging/data staging/config
+prod/logs prod/data prod/config</code></pre>
+
+            <p><strong>More examples:</strong></p>
+            <ul>
+                <li><code>echo {a,b}{1,2}</code> → <code>a1 a2 b1 b2</code></li>
+                <li><code>cp file.txt{,.bak}</code> → <code>cp file.txt file.txt.bak</code> (quick backup!)</li>
+                <li><code>mv /path/to/{old,new}.txt</code> → Rename in place</li>
+                <li><code>diff {old,new}/config.yml</code> → Compare files in different dirs</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>No spaces allowed inside braces (unless you quote)</li>
+                <li>Empty element is valid: <code>{,.bak}</code> expands to <code>"" .bak</code></li>
+                <li>Combine with ranges: <code>test{1..3}_{a,b}</code> → 6 combinations</li>
+                <li>Use echo first to preview: <code>echo {dev,staging,prod}/{logs,data}</code></li>
+                <li>Great for batch operations on multiple files/paths</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash brace-expansion nested cartesian-product EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want to delete all .txt and .log files in current directory. How do you match these files with a pattern?
+        </div>
+        <div class="back">
+            <strong>Use glob patterns (pathname expansion):</strong>
+            <pre><code>rm *.txt *.log
+
+# Or more elegantly with brace expansion:
+rm *.{txt,log}</code></pre>
+
+            <p><strong>Why:</strong> <code>*</code> is a glob pattern that matches zero or more characters in filenames. The shell expands it to all matching files before running the command.</p>
+
+            <p><strong>Common glob patterns:</strong></p>
+            <ul>
+                <li><code>*</code> - Matches any characters (except leading dot)</li>
+                <li><code>?</code> - Matches exactly one character</li>
+                <li><code>[abc]</code> - Matches one of: a, b, or c</li>
+                <li><code>[a-z]</code> - Matches any lowercase letter</li>
+                <li><code>[!0-9]</code> or <code>[^0-9]</code> - Matches any non-digit</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <ul>
+                <li><code>ls file?.txt</code> → Matches file1.txt, fileA.txt, but not file10.txt</li>
+                <li><code>ls [A-Z]*</code> → All files starting with uppercase letter</li>
+                <li><code>rm *~</code> → Remove all backup files ending with ~</li>
+                <li><code>ls test[0-9][0-9].log</code> → test01.log through test99.log</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Globbing happens AFTER brace expansion</li>
+                <li>If no files match, pattern is passed literally (unless nullglob set)</li>
+                <li>Always quote glob patterns in <code>find -name '*pattern*'</code></li>
+                <li>Use <code>echo</code> first to preview: <code>echo *.txt</code></li>
+                <li>Globs don't match hidden files (starting with .) by default</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash globbing wildcards pathname-expansion EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want to list all hidden files (starting with dot) in current directory using a glob pattern. Why doesn't <code>ls *</code> show them?
+        </div>
+        <div class="back">
+            <strong>By default, <code>*</code> doesn't match leading dots:</strong>
+            <pre><code># These work:
+ls .*          # All hidden files (includes . and ..)
+ls .??*        # Hidden files with at least 2 chars after dot
+ls .[!.]*      # Hidden files, excluding . and ..
+
+# Or enable dotglob:
+shopt -s dotglob
+ls *           # Now includes hidden files
+shopt -u dotglob  # Disable again</code></pre>
+
+            <p><strong>Why:</strong> This prevents accidentally operating on <code>.</code> (current dir) and <code>..</code> (parent dir), which could cause disasters with <code>rm -rf *</code>.</p>
+
+            <p><strong>Best approach:</strong></p>
+            <pre><code># Pattern .??* matches:
+# - Starts with dot
+# - Followed by at least 2 more characters
+# This excludes . and .. but includes .bashrc, .vimrc, etc.
+
+ls -d .??*</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li><code>dotglob</code> is a shell option that affects glob behavior</li>
+                <li><code>.*</code> is dangerous because it includes <code>..</code> (parent directory)</li>
+                <li>For scripts, explicitly set: <code>shopt -s dotglob</code> at top</li>
+                <li>Use <code>ls -A</code> flag instead to see hidden files (excludes . and ..)</li>
+                <li><code>find .</code> automatically shows all files including hidden</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash globbing hidden-files dotglob EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want to recursively match all .js files in current directory and all subdirectories. How do you do this with globbing?
+        </div>
+        <div class="back">
+            <strong>Enable globstar and use <code>**</code> pattern:</strong>
+            <pre><code>shopt -s globstar
+ls **/*.js
+
+# Or in a loop:
+for file in **/*.js; do
+    echo "Processing $file"
+done</code></pre>
+
+            <p><strong>Why:</strong> <code>**</code> matches directories recursively when globstar is enabled. Without globstar, <code>**</code> behaves like <code>*</code>.</p>
+
+            <p><strong>Examples:</strong></p>
+            <ul>
+                <li><code>grep -r "TODO" **/*.py</code> - Search all Python files recursively</li>
+                <li><code>wc -l **/*.java</code> - Count lines in all Java files</li>
+                <li><code>**/test/*.js</code> - All .js files in any test directory</li>
+                <li><code>src/**/*.{ts,tsx}</code> - All TypeScript files under src/</li>
+            </ul>
+
+            <p><strong>Comparison with find:</strong></p>
+            <pre><code># With globstar:
+shopt -s globstar
+for f in **/*.txt; do echo "$f"; done
+
+# Equivalent find:
+find . -name "*.txt" -type f
+
+# Find is better for:
+# - Complex conditions (-size, -mtime, etc.)
+# - Executing commands (-exec)
+# - Portable scripts (globstar is bash 4+)</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>globstar requires Bash 4.0+ or Zsh</li>
+                <li><code>**</code> by itself matches all files and directories recursively</li>
+                <li>Add to ~/.bashrc to enable permanently: <code>shopt -s globstar</code></li>
+                <li>Still doesn't match hidden files unless dotglob is also set</li>
+                <li>Can be slow on huge directory trees (find is more efficient)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash globbing globstar recursive EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You run <code>rm *.log</code> but there are no .log files. Bash passes literal "*.log" to rm, which errors. How can you make globs that match nothing expand to nothing instead?
+        </div>
+        <div class="back">
+            <strong>Use <code>nullglob</code> shell option:</strong>
+            <pre><code>shopt -s nullglob
+rm *.log        # If no .log files, expands to: rm
+                # (rm with no args does nothing)
+
+# Safer: use failglob instead to error explicitly
+shopt -s failglob
+rm *.log        # Errors if no matches: "no match: *.log"</code></pre>
+
+            <p><strong>Why:</strong> By default, unmatched globs are passed literally. nullglob makes them expand to nothing; failglob makes them error.</p>
+
+            <p><strong>Comparison:</strong></p>
+            <pre><code># Default (no option):
+$ ls *.xyz
+ls: cannot access '*.xyz': No such file or directory
+
+# With nullglob:
+$ shopt -s nullglob
+$ ls *.xyz
+(command runs with no arguments - usually harmless)
+
+# With failglob:
+$ shopt -s failglob
+$ ls *.xyz
+bash: no match: *.xyz</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>nullglob is useful in loops: <code>for f in *.txt; do ...</code> won't run if no .txt files</li>
+                <li>failglob is safer for scripts - makes missing files explicit</li>
+                <li>Can't use both at once (failglob takes precedence)</li>
+                <li>Scope to function: <code>local nullglob; shopt -s nullglob</code> (bash 4.4+)</li>
+                <li>Always restore previous state: <code>shopt -u nullglob</code></li>
+                <li>Alternative: <code>[ -f *.log ] && rm *.log</code> (check first)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash globbing nullglob failglob EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want to match files like "test1.txt" or "test123.txt" (one or more digits), but NOT "test.txt" (no digits). The pattern <code>test*.txt</code> matches all three. How do you match one or more digits?
+        </div>
+        <div class="back">
+            <strong>Use extended glob patterns (extglob):</strong>
+            <pre><code>shopt -s extglob
+ls test+([0-9]).txt    # Matches test1.txt, test123.txt
+                       # Does NOT match test.txt
+
+# Other extglob patterns:
+ls test?([0-9]).txt    # Zero or one digit
+ls test*([0-9]).txt    # Zero or more digits (like test*.txt)
+ls test@(1|2|3).txt    # Exactly 1, 2, or 3
+ls test!(*test*).txt   # Does NOT contain "test"</code></pre>
+
+            <p><strong>Why:</strong> Extended globs provide regex-like quantifiers for shell patterns.</p>
+
+            <p><strong>Extglob patterns:</strong></p>
+            <ul>
+                <li><code>?(pattern)</code> - Matches zero or one occurrence</li>
+                <li><code>*(pattern)</code> - Matches zero or more occurrences</li>
+                <li><code>+(pattern)</code> - Matches one or more occurrences</li>
+                <li><code>@(pattern)</code> - Matches exactly one occurrence</li>
+                <li><code>!(pattern)</code> - Matches anything except pattern</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <ul>
+                <li><code>ls !(*.txt)</code> - All files EXCEPT .txt files</li>
+                <li><code>rm !(README|LICENSE)</code> - Delete everything except README and LICENSE</li>
+                <li><code>cp !(*test*) /dest/</code> - Copy files not containing "test"</li>
+                <li><code>ls @(file1|file2).txt</code> - Only file1.txt or file2.txt</li>
+                <li><code>file?(s).txt</code> - Matches file.txt or files.txt</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>extglob must be enabled: <code>shopt -s extglob</code></li>
+                <li>Patterns can be nested: <code>+(+(a|b)c)</code></li>
+                <li>! is particularly useful for exclusions</li>
+                <li>Combine with other globs: <code>**/!(node_modules)/*.js</code></li>
+                <li>For complex patterns, consider find with -regex instead</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash globbing extglob extended-globs EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You have files named File.txt, FILE.txt, and file.txt. On Linux, <code>ls file.txt</code> only matches the lowercase version. How can you make glob patterns case-insensitive?
+        </div>
+        <div class="back">
+            <strong>Use <code>nocaseglob</code> shell option:</strong>
+            <pre><code>shopt -s nocaseglob
+ls file.txt    # Matches: file.txt, File.txt, FILE.txt, FiLe.TxT
+
+# For a single command, use subshell:
+(shopt -s nocaseglob; ls *.txt)</code></pre>
+
+            <p><strong>Why:</strong> By default, Unix filesystems are case-sensitive and so are globs. nocaseglob makes pattern matching case-insensitive.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre><code>shopt -s nocaseglob
+
+# Match any capitalization:
+rm readme.*          # Matches README.md, ReadMe.txt, readme.pdf
+
+# Character classes become case-insensitive:
+ls [a-z]*.txt        # Matches files starting with A-Z or a-z
+
+# Works with all glob patterns:
+ls test[0-9].{txt,TXT,TxT}</code></pre>
+
+            <p><strong>Alternative approaches:</strong></p>
+            <pre><code># Use find with -iname (case-insensitive):
+find . -iname "*.txt"
+
+# Use explicit character classes:
+ls [Ff][Ii][Ll][Ee].txt    # Matches any case variation
+
+# Use regex with grep:
+ls | grep -i "^file\.txt$"</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>nocaseglob affects ALL glob patterns while enabled</li>
+                <li>Useful for cross-platform scripts (Windows is case-insensitive)</li>
+                <li>Disable with: <code>shopt -u nocaseglob</code></li>
+                <li>Doesn't affect string comparisons, only pathname expansion</li>
+                <li>For scripts, find -iname is more portable than nocaseglob</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash globbing case-insensitive nocaseglob EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want to safely delete all .tmp files, but you're worried your glob pattern might not match anything and accidentally pass a literal string. How can you ensure the command only runs if matches exist?
+        </div>
+        <div class="back">
+            <strong>Multiple approaches for safety:</strong>
+            <pre><code># 1. Use failglob (errors if no match):
+shopt -s failglob
+rm *.tmp           # Errors: "no match: *.tmp" if no files
+
+# 2. Test before deleting:
+shopt -s nullglob
+files=(*.tmp)
+if [ ${#files[@]} -gt 0 ]; then
+    rm "${files[@]}"
+fi
+
+# 3. Use find (most reliable):
+find . -maxdepth 1 -name "*.tmp" -type f -delete
+
+# 4. Check with compgen:
+if compgen -G "*.tmp" > /dev/null; then
+    rm *.tmp
+fi</code></pre>
+
+            <p><strong>Why:</strong> failglob prevents accidental execution with literal patterns. nullglob + array + count ensures files exist.</p>
+
+            <p><strong>Comparison:</strong></p>
+            <pre><code># Default behavior (UNSAFE):
+$ rm *.tmp
+rm: cannot access '*.tmp': No such file or directory
+
+# With failglob (SAFE):
+$ shopt -s failglob
+$ rm *.tmp
+bash: no match: *.tmp
+# Command never executes!
+
+# With nullglob (SAFE but quiet):
+$ shopt -s nullglob
+$ rm *.tmp
+# No error, no operation (rm with no args)</code></pre>
+
+            <p><strong>Best practices:</strong></p>
+            <ul>
+                <li>For interactive use: <code>shopt -s failglob</code> in ~/.bashrc</li>
+                <li>For scripts: Use find or explicit testing</li>
+                <li>Always preview: <code>ls *.tmp</code> before <code>rm *.tmp</code></li>
+                <li>Use <code>rm -i *.tmp</code> for interactive confirmation</li>
+                <li><code>compgen -G</code> is built-in and portable (bash 4+)</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>failglob exits immediately, stopping scripts (good for set -e)</li>
+                <li>nullglob can cause surprises: <code>cat *.txt</code> hangs if no .txt</li>
+                <li>Arrays with nullglob: <code>files=(*.tmp); [ ${#files[@]} -gt 0 ]</code></li>
+                <li>Consider: <code>[ -f *.tmp ]</code> but only works with exactly 1 match</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash globbing safety failglob nullglob EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's the difference between brace expansion <code>{a,b}</code> and glob patterns <code>[ab]</code>? When do they execute?
+        </div>
+        <div class="back">
+            <strong>Key differences:</strong>
+            <pre><code># Brace expansion (runs FIRST):
+echo {a,b}.txt    → a.txt b.txt
+# Generates strings, doesn't check filesystem
+
+# Glob patterns (run LATER):
+echo [ab].txt     → (only files that exist: a.txt or b.txt)
+# Matches actual files on filesystem</code></pre>
+
+            <p><strong>Why the difference matters:</strong></p>
+            <pre><code># Creating files:
+touch file{1,2,3}.txt
+# Works! Brace expansion generates: file1.txt file2.txt file3.txt
+
+# Matching files:
+ls file[1-3].txt
+# Only shows existing files matching pattern
+
+# Combining both:
+touch test{1..5}_{a,b}.txt
+# First: brace expansion creates 10 arguments
+# Creates: test1_a.txt test1_b.txt ... test5_b.txt</code></pre>
+
+            <p><strong>Order of expansion:</strong></p>
+            <ol>
+                <li><strong>Brace expansion</strong> - <code>{a,b}</code> generates strings</li>
+                <li><strong>Tilde expansion</strong> - <code>~</code> becomes home dir</li>
+                <li><strong>Parameter expansion</strong> - <code>$var</code> substituted</li>
+                <li><strong>Arithmetic expansion</strong> - <code>$((1+1))</code> calculated</li>
+                <li><strong>Command substitution</strong> - <code>$(cmd)</code> executed</li>
+                <li><strong>Word splitting</strong> - Unquoted strings split on spaces</li>
+                <li><strong>Pathname expansion (globbing)</strong> - <code>*</code> <code>?</code> <code>[..]</code> match files</li>
+            </ol>
+
+            <p><strong>Examples showing the difference:</strong></p>
+            <ul>
+                <li><code>echo test{1,2}.txt</code> → Always outputs both, even if files don't exist</li>
+                <li><code>echo test[12].txt</code> → Only outputs existing files</li>
+                <li><code>mkdir {a,b}; ls [ab]</code> → Creates a and b, then lists them</li>
+                <li><code>rm {old,new}.txt</code> → Tries to remove both (may fail if missing)</li>
+                <li><code>rm [on][el][wd].txt</code> → Only removes matching existing files</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Braces are for generating arguments (creating files, renaming)</li>
+                <li>Brackets are for matching existing files (listing, searching)</li>
+                <li>Braces don't look at filesystem; brackets do</li>
+                <li>You can combine them: <code>ls {test,prod}/log[0-9].txt</code></li>
+                <li>Quote to prevent: <code>echo "{a,b}"</code> → literal <code>{a,b}</code></li>
+            </ul>
+        </div>
+        <div class="tags">cs bash brace-expansion globbing expansion-order EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want to create 100 test files with zero-padded names (test001.txt through test100.txt). How do you ensure consistent padding?
+        </div>
+        <div class="back">
+            <strong>Use zero-padding in brace expansion:</strong>
+            <pre><code># Zero-padded to 3 digits:
+touch test{001..100}.txt
+
+# The padding is determined by the START value:
+echo {01..10}     → 01 02 03 ... 10 (2 digits)
+echo {001..010}   → 001 002 ... 010 (3 digits)
+echo {1..10}      → 1 2 3 ... 10 (no padding)</code></pre>
+
+            <p><strong>Why:</strong> The format of the starting number determines padding for all generated numbers.</p>
+
+            <p><strong>Examples:</strong></p>
+            <pre><code># Create dated backup directories:
+mkdir backup-2024-{01..12}-{01..31}
+
+# Generate test data with IDs:
+for id in {0001..1000}; do
+    echo "Record ID: $id" > "record_${id}.txt"
+done
+
+# Create consistent file naming:
+touch log_{001..365}.txt    # 365 log files, 3-digit padding
+
+# Works with variables (careful!):
+start=001
+end=100
+# This WON'T work (braces expand before variable):
+touch test{$start..$end}.txt    # Literal: test{$start..$end}.txt
+
+# Use eval (dangerous) or loop instead:
+for i in $(seq -w 001 100); do
+    touch "test${i}.txt"
+done</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Padding applies to all numbers in the range</li>
+                <li>Can't mix different padding in one expansion</li>
+                <li>Use <code>seq -w</code> for variable-based padding: <code>seq -w 1 100</code></li>
+                <li>printf for manual padding: <code>printf "file%03d.txt\n" {1..100}</code></li>
+                <li>Zero-padding helps with sorting: <code>ls</code> shows test001 before test002</li>
+                <li>Also works for letters: <code>{a..z}</code> but can't zero-pad letters</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash brace-expansion zero-padding formatting EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You have a complex glob pattern: <code>src/**/*.{js,ts}?(x)</code> combining multiple features. What does this match and what needs to be enabled?
+        </div>
+        <div class="back">
+            <strong>Breaking down the pattern:</strong>
+            <pre><code>src/**/*.{js,ts}?(x)
+
+# Components:
+# 1. src/          - starts in src directory
+# 2. **/           - recursively all subdirectories (needs globstar)
+# 3. *             - any filename
+# 4. .{js,ts}      - .js OR .ts extension (brace expansion)
+# 5. ?(x)          - optionally followed by 'x' (needs extglob)
+
+# Matches:
+# src/file.js      ✓
+# src/file.jsx     ✓
+# src/file.ts      ✓
+# src/file.tsx     ✓
+# src/deep/path/component.tsx  ✓
+# src/file.css     ✗ (wrong extension)
+# lib/file.js      ✗ (wrong directory)</code></pre>
+
+            <p><strong>Required shell options:</strong></p>
+            <pre><code>shopt -s globstar    # For **/ recursive matching
+shopt -s extglob     # For ?(x) optional pattern
+
+# Now the pattern works:
+ls src/**/*.{js,ts}?(x)</code></pre>
+
+            <p><strong>More complex examples:</strong></p>
+            <pre><code># All source files except tests and node_modules:
+shopt -s globstar extglob
+ls **/!(node_modules|__tests__)/*.{js,ts}
+
+# Match version files with optional suffix:
+ls package@(|-lock).json    # package.json, package-lock.json
+
+# Recursive search excluding directories:
+grep -r "TODO" **/*.{py,rb,js} --exclude-dir={node_modules,venv}
+
+# Match files with specific patterns:
+ls test/**/*@(spec|test).ts?(x)  # test1.spec.ts, test2.test.tsx</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Order: brace expansion → extglob → globstar</li>
+                <li>Test with echo first: <code>echo src/**/*.{js,ts}?(x)</code></li>
+                <li>Can combine all features: <code>**/{!(test*),}.{js,ts}?(x)</code></li>
+                <li>For scripts, enable at top: <code>shopt -s globstar extglob</code></li>
+                <li>Alternative: use find for better control and portability</li>
+                <li>VS Code and .gitignore use different glob syntax!</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash globbing complex-patterns globstar extglob EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Your script uses globs but behaves differently on different machines. How do you ensure consistent glob behavior in scripts?
+        </div>
+        <div class="back">
+            <strong>Explicitly set shell options at script start:</strong>
+            <pre><code>#!/bin/bash
+
+# Save current state
+GLOBIGNORE_OLD=$GLOBIGNORE
+OPTS_OLD=$(shopt -p nullglob dotglob globstar extglob failglob nocaseglob)
+
+# Set desired behavior
+shopt -s nullglob    # Empty expansion for no matches
+shopt -s globstar    # Enable ** recursive
+shopt -u dotglob     # Don't match hidden files
+shopt -u nocaseglob  # Case-sensitive matching
+unset GLOBIGNORE     # No glob ignore patterns
+
+# Your script logic here...
+for file in **/*.txt; do
+    echo "Processing: $file"
+done
+
+# Restore original state (optional, for sourced scripts)
+eval "$OPTS_OLD"
+GLOBIGNORE=$GLOBIGNORE_OLD</code></pre>
+
+            <p><strong>Why:</strong> Users may have different defaults in ~/.bashrc. Explicit settings ensure predictable behavior.</p>
+
+            <p><strong>Common configurations:</strong></p>
+            <pre><code># Conservative (safest for scripts):
+shopt -s failglob    # Error on no match
+shopt -u nullglob
+shopt -u dotglob
+shopt -u nocaseglob
+
+# Permissive (good for interactive):
+shopt -s nullglob    # Silent on no match
+shopt -s dotglob     # Include hidden files
+shopt -s globstar    # Recursive **
+
+# Strict mode (recommended):
+set -euo pipefail
+shopt -s failglob    # Fail on unmatched globs</code></pre>
+
+            <p><strong>Check current settings:</strong></p>
+            <pre><code># See all shopt settings:
+shopt
+
+# See specific glob-related settings:
+shopt | grep -E '(glob|dot)'
+
+# See if enabled:
+shopt -q nullglob && echo "nullglob is enabled"
+
+# Save all settings to restore later:
+OLD_OPTS=$(shopt -p)</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Set options right after shebang, before any globs</li>
+                <li>Use <code>shopt -p option</code> to see current value</li>
+                <li>In functions, use <code>local -</code> to preserve options</li>
+                <li>Document your assumptions in comments</li>
+                <li>Test scripts in clean environment: <code>env -i bash script.sh</code></li>
+                <li>Consider using find instead of globs for complex portable scripts</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash globbing portability shopt scripting EN</div>
+    </div>
+
+</body>
+</html>

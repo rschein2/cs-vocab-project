@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirection & Pipes - CS Vocab Flashcards</title>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You want to save the output of a command to a file instead of seeing it on screen. How do you redirect stdout to a file?
+    </div>
+    <div class="back">
+        <strong>Redirect stdout to file (overwrite):</strong> <code>command > file.txt</code>
+        <br><strong>Append to file:</strong> <code>command >> file.txt</code>
+        <p><strong>Why:</strong> <code>></code> redirects standard output (stdout, file descriptor 1) to a file. <code>></code> overwrites, <code>>></code> appends.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Save output to file
+$ ls -la > listing.txt
+# listing.txt now contains directory listing
+
+# Append to existing file
+$ echo "New line" >> log.txt
+# Adds line without erasing previous content
+
+# Overwrite example
+$ echo "First" > file.txt
+$ echo "Second" > file.txt
+$ cat file.txt
+Second  # First line was overwritten!
+
+# Append example
+$ echo "First" > file.txt
+$ echo "Second" >> file.txt
+$ cat file.txt
+First
+Second  # Both lines preserved</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>></code> creates file if doesn't exist, overwrites if exists</li>
+            <li><code>>></code> creates if doesn't exist, appends if exists</li>
+            <li>Use <code>>></code> for logs to preserve history</li>
+            <li>Nothing appears on screen when redirecting (unless errors occur)</li>
+            <li>Shorthand: <code>&gt; file.txt</code> same as <code>1> file.txt</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash redirection stdout output EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        A command is printing errors to your terminal and you want to save those error messages to a file. How do you redirect stderr separately from stdout?
+    </div>
+    <div class="back">
+        <strong>Redirect stderr to file:</strong> <code>command 2> errors.txt</code>
+        <br><strong>Redirect both stdout and stderr to different files:</strong>
+        <pre>command > output.txt 2> errors.txt</pre>
+        <strong>Append stderr:</strong> <code>command 2>> errors.txt</code>
+        <p><strong>Why:</strong> File descriptor 2 is stderr. Redirecting it separately lets you capture errors without mixing them with normal output.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Save only errors
+$ grep -r "pattern" /etc 2> errors.txt
+# Permission denied errors go to errors.txt
+# Matches appear on screen
+
+# Separate output and errors
+$ find / -name "*.log" > found.txt 2> errors.txt
+# found.txt: list of matching files
+# errors.txt: permission errors
+
+# Real-world: compile with error log
+$ gcc program.c -o program 2> compile_errors.txt
+# Errors saved for review
+
+# Append errors to log
+$ python script.py 2>> error_log.txt</pre>
+        <p><strong>File descriptors:</strong></p>
+        <ul>
+            <li><strong>0</strong> = stdin (input)</li>
+            <li><strong>1</strong> = stdout (normal output)</li>
+            <li><strong>2</strong> = stderr (errors)</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>2></code> redirects only errors</li>
+            <li><code>></code> redirects only normal output</li>
+            <li>Order matters: <code>> out.txt 2> err.txt</code> (either order works here)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash redirection stderr errors EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You want both stdout and stderr to go to the same file. What's the correct way to redirect both streams together?
+    </div>
+    <div class="back">
+        <strong>Modern syntax:</strong> <code>command &> file.txt</code> or <code>command >& file.txt</code>
+        <br><strong>Traditional syntax:</strong> <code>command > file.txt 2>&1</code>
+        <br><strong>Append both:</strong> <code>command &>> file.txt</code> or <code>command >> file.txt 2>&1</code>
+        <p><strong>Why:</strong> <code>2>&1</code> means "redirect stderr (2) to wherever stdout (1) is going". Must come AFTER <code>></code>.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Modern way (bash 4+)
+$ python script.py &> output.txt
+# Both output and errors in output.txt
+
+# Traditional way (more portable)
+$ python script.py > output.txt 2>&1
+# Same result
+
+# Common mistake - WRONG ORDER
+$ python script.py 2>&1 > output.txt  # DON'T DO THIS
+# stderr goes to screen, only stdout to file!
+
+# Append both
+$ python script.py &>> log.txt
+# OR
+$ python script.py >> log.txt 2>&1
+
+# Background job with redirect
+$ python train.py > training.log 2>&1 &amp;</pre>
+        <p><strong>Why order matters:</strong></p>
+        <pre># Correct: > output.txt 2>&1
+# 1. stdout redirected to output.txt
+# 2. stderr redirected to wherever stdout goes (output.txt)
+# Result: both in output.txt
+
+# Wrong: 2>&1 > output.txt
+# 1. stderr redirected to wherever stdout currently goes (terminal)
+# 2. stdout redirected to output.txt
+# Result: stdout in file, stderr on terminal</pre>
+        <p><strong>Tip:</strong> Use <code>&></code> in bash for simplicity, or <code>> file 2>&1</code> for portability</p>
+    </div>
+    <div class="tags">cs bash redirection stdout stderr combined EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You want to discard all output from a command (both stdout and stderr) to keep your terminal clean. How do you suppress all output?
+    </div>
+    <div class="back">
+        <strong>Discard all output:</strong> <code>command &> /dev/null</code>
+        <br><strong>Or:</strong> <code>command > /dev/null 2>&1</code>
+        <br><strong>Discard only stdout:</strong> <code>command > /dev/null</code>
+        <br><strong>Discard only stderr:</strong> <code>command 2> /dev/null</code>
+        <p><strong>Why:</strong> <code>/dev/null</code> is a special file that discards everything written to it. Useful for suppressing unwanted output.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Completely silent
+$ find / -name "*.log" &> /dev/null
+# No output, no errors
+
+# Silent success check
+$ grep -q "pattern" file.txt &> /dev/null
+if [ $? -eq 0 ]; then
+    echo "Found!"
+fi
+
+# Suppress errors only, see output
+$ find / -name "*.log" 2> /dev/null
+# Shows matches, hides "Permission denied"
+
+# Common: check if command exists
+$ which nonexistent_command > /dev/null 2>&1
+$ echo $?
+1  # Not found
+
+# Background job, silent
+$ long_process &> /dev/null &amp;</pre>
+        <p><strong>When to use:</strong></p>
+        <ul>
+            <li>Scripts where output is irrelevant</li>
+            <li>Checking if command succeeds (only need exit code)</li>
+            <li>Suppressing known/expected errors</li>
+            <li>Keeping terminal clean for important output</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>/dev/null</code> is the "black hole" of output</li>
+            <li>Reading from <code>/dev/null</code> gives EOF immediately</li>
+            <li>Don't discard output you might need for debugging!</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash redirection dev-null suppression EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want to use the contents of a file as input to a command instead of typing it. How do you redirect a file to stdin?
+    </div>
+    <div class="back">
+        <strong>Redirect file to stdin:</strong> <code>command < input.txt</code>
+        <br><strong>Alternative (more common):</strong> <code>command input.txt</code> (if command supports file args)
+        <p><strong>Why:</strong> <code><</code> redirects file to stdin (file descriptor 0). Useful for commands that expect input from keyboard.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Read from file instead of keyboard
+$ wc -l < file.txt
+42
+
+# Same as:
+$ wc -l file.txt
+42 file.txt  # Note: shows filename
+
+# Sort file contents
+$ sort < unsorted.txt > sorted.txt
+
+# Bulk input to command
+$ mysql database_name < schema.sql
+# Executes all SQL commands in file
+
+# Mail with content from file
+$ mail -s "Report" user@example.com < report.txt
+
+# Here document alternative (for inline content)
+$ cat << EOF > output.txt
+Line 1
+Line 2
+EOF</pre>
+        <p><strong>Input redirection vs file argument:</strong></p>
+        <pre># Input redirection
+$ command < file.txt
+# Command sees data on stdin, doesn't know source
+
+# File argument
+$ command file.txt
+# Command opens file itself, knows filename</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Most commands accept files as arguments, making <code><</code> less common</li>
+            <li>Useful when command only reads stdin (no file argument support)</li>
+            <li>Can combine: <code>command < input.txt > output.txt</code></li>
+            <li>The <code><</code> operator is less common than <code>></code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash redirection stdin input EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want to pass the output of one command as input to another command. How do you use pipes?
+    </div>
+    <div class="back">
+        <strong>Pipe output to input:</strong> <code>command1 | command2</code>
+        <br><strong>Chain multiple:</strong> <code>command1 | command2 | command3</code>
+        <p><strong>Why:</strong> <code>|</code> (pipe) connects stdout of left command to stdin of right command. Foundation of Unix philosophy: small tools that work together.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Count lines in output
+$ ls -1 | wc -l
+42
+
+# Search in output
+$ ps aux | grep python
+# All python processes
+
+# Filter and sort
+$ cat file.txt | grep "error" | sort | uniq
+# Unique error lines, sorted
+
+# Process pipeline
+$ cat log.txt | grep "ERROR" | cut -d' ' -f1 | sort | uniq -c | sort -rn
+# Count errors by type, sorted by frequency
+
+# Real-world: find large files
+$ du -h /home | sort -rh | head -20
+# 20 largest files/directories
+
+# Monitor with pipe
+$ tail -f app.log | grep --line-buffered "ERROR"
+# Live error monitoring</pre>
+        <p><strong>Important notes:</strong></p>
+        <ul>
+            <li>Only stdout is piped by default, not stderr</li>
+            <li>To pipe stderr too: <code>command1 2>&1 | command2</code></li>
+            <li>Each command in pipeline runs concurrently</li>
+            <li>Pipeline fails if any command fails (can configure with <code>set -o pipefail</code>)</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Pipes are fundamental to Unix/Linux workflows</li>
+            <li>Build complex operations from simple commands</li>
+            <li>Test each stage: <code>cmd1 | cmd2</code>, verify, then add <code>| cmd3</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash pipes pipeline data-flow EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You want to see the output of a command on screen AND save it to a file at the same time. How do you do both?
+    </div>
+    <div class="back">
+        <strong>Tee to file:</strong> <code>command | tee output.txt</code>
+        <br><strong>Append with tee:</strong> <code>command | tee -a output.txt</code>
+        <br><strong>Multiple files:</strong> <code>command | tee file1.txt file2.txt</code>
+        <br><strong>Both stdout and stderr:</strong> <code>command 2>&1 | tee output.txt</code>
+        <p><strong>Why:</strong> <code>tee</code> reads from stdin, writes to stdout AND file(s) simultaneously. Named after T-shaped pipe fitting.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Watch build progress and save log
+$ make | tee build.log
+# See output in real-time, saved to build.log
+
+# Installation with log
+$ sudo apt install python3 | tee install.log
+
+# Append to existing log
+$ python script.py | tee -a run.log
+
+# Multiple output files
+$ ls -R | tee file1.txt file2.txt file3.txt
+
+# Save both stdout and stderr
+$ python script.py 2>&1 | tee full-output.log
+
+# Pipeline with tee in middle
+$ cat huge.log | grep "ERROR" | tee errors.txt | wc -l
+# See errors, save to file, count them</pre>
+        <p><strong>Common patterns:</strong></p>
+        <pre># Interactive install with log
+sudo script_install.sh | tee install.log
+
+# Monitor and save
+tail -f app.log | tee -a monitoring.log
+
+# Build with timestamp log
+make 2>&1 | tee build-$(date +%Y%m%d-%H%M%S).log</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>tee</code> without <code>-a</code> overwrites file</li>
+            <li><code>tee -a</code> appends to file</li>
+            <li>Perfect for installations where you want to see AND log</li>
+            <li>Can use in middle of pipeline, not just at end</li>
+            <li>For sudo commands: <code>sudo cmd | tee log</code> (tee runs as user, be careful with permissions)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash tee pipes redirection EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You're writing a script and want to create a multi-line input block without using an external file. How do you use here documents?
+    </div>
+    <div class="back">
+        <strong>Here document (heredoc):</strong>
+        <pre>command << EOF
+line 1
+line 2
+EOF</pre>
+        <strong>Suppress leading tabs:</strong> <code>command <<- EOF</code>
+        <br><strong>Quote delimiter to prevent expansion:</strong> <code>command << 'EOF'</code>
+        <p><strong>Why:</strong> Here documents feed multi-line text to stdin. Perfect for scripts that need to pass formatted text to commands.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Create file with heredoc
+cat > config.txt << EOF
+server=localhost
+port=8080
+username=admin
+EOF
+
+# Send email
+mail -s "Alert" user@example.com << EOF
+The backup job completed successfully.
+Start time: $(date)
+Status: OK
+EOF
+
+# SQL commands
+mysql database << EOF
+CREATE TABLE users (id INT, name VARCHAR(50));
+INSERT INTO users VALUES (1, 'Alice');
+INSERT INTO users VALUES (2, 'Bob');
+EOF
+
+# Python script from bash
+python3 << 'EOF'
+for i in range(10):
+    print(f"Number {i}")
+EOF
+
+# Multi-line string in script
+cat << EOF | sed 's/foo/bar/g' > output.txt
+This has foo
+And more foo
+EOF</pre>
+        <p><strong>Heredoc variants:</strong></p>
+        <ul>
+            <li><code><< EOF</code> - Variable expansion enabled</li>
+            <li><code><< 'EOF'</code> - No variable expansion (literal)</li>
+            <li><code><<- EOF</code> - Strip leading tabs (for indented scripts)</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>EOF is conventional but can be any delimiter</li>
+            <li>Delimiter must be on its own line</li>
+            <li>Use quotes around delimiter to prevent variable expansion</li>
+            <li>Great for generating config files in scripts</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash heredoc here-document input EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You want to pass a single string as input to a command without using echo and pipe. What's the compact way to do inline input?
+    </div>
+    <div class="back">
+        <strong>Here string:</strong> <code>command <<< "string"</code>
+        <br><strong>With variable:</strong> <code>command <<< "$variable"</code>
+        <p><strong>Why:</strong> Here strings (<code><<<</code>) are compact heredocs for single-line input. Cleaner than <code>echo | command</code>.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Simple input
+$ grep "pattern" <<< "string with pattern in it"
+string with pattern in it
+
+# With variable
+$ TEXT="Hello World"
+$ wc -w <<< "$TEXT"
+2
+
+# Instead of echo | pipe
+# Old way:
+$ echo "test string" | grep "test"
+# New way:
+$ grep "test" <<< "test string"
+
+# Base64 decode
+$ base64 -d <<< "SGVsbG8gV29ybGQK"
+Hello World
+
+# Check if string contains pattern
+$ grep -q "error" <<< "$log_message" && echo "Found error"
+
+# With command substitution
+$ cat <<< "Current date: $(date)"
+Current date: Mon Jan 19 14:23:45 EST 2025</pre>
+        <p><strong>Comparison:</strong></p>
+        <pre># These are equivalent:
+echo "text" | command
+command <<< "text"
+command << EOF
+text
+EOF
+
+# Here string is most concise for single-line</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Bash/zsh only (not POSIX shell)</li>
+            <li>Automatically adds newline at end</li>
+            <li>Variables expand by default (use single quotes to prevent)</li>
+            <li>More efficient than spawning echo process</li>
+            <li>Great for testing commands with inline input</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash here-string input inline EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        You have a command that outputs errors you want to see but also outputs many warnings you want to hide. How do you filter stderr?
+    </div>
+    <div class="back">
+        <strong>Pipe stderr through grep:</strong> <code>command 2>&1 >/dev/null | grep -v "warning"</code>
+        <br><strong>Or swap stdout/stderr:</strong> <code>command 3>&1 1>&2 2>&3 | grep -v "warning"</code>
+        <p><strong>Why:</strong> By default, only stdout flows through pipes. To filter stderr, must redirect it to stdout first.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Show only errors, hide warnings
+$ gcc program.c 2>&1 >/dev/null | grep -v "warning"
+# Compiles with only errors visible
+
+# Explanation of 2>&1 >/dev/null:
+# 2>&1 - stderr to stdout
+# >/dev/null - stdout to /dev/null
+# Result: only stderr flows through pipe
+
+# Filter specific warnings
+$ python script.py 2>&1 | grep -v "DeprecationWarning"
+
+# Show only errors (no warnings, no normal output)
+$ make 2>&1 >/dev/null | grep "error"
+
+# Swap stdout and stderr completely
+$ command 3>&1 1>&2 2>&3 | grep "pattern"
+# Now filtering stderr, stdout still goes to terminal</pre>
+        <p><strong>Understanding the swap:</strong></p>
+        <pre>command 3>&1 1>&2 2>&3
+# 3>&1 - Save stdout in FD 3
+# 1>&2 - Redirect stdout to stderr
+# 2>&3 - Redirect stderr to FD 3 (original stdout)
+# Result: stdout and stderr swapped</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>2>&1 >/dev/null</code> is the common pattern for piping only stderr</li>
+            <li>Order matters: <code>2>&1 >/dev/null</code> not <code>>/dev/null 2>&1</code></li>
+            <li>The swap method (FD 3) is more advanced but cleaner</li>
+            <li>Use <code>grep -v</code> to exclude patterns</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash redirection stderr filtering pipes EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You want to save different types of output to different files (e.g., successes to one file, errors to another) while also seeing both on screen. How do you do complex multi-way redirection?
+    </div>
+    <div class="back">
+        <strong>Separate files, see both:</strong>
+        <pre>command > >(tee stdout.log) 2> >(tee stderr.log >&2)</pre>
+        <strong>Or use script command:</strong>
+        <pre>script -c "command > output.txt 2> errors.txt" -q /dev/null</pre>
+        <p><strong>Why:</strong> Process substitution <code>>(...)</code> creates named pipes, allowing multi-way splits with tee.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># See and save stdout and stderr separately
+$ make > >(tee stdout.log) 2> >(tee stderr.log >&2)
+# Terminal shows both
+# stdout.log has normal output
+# stderr.log has errors
+
+# Simpler approach for most cases
+$ make 2>&1 | tee full.log
+# See everything, save everything to one file
+
+# Three-way split: screen, file, and pipe
+$ command | tee output.txt | process_further
+# Terminal sees output
+# output.txt has copy
+# process_further gets the data
+
+# Save log with timestamp, show on screen
+$ python script.py 2>&1 | tee "log-$(date +%Y%m%d-%H%M%S).txt"
+
+# Advanced: color output to screen, plain to file
+$ ls --color=always | tee output.log
+# Screen has colors, file has ANSI codes
+$ ls --color=never | tee output.log
+# Both plain</pre>
+        <p><strong>Process substitution breakdown:</strong></p>
+        <pre>> >(command)
+# Creates a named pipe
+# Redirects output to that pipe
+# command reads from the pipe
+
+Example:
+echo "test" > >(cat > file.txt)
+# Same as: echo "test" > file.txt</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Process substitution requires bash/zsh (not POSIX sh)</li>
+            <li>For most cases, <code>tee</code> alone is sufficient</li>
+            <li>Use <code>2>&1 | tee</code> for combined output</li>
+            <li>Separate files useful for automated log processing</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash redirection tee process-substitution advanced EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You're running a pipeline and want to know which command in the chain failed. How do you check exit statuses of pipeline commands?
+    </div>
+    <div class="back">
+        <strong>Check pipeline exit status:</strong> <code>${PIPESTATUS[@]}</code> (bash) or <code>$pipestatus</code> (zsh)
+        <br><strong>Make pipeline fail on any error:</strong> <code>set -o pipefail</code>
+        <p><strong>Why:</strong> By default, pipeline exit status is only the last command. <code>PIPESTATUS</code> array shows all statuses.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Check which command failed
+$ false | true | true
+$ echo "${PIPESTATUS[@]}"
+1 0 0
+# First command failed (exit 1), others succeeded (exit 0)
+
+$ echo $?
+0  # Last command's status only!
+
+# Real example
+$ cat file.txt | grep "pattern" | sort > output.txt
+$ echo "${PIPESTATUS[@]}"
+0 1 0
+# grep failed (no matches), but pipeline still "succeeded"
+
+# With pipefail
+$ set -o pipefail
+$ cat file.txt | grep "pattern" | sort > output.txt
+$ echo $?
+1  # Now pipeline fails if ANY command fails
+
+# In script with error checking
+#!/bin/bash
+set -o pipefail
+
+cat input.txt | process1 | process2 | process3
+if [ $? -ne 0 ]; then
+    echo "Pipeline failed!"
+    echo "Exit statuses: ${PIPESTATUS[@]}"
+    exit 1
+fi</pre>
+        <p><strong>Understanding pipefail:</strong></p>
+        <pre># Without pipefail (default):
+$ false | true
+$ echo $?
+0  # Pipeline succeeds (last command succeeded)
+
+# With pipefail:
+$ set -o pipefail
+$ false | true
+$ echo $?
+1  # Pipeline fails (any command failed)</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>set -o pipefail</code> in scripts for better error handling</li>
+            <li><code>PIPESTATUS</code> only valid immediately after pipeline</li>
+            <li>Disable with <code>set +o pipefail</code></li>
+            <li>Essential for robust scripts</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash pipes pipefail exit-status error-handling EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to use command output as a filename in another command (e.g., "cat the most recent log file"). How do you use command substitution for filenames?
+    </div>
+    <div class="back">
+        <strong>Command substitution:</strong> <code>command $(other_command)</code>
+        <br><strong>Old syntax:</strong> <code>command `other_command`</code> (backticks)
+        <p><strong>Why:</strong> <code>$()</code> runs command and substitutes its output inline. Essential for dynamic arguments.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># View newest file
+$ ls -t | head -1
+recent.log
+$ cat $(ls -t | head -1)
+# Cats the newest file
+
+# Better:
+$ cat "$(ls -t | head -1)"
+# Quotes handle spaces in filename
+
+# Edit last modified file
+$ vim $(ls -t | head -1)
+
+# Delete old logs
+$ rm $(find /var/log -name "*.log" -mtime +30)
+
+# Count lines in all Python files
+$ wc -l $(find . -name "*.py")
+
+# Process files matching pattern
+$ tar -czf backup.tar.gz $(ls *.txt)
+
+# Current date in filename
+$ cp data.csv "data-$(date +%Y%m%d).csv"
+
+# Get file contents as argument
+$ mysql -u root -p$(cat /secret/password.txt) database</pre>
+        <p><strong>Nesting command substitution:</strong></p>
+        <pre># Outer $() can contain inner $()
+$ echo "User $(whoami) is in $(pwd)"
+User alice is in /home/alice
+
+# Compare file contents
+$ diff "$(ls -t *.log | head -1)" "$(ls -t *.log | head -2 | tail -1)"
+# Diffs two most recent log files</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Always quote: <code>"$(command)"</code> to handle spaces</li>
+            <li>Preferred over backticks (easier to nest, clearer)</li>
+            <li>Output includes trailing newlines (usually trimmed)</li>
+            <li>Be careful with file lists - can break with spaces</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash command-substitution output-capture EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You want to provide a list of arguments to a command where the arguments come from command output (similar to command substitution but each line is separate argument). How do you use process substitution?
+    </div>
+    <div class="back">
+        <strong>Process substitution:</strong> <code>command <(other_command)</code>
+        <br><strong>Why:</strong> <code><(...)</code> creates named pipe/file that command can read. Different from <code>$()</code> which substitutes text inline.</p>
+        <p><strong>Differences:</strong></p>
+        <pre># Command substitution $() - text replacement
+$ echo $(ls)
+file1 file2 file3  # All one argument
+
+# Process substitution <() - creates file
+$ cat <(ls)
+file1
+file2  # Each line preserved
+file3</pre>
+        <p><strong>Examples:</strong></p>
+        <pre># Compare outputs of two commands
+$ diff <(ls dir1) <(ls dir2)
+# Shows differences between directory listings
+
+# Compare sorted files
+$ diff <(sort file1.txt) <(sort file2.txt)
+
+# Paste outputs side-by-side
+$ paste <(cut -f1 file1.txt) <(cut -f3 file2.txt)
+
+# Read from multiple sources
+$ cat file.txt <(echo "===") <(date)
+
+# Grep multiple sources
+$ grep "error" <(tail -100 /var/log/syslog) <(tail -100 /var/log/app.log)
+
+# Join command outputs
+$ join <(sort users.txt) <(sort activity.txt)
+
+# Multiple inputs
+$ vimdiff <(grep "TODO" *.py) <(grep "FIXME" *.py)
+
+# With pipe
+$ sort <(cat file1.txt file2.txt) | uniq</pre>
+        <p><strong>Behind the scenes:</strong></p>
+        <pre>$ echo <(ls)
+/dev/fd/63  # It's actually a file descriptor!
+
+$ cat <(ls)
+# cat reads from /dev/fd/63, which is fed by ls</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Great for commands that need file arguments but you have streams</li>
+            <li>Multiple process substitutions in one command allowed</li>
+            <li>Bash/zsh only (not POSIX sh)</li>
+            <li><code><(...)</code> for input, <code>>(...)</code> for output</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash process-substitution streams advanced EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You want to prevent accidentally overwriting existing files with redirection. How do you make redirection safer?
+    </div>
+    <div class="back">
+        <strong>Noclobber mode:</strong> <code>set -o noclobber</code> or <code>set -C</code>
+        <br><strong>Force overwrite when noclobber is set:</strong> <code>command >| file.txt</code>
+        <br><strong>Disable noclobber:</strong> <code>set +o noclobber</code> or <code>set +C</code>
+        <p><strong>Why:</strong> Prevents <code>></code> from overwriting existing files. Must use <code>>|</code> to explicitly overwrite.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Enable noclobber
+$ set -o noclobber
+
+# Try to overwrite existing file
+$ echo "test" > existing.txt
+bash: existing.txt: cannot overwrite existing file
+
+# Use >>| to force overwrite
+$ echo "test" >| existing.txt
+# Works!
+
+# Append still works normally
+$ echo "test" >> existing.txt
+# OK
+
+# Creating new files works
+$ echo "test" > newfile.txt
+# OK
+
+# Disable noclobber
+$ set +o noclobber
+$ echo "test" > existing.txt
+# Now works again</pre>
+        <p><strong>In scripts:</strong></p>
+        <pre>#!/bin/bash
+set -o noclobber  # Safety first!
+
+# ... script logic ...
+
+# Force overwrite when needed
+important_command >| critical_output.txt
+
+# Normal redirect creates new file if doesn't exist
+log_command > "log-$(date +%Y%m%d).txt"</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Add <code>set -o noclobber</code> to <code>~/.bashrc</code> for permanent protection</li>
+            <li><code>>|</code> or <code>>!</code> forces overwrite even with noclobber</li>
+            <li>Only affects <code>></code>, not <code>>></code> (append)</li>
+            <li>Doesn't protect against <code>rm</code> or other file operations</li>
+            <li>Check status: <code>set -o | grep noclobber</code></li>
+        </ul>
+        <p><strong>Alternative:</strong> Use <code>tee</code> with <code>-a</code> for append-only workflows</p>
+    </div>
+    <div class="tags">cs bash redirection safety noclobber EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You have a long pipeline and want to save intermediate results for debugging without breaking the pipeline. How do you tap into the middle of a pipeline?
+    </div>
+    <div class="back">
+        <strong>Tee in pipeline:</strong> <code>cmd1 | tee intermediate.txt | cmd2 | cmd3</code>
+        <br><strong>Why:</strong> <code>tee</code> can appear anywhere in pipeline, not just at end. Data flows through to next command while being saved.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Save each stage of processing
+$ cat data.csv \
+  | cut -d',' -f1,3 \
+  | tee step1.txt \
+  | sort \
+  | tee step2.txt \
+  | uniq -c \
+  | tee step3.txt \
+  | sort -rn \
+  > final.txt
+
+# Now you have step1.txt, step2.txt, step3.txt, and final.txt
+
+# Debug pipeline by checking intermediate
+$ cat huge_log.txt \
+  | grep "ERROR" \
+  | tee errors_found.txt \
+  | wc -l
+# See error count, errors_found.txt has the errors
+
+# Multiple taps
+$ process_data \
+  | tee raw_results.txt \
+  | filter_step1 \
+  | tee filtered.txt \
+  | filter_step2 \
+  | tee final_filtered.txt \
+  | generate_report</pre>
+        <p><strong>Debugging technique:</strong></p>
+        <pre># Build pipeline incrementally with tee
+$ cat data.txt | tee step1.txt | head
+# Check step1.txt, looks good
+
+$ cat data.txt | process1 | tee step2.txt | head
+# Check step2.txt
+
+# Continue adding stages...</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Each <code>tee</code> saves snapshot of data at that point</li>
+            <li>Data continues flowing through pipeline</li>
+            <li>Use <code>tee -a</code> to append instead of overwrite</li>
+            <li>Remove <code>tee</code> calls once debugging is done</li>
+            <li>Can use multiple <code>tee</code> in one pipeline</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash pipes tee debugging intermediate EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You want to create a log file that includes both what you type and the output (like recording entire shell session). How do you record a terminal session?
+    </div>
+    <div class="back">
+        <strong>Record session:</strong> <code>script session.log</code>
+        <br><strong>Append to log:</strong> <code>script -a session.log</code>
+        <br><strong>Quiet mode:</strong> <code>script -q session.log</code>
+        <br><strong>Stop recording:</strong> <code>exit</code> or <code>Ctrl+D</code>
+        <p><strong>Why:</strong> <code>script</code> records everything: commands typed, output, errors. Perfect for documenting procedures or debugging.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Start recording
+$ script installation.log
+Script started, file is installation.log
+$ sudo apt update
+$ sudo apt install nginx
+$ systemctl status nginx
+$ exit
+Script done, file is installation.log
+
+# Review what happened
+$ cat installation.log
+# Shows everything you typed and all output
+
+# Quiet mode (no "Script started" messages)
+$ script -q session.log
+
+# Append to existing log
+$ script -a daily_work.log
+
+# With command (run and exit)
+$ script -c "ls -la" output.log
+
+# Timing information
+$ script -t 2> timing.log output.log
+# timing.log has timing data for replay</pre>
+        <p><strong>Use cases:</strong></p>
+        <ul>
+            <li>Document installation procedures</li>
+            <li>Debug issues (show exactly what you did)</li>
+            <li>Training materials (show full session)</li>
+            <li>Compliance/auditing requirements</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Creates nested shell - exit to stop recording</li>
+            <li>Captures ANSI color codes (may look messy in plain text)</li>
+            <li>Use <code>scriptreplay</code> with timing file to replay session</li>
+            <li>Alternative: <code>asciinema</code> for recording and sharing terminal sessions</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash script recording logging session EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You want to redirect both stdout and stderr to separate files while also seeing both on screen. What's a good pattern for this?
+    </div>
+    <div class="back">
+        <strong>Pattern 1 - Process substitution:</strong>
+        <pre>command > >(tee stdout.log) 2> >(tee stderr.log >&2)</pre>
+        <strong>Pattern 2 - Separate and combine:</strong>
+        <pre>( command 2>&1 1>&3 | tee stderr.log ) 3>&1 | tee stdout.log</pre>
+        <strong>Pattern 3 - Simple merged output:</strong>
+        <pre>command 2>&1 | tee combined.log</pre>
+        <p><strong>Why:</strong> Sometimes you need comprehensive logging with split streams while maintaining interactivity.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Simplest: combined log
+$ make 2>&1 | tee build.log
+# Screen shows everything
+# build.log has everything
+
+# Split streams with process substitution
+$ make > >(tee build-out.log) 2> >(tee build-err.log >&2)
+# Screen shows both
+# build-out.log has stdout
+# build-err.log has stderr
+
+# Advanced: color output preserved
+$ make 2>&1 | tee >(sed 's/error/\\033[31m&\\033[0m/' > formatted.log)
+
+# Long-running job with split logs
+$ python train.py > >(tee training-out.log) 2> >(tee training-err.log >&2) &
+# Background job with full logging</pre>
+        <p><strong>Choosing a pattern:</strong></p>
+        <ul>
+            <li><strong>Pattern 1 (process subst):</strong> Best for split logs, clean</li>
+            <li><strong>Pattern 2 (FD swapping):</strong> Advanced, portable</li>
+            <li><strong>Pattern 3 (merged):</strong> Simplest, usually sufficient</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>For most cases, merged output is fine</li>
+            <li>Split logs useful when you process them differently</li>
+            <li>Process substitution requires bash 4+</li>
+            <li>Test your redirection with simple commands first</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash redirection advanced logging patterns EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You're building a complex data processing pipeline and want to ensure it's as efficient as possible. What are some performance tips for pipelines?
+    </div>
+    <div class="back">
+        <strong>Performance tips:</strong>
+        <ul>
+            <li>Avoid useless use of cat: <code>cmd < file</code> not <code>cat file | cmd</code></li>
+            <li>Filter early in pipeline to reduce data</li>
+            <li>Use built-in tools over external when possible</li>
+            <li>Minimize pipeline stages</li>
+            <li>Consider parallel processing (<code>xargs -P</code>, <code>parallel</code>)</li>
+        </ul>
+        <p><strong>Examples:</strong></p>
+        <pre># Bad: Useless use of cat (UUOC)
+$ cat file.txt | grep "pattern"
+
+# Good: Direct input
+$ grep "pattern" file.txt
+# OR
+$ grep "pattern" < file.txt
+
+# Bad: Many pipeline stages
+$ cat huge.log | grep "ERROR" | grep "2024" | grep "database"
+
+# Good: One grep with multiple patterns
+$ grep "ERROR.*2024.*database" huge.log
+
+# Bad: Sort entire file then filter
+$ sort huge.csv | grep "active"
+
+# Good: Filter first, sort less data
+$ grep "active" huge.csv | sort
+
+# Parallel processing
+$ cat urls.txt | xargs -P 4 -I {} curl -O {}
+# Downloads 4 files in parallel
+
+# Built-in instead of external
+$ VAR="${VAR//old/new}"  # Built-in substitution
+$ echo "$VAR" | sed 's/old/new/g'  # External command (slower)</pre>
+        <p><strong>Benchmarking:</strong></p>
+        <pre># Compare approaches
+$ time cat file | command1 | command2
+$ time command1 < file | command2
+
+# Profile with pv (pipe viewer)
+$ cat huge_file | pv | process_data
+# Shows throughput</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Each pipe stage creates process overhead</li>
+            <li>Early filtering reduces data through pipeline</li>
+            <li>Built-in string operations faster than external commands</li>
+            <li>Use <code>time</code> to measure performance</li>
+            <li>For huge files, consider specialized tools (awk, perl)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash pipes performance optimization EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        What's a good mental model for understanding how redirection and pipes work in bash? How do file descriptors actually work?
+    </div>
+    <div class="back">
+        <strong>Mental model:</strong> Every process has 3 default streams (file descriptors):
+        <ul>
+            <li><strong>FD 0 (stdin):</strong> Where input comes from</li>
+            <li><strong>FD 1 (stdout):</strong> Where normal output goes</li>
+            <li><strong>FD 2 (stderr):</strong> Where error output goes</li>
+        </ul>
+        <p>By default: all point to terminal. Redirection changes where they point.</p>
+        <p><strong>Visual:</strong></p>
+        <pre>Normal command:
+┌─────────┐
+│ Command │
+└─────────┘
+  0↓  ↑1  ↑2
+Keyboard Terminal Terminal
+
+With redirection (> file.txt):
+┌─────────┐
+│ Command │
+└─────────┘
+  0↓  ↑1     ↑2
+Keyboard file.txt Terminal
+
+With pipe (cmd1 | cmd2):
+┌──────┐    ┌──────┐
+│ cmd1 │ 1→0│ cmd2 │
+└──────┘    └──────┘</pre>
+        <p><strong>Key concepts:</strong></p>
+        <ul>
+            <li>FDs are just numbers pointing to open files/streams</li>
+            <li><code>></code> changes where FD 1 points</li>
+            <li><code>2></code> changes where FD 2 points</li>
+            <li><code>2>&1</code> makes FD 2 point to same place as FD 1</li>
+            <li>Pipes connect stdout of left to stdin of right</li>
+        </ul>
+        <p><strong>Examples with explanation:</strong></p>
+        <pre># command > file.txt
+# FD 1 (stdout) → file.txt
+# FD 2 (stderr) → terminal (unchanged)
+
+# command 2> errors.txt
+# FD 1 (stdout) → terminal (unchanged)
+# FD 2 (stderr) → errors.txt
+
+# command > output.txt 2>&1
+# FD 1 → output.txt
+# FD 2 → wherever FD 1 points (output.txt)
+
+# command1 | command2
+# cmd1 FD 1 → cmd2 FD 0
+# Both cmd1 FD 2 and cmd2 FD 2 → terminal</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Think of FDs as "pipes" that can be redirected</li>
+            <li>Order matters: redirect happens left to right</li>
+            <li>Can use FDs 3-9 for custom purposes</li>
+            <li>Use <code>lsof -p $$</code> to see current shell's open FDs</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash redirection pipes file-descriptors concepts EN</div>
+</div>
+
+</body>
+</html>

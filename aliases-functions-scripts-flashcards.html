@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Aliases, Functions & Scripts Flashcards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background: rgba(245, 245, 245, 0.95);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(221, 221, 221, 0.9);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgba(51, 51, 51, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        .back {
+            color: rgba(68, 68, 68, 0.95);
+        }
+        .back code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: rgba(197, 34, 31, 0.95);
+        }
+        .back pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+        }
+        .back pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(238, 238, 238, 0.9);
+            font-size: 12px;
+            color: rgba(128, 128, 128, 0.95);
+        }
+        ol, ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        strong {
+            color: rgba(76, 175, 80, 0.95);
+        }
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Aliases, Functions & Scripts Flashcards</h1>
+
+    <div class="card">
+        <div class="front">
+            You frequently type <code>ls -lah</code> and want to shorten it to <code>ll</code>. Should you use an alias, function, or script?
+        </div>
+        <div class="back">
+            <strong>Use an alias (simplest for command shortcuts):</strong>
+            <pre><code># Add to ~/.bashrc:
+alias ll='ls -lah'
+
+# Now you can use:
+ll
+ll /var/log    # Arguments work fine</code></pre>
+
+            <p><strong>Why:</strong> Aliases are perfect for simple command shortcuts with fixed options. They're fast, simple, and arguments automatically append to the end.</p>
+
+            <p><strong>When to use each:</strong></p>
+            <ul>
+                <li><strong>Alias:</strong> Simple command shortcuts, fixed options, no logic needed</li>
+                <li><strong>Function:</strong> Need parameters in middle, conditions, loops, or complex logic</li>
+                <li><strong>Script:</strong> Reusable across shells/machines, needs shebang, or very complex</li>
+            </ul>
+
+            <p><strong>More alias examples:</strong></p>
+            <pre><code># Common shortcuts
+alias ..='cd ..'
+alias ...='cd ../..'
+alias grep='grep --color=auto'
+alias mkdir='mkdir -pv'
+alias rm='rm -i'
+
+# Git shortcuts
+alias gs='git status'
+alias gc='git commit'
+alias gp='git push'</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Aliases only work in interactive shells (not in scripts)</li>
+                <li>Use quotes if command contains spaces</li>
+                <li>List all aliases: <code>alias</code></li>
+                <li>Remove: <code>unalias ll</code></li>
+                <li>Bypass alias temporarily: <code>\ls</code> or <code>command ls</code></li>
+                <li>Aliases don't accept arguments in the middle (use functions instead)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash aliases shortcuts EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want to create a command <code>extract file.tar.gz</code> that automatically detects the archive type and extracts it. An alias won't work because you need logic. What do you use?
+        </div>
+        <div class="back">
+            <strong>Use a shell function (for logic and parameters):</strong>
+            <pre><code># Add to ~/.bashrc:
+extract() {
+    if [ -f "$1" ]; then
+        case "$1" in
+            *.tar.gz|*.tgz) tar xvzf "$1" ;;
+            *.tar.bz2|*.tbz2) tar xvjf "$1" ;;
+            *.zip) unzip "$1" ;;
+            *.7z) 7z x "$1" ;;
+            *.rar) unrar x "$1" ;;
+            *) echo "Unknown archive format: $1" ;;
+        esac
+    else
+        echo "File not found: $1"
+    fi
+}
+
+# Usage:
+extract myfiles.tar.gz
+extract archive.zip</code></pre>
+
+            <p><strong>Why:</strong> Functions allow conditionals, loops, variables, and can process arguments anywhere (not just at end like aliases).</p>
+
+            <p><strong>Function vs Alias:</strong></p>
+            <pre><code># ❌ Alias can't do this (no parameter placement):
+alias extract='tar xvzf $1'  # $1 doesn't work in aliases!
+
+# ✓ Function can:
+extract() {
+    tar xvzf "$1"
+}</code></pre>
+
+            <p><strong>More function examples:</strong></p>
+            <pre><code># Create directory and cd into it
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Backup with timestamp
+backup() {
+    cp "$1" "$1.backup.$(date +%Y%m%d_%H%M%S)"
+}
+
+# Find and kill process by name
+killnamed() {
+    pkill -f "$1"
+}</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Functions are defined in interactive shells or sourced from files</li>
+                <li>Use <code>"$@"</code> for all arguments, <code>$1</code> <code>$2</code> for specific ones</li>
+                <li>Test arguments: <code>[ -z "$1" ] && echo "Usage: ..." && return 1</code></li>
+                <li>Use <code>return</code> (not <code>exit</code>) to avoid closing shell</li>
+                <li>List functions: <code>declare -F</code> or <code>declare -f funcname</code></li>
+                <li>Remove: <code>unset -f funcname</code></li>
+            </ul>
+        </div>
+        <div class="tags">cs bash functions logic EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You have a useful function in your ~/.bashrc but want to share it with team members. Should it stay as a function or become a script?
+        </div>
+        <div class="back">
+            <strong>Convert to a script (for portability and sharing):</strong>
+            <pre><code>#!/bin/bash
+# extract.sh - Universal archive extractor
+
+if [ ! -f "$1" ]; then
+    echo "Usage: extract <archive-file>"
+    exit 1
+fi
+
+case "$1" in
+    *.tar.gz|*.tgz) tar xvzf "$1" ;;
+    *.tar.bz2|*.tbz2) tar xvjf "$1" ;;
+    *.zip) unzip "$1" ;;
+    *.7z) 7z x "$1" ;;
+    *) echo "Unknown format: $1"; exit 1 ;;
+esac</code></pre>
+
+            <p><strong>Make it executable and install:</strong></p>
+            <pre><code>chmod +x extract.sh
+mv extract.sh ~/bin/extract
+
+# Add ~/bin to PATH if not already (in ~/.bashrc):
+export PATH="$HOME/bin:$PATH"
+
+# Now anyone can use:
+extract myfiles.tar.gz</code></pre>
+
+            <p><strong>Why scripts are better for sharing:</strong></p>
+            <ul>
+                <li>Self-contained file that can be versioned (git)</li>
+                <li>Shebang specifies exact interpreter needed</li>
+                <li>Can be installed system-wide (/usr/local/bin)</li>
+                <li>Works from any shell (bash, zsh, sh)</li>
+                <li>Can include documentation and help text</li>
+                <li>Team members can install without modifying their .bashrc</li>
+            </ul>
+
+            <p><strong>Script best practices:</strong></p>
+            <pre><code>#!/bin/bash
+set -euo pipefail  # Strict mode
+
+# Help text
+if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    cat << EOF
+Usage: $(basename "$0") <archive-file>
+Extract various archive formats automatically.
+
+Supported formats: .tar.gz, .zip, .7z, .rar, etc.
+EOF
+    exit 0
+fi
+
+# Script logic...
+</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Use meaningful script names (no .sh extension needed for commands)</li>
+                <li>Common locations: ~/bin (user), /usr/local/bin (system)</li>
+                <li>Include --help flag and usage message</li>
+                <li>Use strict mode: <code>set -euo pipefail</code></li>
+                <li>Keep functions for personal workflow, scripts for shared tools</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash scripts portability sharing EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You created an alias <code>alias log='tail -f /var/log/app.log'</code> but want to pass different log files as arguments. Why doesn't <code>log /var/log/error.log</code> work?
+        </div>
+        <div class="back">
+            <strong>Aliases can only append arguments, not place them in the middle:</strong>
+            <pre><code># Your alias:
+alias log='tail -f /var/log/app.log'
+
+# When you run:
+log /var/log/error.log
+
+# It expands to:
+tail -f /var/log/app.log /var/log/error.log
+# (tail reads TWO files, not what you wanted!)
+
+# ✓ Convert to function for argument control:
+log() {
+    tail -f "${1:-/var/log/app.log}"
+}
+
+# Now works correctly:
+log                          # Uses default
+log /var/log/error.log      # Uses specified file</code></pre>
+
+            <p><strong>Why:</strong> Aliases are simple text substitutions that always append arguments to the end. Functions give you full control over argument placement.</p>
+
+            <p><strong>More examples of aliases that should be functions:</strong></p>
+            <pre><code># ❌ Won't work as alias:
+alias find='find . -name'    # Can't do: find "*.txt"
+
+# ✓ Works as function:
+f() {
+    find . -name "$1"
+}
+
+# ❌ Won't work:
+alias mkdir='mkdir -p && cd'  # Can't insert argument
+
+# ✓ Works as function:
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# ❌ Won't work:
+alias git-add='git add . && git commit -m'  # -m message goes wrong
+
+# ✓ Works as function:
+gadd() {
+    git add . && git commit -m "$1"
+}</code></pre>
+
+            <p><strong>When arguments work fine with aliases:</strong></p>
+            <pre><code># These work because arguments append naturally:
+alias ll='ls -lah'           # ll /tmp → ls -lah /tmp ✓
+alias grep='grep --color'    # grep foo → grep --color foo ✓
+alias rm='rm -i'             # rm file → rm -i file ✓</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Rule of thumb: If you need to place arguments in specific positions, use a function</li>
+                <li>Use <code>${1:-default}</code> for optional arguments with defaults</li>
+                <li>Check argument count: <code>if [ $# -lt 1 ]; then echo "Usage..."; return 1; fi</code></li>
+                <li>Access all arguments: <code>"$@"</code></li>
+                <li>Aliases are simpler but less flexible than functions</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash aliases functions arguments limitations EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You wrote a script and want to run it, but get "Permission denied". What are the two ways to execute it?
+        </div>
+        <div class="back">
+            <strong>Two approaches:</strong>
+            <pre><code># 1. Make it executable (recommended):
+chmod +x myscript.sh
+./myscript.sh
+
+# 2. Explicitly invoke shell (no chmod needed):
+bash myscript.sh</code></pre>
+
+            <p><strong>Why:</strong> Files need execute permission (<code>+x</code>) to run directly. Without it, you must specify the interpreter explicitly.</p>
+
+            <p><strong>Understanding permissions:</strong></p>
+            <pre><code># Check permissions:
+ls -l myscript.sh
+# -rw-r--r--  (NOT executable)
+# -rwxr-xr-x  (executable)
+
+# Add execute permission:
+chmod +x myscript.sh        # Everyone can execute
+chmod u+x myscript.sh       # Only you can execute
+chmod 755 myscript.sh       # rwxr-xr-x (common for scripts)
+
+# Remove execute permission:
+chmod -x myscript.sh</code></pre>
+
+            <p><strong>Shebang determines interpreter:</strong></p>
+            <pre><code>#!/bin/bash
+# This script runs with bash
+
+#!/usr/bin/env python3
+# This script runs with python3
+
+#!/bin/sh
+# This script runs with sh (POSIX shell)
+
+# When you run ./myscript.sh, the system reads the shebang
+# and executes: /bin/bash myscript.sh</code></pre>
+
+            <p><strong>Comparison:</strong></p>
+            <pre><code># With chmod +x:
+./myscript.sh          # Uses shebang interpreter
+                       # ✓ Portable, proper way
+
+# Without chmod +x:
+bash myscript.sh       # Forces bash, ignores shebang
+sh myscript.sh         # Forces sh
+python3 myscript.py    # Forces python3</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Always use <code>#!/bin/bash</code> or <code>#!/usr/bin/env bash</code> as first line</li>
+                <li><code>/usr/bin/env bash</code> is more portable (finds bash in PATH)</li>
+                <li>Don't forget <code>./</code> prefix: <code>./script.sh</code> (not <code>script.sh</code>)</li>
+                <li>To run without <code>./</code>, move to directory in PATH: <code>mv script.sh ~/bin/script</code></li>
+                <li>Check if shebang is correct: <code>head -1 myscript.sh</code></li>
+                <li>For git repos, set: <code>git add --chmod=+x script.sh</code></li>
+            </ul>
+        </div>
+        <div class="tags">cs bash scripts permissions chmod shebang EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's the difference between <code>./myscript.sh</code> and <code>source myscript.sh</code> (or <code>. myscript.sh</code>)?
+        </div>
+        <div class="back">
+            <strong>Key difference - subshell vs current shell:</strong>
+            <pre><code># Execute in subshell (separate process):
+./myscript.sh
+# - Runs in new bash process
+# - Changes (cd, export, variables) don't affect current shell
+# - Exit terminates the subshell only
+
+# Source in current shell (same process):
+source myscript.sh
+# or
+. myscript.sh
+# - Runs in current shell
+# - Changes (cd, export, variables) AFFECT current shell
+# - Exit would close your terminal!
+# - No shebang or execute permission needed</code></pre>
+
+            <p><strong>Why it matters:</strong></p>
+            <pre><code># Example script (env.sh):
+#!/bin/bash
+export API_KEY="secret123"
+cd /tmp
+
+# Executing (subshell):
+$ pwd
+/home/user
+$ ./env.sh
+$ echo $API_KEY
+                    # Empty! Variable not set
+$ pwd
+/home/user          # Still in original directory
+
+# Sourcing (current shell):
+$ pwd
+/home/user
+$ source env.sh
+$ echo $API_KEY
+secret123           # Variable IS set!
+$ pwd
+/tmp                # Directory changed!</code></pre>
+
+            <p><strong>When to use each:</strong></p>
+            <ul>
+                <li><strong>Execute (./script):</strong> Regular scripts that do work (backups, automation, tools)</li>
+                <li><strong>Source (source script):</strong> Configuration files (.bashrc, .env), environment setup, defining functions/aliases</li>
+            </ul>
+
+            <p><strong>Examples:</strong></p>
+            <pre><code># Always source these:
+source ~/.bashrc              # Load config
+source .env                   # Load environment variables
+source venv/bin/activate      # Activate Python virtual environment
+
+# Always execute these:
+./backup.sh                   # Run backup
+./deploy.sh                   # Run deployment
+./tests.sh                    # Run tests</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li><code>.</code> is POSIX, <code>source</code> is bash/zsh (more readable)</li>
+                <li>Use <code>return</code> in sourced scripts, <code>exit</code> in executed scripts</li>
+                <li>Check how script was called: <code>if [ "$0" = "$BASH_SOURCE" ]; then ...</code></li>
+                <li>Sourced scripts don't need shebang or execute permission</li>
+                <li>Be careful with <code>exit</code> in sourced scripts (closes your shell!)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash scripts sourcing subshells source EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You wrote a function that needs variables that shouldn't affect the rest of your shell. How do you create local variables in functions?
+        </div>
+        <div class="back">
+            <strong>Use <code>local</code> keyword:</strong>
+            <pre><code># Without local (BAD):
+process_file() {
+    result="Processing $1"    # Global variable!
+    echo "$result"
+}
+process_file "test.txt"
+echo "$result"                # Still set: "Processing test.txt"
+
+# With local (GOOD):
+process_file() {
+    local result="Processing $1"    # Local to function
+    echo "$result"
+}
+process_file "test.txt"
+echo "$result"                # Empty! Variable was local</code></pre>
+
+            <p><strong>Why:</strong> Without <code>local</code>, variables are global and can cause conflicts or side effects.</p>
+
+            <p><strong>Best practices:</strong></p>
+            <pre><code>backup_file() {
+    # Declare all variables as local
+    local source_file="$1"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local backup_file="${source_file}.${timestamp}.bak"
+
+    cp "$source_file" "$backup_file"
+    echo "Backed up to: $backup_file"
+}
+
+# Good pattern: local on separate line or with assignment
+local var_name
+var_name=$(complex_command)
+
+# Or combined:
+local var_name=$(complex_command)</code></pre>
+
+            <p><strong>Scope examples:</strong></p>
+            <pre><code># Global variable
+counter=0
+
+increment() {
+    local counter=10         # Different variable (local)
+    echo "Inside: $counter"  # 10
+}
+
+increment
+echo "Outside: $counter"     # 0 (global unchanged)
+
+# Modify global from function
+increment_global() {
+    counter=$((counter + 1))  # No 'local', modifies global
+}
+
+increment_global
+echo "Counter: $counter"      # 1</code></pre>
+
+            <p><strong>Parameters are automatically local:</strong></p>
+            <pre><code>my_func() {
+    # $1, $2, $@, $# are automatically local to function
+    echo "$1"
+}
+
+my_func "test"</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Always use <code>local</code> for function variables (prevents bugs)</li>
+                <li>Put <code>local</code> declarations at top of function</li>
+                <li><code>local</code> only works in functions (not in main script)</li>
+                <li>Use <code>readonly</code> for constants: <code>readonly API_URL="..."</code></li>
+                <li>Can declare multiple: <code>local var1 var2 var3</code></li>
+                <li>ShellCheck warns about missing <code>local</code> keywords</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash functions variables scope local EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Your function needs to indicate success or failure to the caller. Should you use <code>return</code> or <code>exit</code>?
+        </div>
+        <div class="back">
+            <strong>Use <code>return</code> in functions, <code>exit</code> in scripts:</strong>
+            <pre><code># ✓ Correct (function):
+validate_file() {
+    if [ ! -f "$1" ]; then
+        echo "Error: File not found: $1" >&2
+        return 1        # Return error code, continue shell
+    fi
+    return 0            # Success
+}
+
+# Usage:
+if validate_file "config.txt"; then
+    echo "File is valid"
+else
+    echo "File is invalid"
+fi
+
+# ✗ Wrong (would close your shell!):
+validate_file() {
+    if [ ! -f "$1" ]; then
+        exit 1          # Exits entire shell session!
+    fi
+}</code></pre>
+
+            <p><strong>Why:</strong> <code>exit</code> terminates the entire shell process. In interactive shells, this closes your terminal. <code>return</code> only exits the function.</p>
+
+            <p><strong>Return codes (0-255):</strong></p>
+            <pre><code># Meaningful return codes:
+readonly E_SUCCESS=0
+readonly E_INVALID_ARG=1
+readonly E_FILE_NOT_FOUND=2
+readonly E_PERMISSION_DENIED=3
+
+process() {
+    [ -z "$1" ] && return $E_INVALID_ARG
+    [ ! -f "$1" ] && return $E_FILE_NOT_FOUND
+    [ ! -r "$1" ] && return $E_PERMISSION_DENIED
+
+    # Process file...
+    return $E_SUCCESS
+}
+
+# Check return code:
+process "myfile.txt"
+case $? in
+    0) echo "Success" ;;
+    1) echo "Invalid argument" ;;
+    2) echo "File not found" ;;
+    3) echo "Permission denied" ;;
+esac</code></pre>
+
+            <p><strong>Script vs Function:</strong></p>
+            <pre><code># In a script file:
+#!/bin/bash
+if [ ! -f "$1" ]; then
+    echo "Error: File required"
+    exit 1              # ✓ OK - exits script
+fi
+
+# In a function (in .bashrc or sourced):
+my_func() {
+    if [ ! -f "$1" ]; then
+        echo "Error: File required"
+        return 1        # ✓ OK - exits function
+    fi
+}</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Functions: Use <code>return</code> (0-255)</li>
+                <li>Scripts: Use <code>exit</code> (0-255)</li>
+                <li>0 = success, non-zero = failure</li>
+                <li>Return code available in <code>$?</code> immediately after function call</li>
+                <li>If no explicit return, function returns exit code of last command</li>
+                <li>Can't return strings (use echo + command substitution)</li>
+                <li>To return output: <code>result=$(my_func args)</code></li>
+            </ul>
+        </div>
+        <div class="tags">cs bash functions return exit exit-codes EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want your custom script <code>~/scripts/deploy.sh</code> to be available as just <code>deploy</code> from anywhere. How do you make scripts globally accessible?
+        </div>
+        <div class="back">
+            <strong>Add script directory to PATH:</strong>
+            <pre><code># 1. Create bin directory (if not exists):
+mkdir -p ~/bin
+
+# 2. Move or symlink script (remove .sh extension):
+mv ~/scripts/deploy.sh ~/bin/deploy
+# or create symlink:
+ln -s ~/scripts/deploy.sh ~/bin/deploy
+
+# 3. Ensure execute permission:
+chmod +x ~/bin/deploy
+
+# 4. Add to PATH in ~/.bashrc:
+export PATH="$HOME/bin:$PATH"
+
+# 5. Reload config:
+source ~/.bashrc
+
+# Now works from anywhere:
+deploy</code></pre>
+
+            <p><strong>Why:</strong> The shell searches directories in PATH when you type a command. Adding ~/bin to PATH makes all scripts there available as commands.</p>
+
+            <p><strong>Common script locations:</strong></p>
+            <ul>
+                <li><code>~/bin</code> or <code>~/.local/bin</code> - Personal scripts (user only)</li>
+                <li><code>/usr/local/bin</code> - System-wide scripts (all users, requires sudo)</li>
+                <li><code>/usr/bin</code> - System commands (managed by package manager)</li>
+                <li><code>/opt/APP/bin</code> - Third-party applications</li>
+            </ul>
+
+            <p><strong>Organizing personal scripts:</strong></p>
+            <pre><code># Keep organized structure:
+~/scripts/              # Source files with .sh extension
+~/bin/                  # Symlinks without extension
+
+# Create symlinks:
+ln -s ~/scripts/backup.sh ~/bin/backup
+ln -s ~/scripts/deploy.sh ~/bin/deploy
+ln -s ~/scripts/cleanup.sh ~/bin/cleanup
+
+# Benefits:
+# - Edit in ~/scripts/ with .sh for syntax highlighting
+# - Use from ~/bin/ without extension for cleaner commands
+# - Version control ~/scripts/ with git</code></pre>
+
+            <p><strong>Check your PATH:</strong></p>
+            <pre><code># See all PATH directories:
+echo $PATH | tr ':' '\n'
+
+# Check if command is in PATH:
+which deploy
+type deploy
+command -v deploy
+
+# See all locations of a command:
+type -a python</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Put <code>$HOME/bin</code> at START of PATH to override system commands</li>
+                <li>Never add current directory (.) to PATH (security risk)</li>
+                <li>Scripts in PATH don't need .sh extension (cleaner)</li>
+                <li>Use symlinks to keep source and command separate</li>
+                <li>For system-wide: <code>sudo cp script /usr/local/bin/</code></li>
+                <li>Verify PATH persists after logout/reboot</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash scripts PATH global-access EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You're writing a robust script that should exit on any error. What's the standard "strict mode" configuration for bash scripts?
+        </div>
+        <div class="back">
+            <strong>Use strict mode at script start:</strong>
+            <pre><code>#!/bin/bash
+set -euo pipefail
+
+# Your script here...
+</code></pre>
+
+            <p><strong>What each flag does:</strong></p>
+            <ul>
+                <li><code>-e</code> (errexit) - Exit immediately if any command fails</li>
+                <li><code>-u</code> (nounset) - Error on undefined variables</li>
+                <li><code>-o pipefail</code> - Pipeline fails if ANY command fails (not just last)</li>
+            </ul>
+
+            <p><strong>Detailed examples:</strong></p>
+            <pre><code># Without set -e:
+#!/bin/bash
+rm nonexistent.txt        # Error, but script continues
+echo "Still running"      # This executes
+
+# With set -e:
+#!/bin/bash
+set -e
+rm nonexistent.txt        # Error, script STOPS here
+echo "Never executes"     # Never reached
+
+# Without set -u:
+#!/bin/bash
+echo "Value: $TYPO"       # Prints: "Value: " (empty)
+
+# With set -u:
+#!/bin/bash
+set -u
+echo "Value: $TYPO"       # ERROR: TYPO: unbound variable
+
+# Without set -o pipefail:
+#!/bin/bash
+false | true              # Succeeds ($? = 0, only last command)
+
+# With set -o pipefail:
+#!/bin/bash
+set -o pipefail
+false | true              # Fails ($? = 1, first failure)</code></pre>
+
+            <p><strong>Complete robust script template:</strong></p>
+            <pre><code>#!/bin/bash
+set -euo pipefail
+
+# Enable debug mode (optional):
+# set -x
+
+# Error handling:
+trap 'echo "Error on line $LINENO"' ERR
+
+# Cleanup on exit:
+trap cleanup EXIT
+cleanup() {
+    # Remove temp files, etc.
+    rm -f /tmp/script.$$.*
+}
+
+# Exit codes:
+readonly E_SUCCESS=0
+readonly E_INVALID_ARG=1
+
+# Validate arguments:
+if [ $# -eq 0 ]; then
+    echo "Usage: $(basename "$0") <arg>"
+    exit $E_INVALID_ARG
+fi
+
+# Main logic here...
+
+exit $E_SUCCESS</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Always use strict mode for production scripts</li>
+                <li>Disable temporarily for specific commands: <code>set +e; cmd; set -e</code></li>
+                <li>Or allow specific command to fail: <code>cmd || true</code></li>
+                <li>Use <code>set -x</code> for debugging (prints each command)</li>
+                <li>Add <code>trap</code> handlers for better error messages</li>
+                <li>Some prefer: <code>set -Eeuo pipefail</code> (adds -E for trap inheritance)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash scripts strict-mode set error-handling EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            How do you pass all arguments from your script or function to another command, preserving spaces and special characters?
+        </div>
+        <div class="back">
+            <strong>Always use <code>"$@"</code> (with quotes!):</strong>
+            <pre><code># Wrapper function that preserves arguments:
+my_grep() {
+    grep --color=auto "$@"
+}
+
+# Usage:
+my_grep "pattern with spaces" file.txt
+my_grep -r "TODO" src/
+
+# Wrong way (breaks on spaces):
+my_grep() {
+    grep --color=auto $@    # No quotes - WRONG!
+}
+
+# This breaks:
+my_grep "multi word pattern" file.txt
+# Expands to: grep --color=auto multi word pattern file.txt
+#                                      ^^^^^^^^^ 3 separate args!</code></pre>
+
+            <p><strong>Why <code>"$@"</code> is special:</strong></p>
+            <pre><code># With arguments: "arg 1" "arg 2" "arg 3"
+
+"$@"   → "arg 1" "arg 2" "arg 3"  # ✓ Preserves boundaries
+"$*"   → "arg 1 arg 2 arg 3"      # Single string
+$@     → arg 1 arg 2 arg 3        # ✗ Loses quotes, word splitting
+$*     → arg 1 arg 2 arg 3        # ✗ Same problem</code></pre>
+
+            <p><strong>Common patterns:</strong></p>
+            <pre><code># Pass all arguments:
+wrapper() {
+    command "$@"
+}
+
+# Add flags before arguments:
+wrapper() {
+    command --flag1 --flag2 "$@"
+}
+
+# Add flags after arguments:
+wrapper() {
+    command "$@" --flag
+}
+
+# Pass to multiple commands:
+process() {
+    validate "$@"
+    transform "$@"
+    save "$@"
+}
+
+# Iterate over arguments:
+for arg in "$@"; do
+    echo "Processing: $arg"
+done</code></pre>
+
+            <p><strong>Specific arguments:</strong></p>
+            <pre><code># Access specific arguments:
+process() {
+    local first="$1"
+    local second="$2"
+
+    # Pass remaining arguments:
+    shift 2
+    other_command "$@"
+}
+
+# Count arguments:
+if [ $# -lt 2 ]; then
+    echo "Need at least 2 arguments"
+    return 1
+fi
+
+# Check if arguments provided:
+if [ $# -eq 0 ]; then
+    echo "No arguments"
+fi</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Always quote: <code>"$@"</code> never <code>$@</code></li>
+                <li><code>$#</code> is the count of arguments</li>
+                <li><code>$1</code> <code>$2</code> ... are individual arguments</li>
+                <li><code>shift</code> removes first argument, shifts others down</li>
+                <li><code>shift N</code> removes first N arguments</li>
+                <li>Use <code>"${@:2}"</code> for all arguments starting from 2nd</li>
+                <li><code>"$@"</code> is empty if no arguments (unlike <code>"$*"</code> which is "")</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash functions scripts arguments quoting EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Your function or script isn't working. How do you debug it to see what commands are actually executing?
+        </div>
+        <div class="back">
+            <strong>Use <code>set -x</code> for execution tracing:</strong>
+            <pre><code>#!/bin/bash
+set -x              # Enable debug mode
+
+# Your script...
+for file in *.txt; do
+    echo "Processing $file"
+    wc -l "$file"
+done
+
+# Output shows each command with + prefix:
+# + for file in *.txt
+# + echo 'Processing file1.txt'
+# Processing file1.txt
+# + wc -l file1.txt
+# 42 file1.txt</code></pre>
+
+            <p><strong>Debug specific sections:</strong></p>
+            <pre><code># Debug only part of script:
+set -x
+# ... code to debug ...
+set +x              # Disable debug
+
+# Debug a function:
+my_func() {
+    set -x
+    # Function code
+    set +x
+}
+
+# Enable via command line:
+bash -x myscript.sh
+
+# Or use shebang:
+#!/bin/bash -x</code></pre>
+
+            <p><strong>Other debugging tools:</strong></p>
+            <pre><code># 1. Print variables:
+echo "DEBUG: var=$var"
+printf "DEBUG: var=[%s]\n" "$var"
+
+# 2. Check if command exists:
+if ! command -v jq &> /dev/null; then
+    echo "ERROR: jq not installed"
+    exit 1
+fi
+
+# 3. Validate arguments:
+echo "Argument count: $#"
+echo "Arguments: $@"
+for i in "$@"; do echo "  [$i]"; done
+
+# 4. Show line numbers:
+set -x
+PS4='Line ${LINENO}: '      # Customize debug output
+
+# 5. Exit on error with line number:
+set -e
+trap 'echo "Error on line $LINENO"' ERR</code></pre>
+
+            <p><strong>ShellCheck for static analysis:</strong></p>
+            <pre><code># Install shellcheck:
+# Ubuntu/Debian: apt install shellcheck
+# macOS: brew install shellcheck
+
+# Check your script:
+shellcheck myscript.sh
+
+# Example warnings:
+# Line 5: Use "$var" not $var (SC2086)
+# Line 10: [ is bash builtin, use [[ (SC2009)
+# Line 15: cd without error checking (SC2164)</code></pre>
+
+            <p><strong>Interactive debugging with bash -xv:</strong></p>
+            <pre><code># -v: Print lines as read
+# -x: Print commands as executed
+bash -xv myscript.sh
+
+# Output shows both source and execution:
+# for file in *.txt          (source)
+# + for file in *.txt        (execution)
+# ...
+</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Start with <code>set -x</code> to see actual command execution</li>
+                <li>Use <code>set -v</code> to see script lines as they're read</li>
+                <li>Customize debug output: <code>PS4='+ ${BASH_SOURCE}:${LINENO}: '</code></li>
+                <li>Redirect debug output: <code>exec 2> debug.log</code></li>
+                <li>Use ShellCheck for catching common mistakes</li>
+                <li>Check exit codes: <code>echo $?</code> after each command</li>
+                <li>Use <code>bash -n script.sh</code> for syntax check without execution</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash scripts debugging set shellcheck EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want to create a reusable library of utility functions that multiple scripts can use. How do you organize and share functions across scripts?
+        </div>
+        <div class="back">
+            <strong>Create a library file and source it:</strong>
+            <pre><code># ~/lib/utils.sh - Shared function library
+#!/bin/bash
+
+# Logging functions
+log_info() {
+    echo "[INFO] $*" >&2
+}
+
+log_error() {
+    echo "[ERROR] $*" >&2
+}
+
+# File utilities
+backup_file() {
+    local file="$1"
+    local backup="${file}.bak.$(date +%Y%m%d_%H%M%S)"
+    cp "$file" "$backup"
+    echo "$backup"
+}
+
+# Validation
+require_command() {
+    for cmd in "$@"; do
+        if ! command -v "$cmd" &> /dev/null; then
+            log_error "Required command not found: $cmd"
+            return 1
+        fi
+    done
+}
+
+# Export functions if needed
+export -f log_info log_error</code></pre>
+
+            <p><strong>Use library in scripts:</strong></p>
+            <pre><code>#!/bin/bash
+set -euo pipefail
+
+# Source the library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/utils.sh"
+
+# Now use library functions:
+require_command jq curl || exit 1
+
+log_info "Starting backup process"
+
+for file in *.conf; do
+    backup_file "$file"
+    log_info "Backed up $file"
+done
+
+log_info "Backup complete"</code></pre>
+
+            <p><strong>Organizing project structure:</strong></p>
+            <pre><code>project/
+├── lib/
+│   ├── utils.sh          # General utilities
+│   ├── aws.sh            # AWS-specific functions
+│   └── logging.sh        # Logging functions
+├── bin/
+│   ├── deploy            # Main scripts
+│   ├── backup
+│   └── cleanup
+└── config/
+    └── settings.conf
+
+# Each script sources what it needs:
+source "$LIB_DIR/utils.sh"
+source "$LIB_DIR/logging.sh"</code></pre>
+
+            <p><strong>Best practices for libraries:</strong></p>
+            <pre><code># Guard against multiple sourcing:
+if [ -n "${UTILS_LOADED:-}" ]; then
+    return 0
+fi
+readonly UTILS_LOADED=1
+
+# Namespace functions to avoid conflicts:
+myapp_log() { echo "[LOG] $*"; }
+myapp_error() { echo "[ERROR] $*" >&2; }
+
+# Document functions:
+# Description: Backs up a file with timestamp
+# Arguments:
+#   $1 - File to backup
+# Returns:
+#   0 on success, 1 on failure
+# Output:
+#   Path to backup file
+backup_file() {
+    # Implementation...
+}</code></pre>
+
+            <p><strong>Alternative: Install as command:</strong></p>
+            <pre><code># For very common utilities, install to PATH:
+sudo cp lib/utils.sh /usr/local/lib/myapp-utils.sh
+
+# Source from standard location:
+source /usr/local/lib/myapp-utils.sh</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Use relative paths from script location: <code>$(dirname "${BASH_SOURCE[0]}")</code></li>
+                <li>Add guards to prevent multiple sourcing</li>
+                <li>Namespace functions: <code>projectname_function()</code></li>
+                <li>Use <code>readonly</code> for library constants</li>
+                <li>Consider making library self-documenting with --help</li>
+                <li>Version control lib/ directory separately if shared across projects</li>
+                <li>Test libraries independently before using in scripts</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash functions libraries code-organization sourcing EN</div>
+    </div>
+
+</body>
+</html>
