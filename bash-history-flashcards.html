@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bash History & Command Recall - CS Vocab Flashcards</title>
+</head>
+<body>
+
+<!-- Card 1 -->
+<div class="card">
+    <div class="front">
+        You ran a long command earlier today and want to see it again. How do you view your command history?
+    </div>
+    <div class="back">
+        <strong>View all history:</strong> <code>history</code>
+        <br><strong>View last N commands:</strong> <code>history 20</code>
+        <br><strong>Search history:</strong> <code>history | grep keyword</code>
+        <p><strong>Why:</strong> The <code>history</code> command shows all commands you've run in the current shell session (and previous sessions from history file).</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Each line has a number - use it to re-run commands</li>
+            <li>History is stored in <code>~/.bash_history</code> (or <code>~/.zsh_history</code> for zsh)</li>
+            <li>Pipe to grep to find specific commands: <code>history | grep git</code></li>
+            <li>Use <code>tail</code> for recent commands: <code>history | tail -20</code></li>
+            <li>History includes commands from previous sessions</li>
+        </ul>
+        <p><strong>Related:</strong> <code>fc -l</code> also lists history (more options available)</p>
+    </div>
+    <div class="tags">cs bash history terminal productivity EN</div>
+</div>
+
+<!-- Card 2 -->
+<div class="card">
+    <div class="front">
+        You want to re-run the last command you just executed without retyping it. What's the quickest way?
+    </div>
+    <div class="back">
+        <strong>Re-run last command:</strong> <code>!!</code>
+        <br><strong>Alternative:</strong> <code>Up arrow</code> then <code>Enter</code>
+        <br><strong>With sudo:</strong> <code>sudo !!</code> (run last command with sudo)
+        <p><strong>Why:</strong> <code>!!</code> expands to the previous command. Very common for "oops, forgot sudo" situations.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>sudo !!</code> is extremely common: forgot to use sudo, just add it</li>
+            <li><code>!!</code> expands before execution - you can see what will run</li>
+            <li>Works in scripts and aliases</li>
+            <li>Can reference parts of previous command: <code>!!:1</code> (first argument)</li>
+        </ul>
+        <p><strong>Example workflow:</strong></p>
+        <pre>$ apt install nginx
+E: Could not open lock file - are you root?
+$ sudo !!
+sudo apt install nginx
+[sudo] password:</pre>
+    </div>
+    <div class="tags">cs bash history shortcuts productivity EN</div>
+</div>
+
+<!-- Card 3 -->
+<div class="card">
+    <div class="front">
+        You remember you ran a command starting with "docker" a while ago and want to search for it interactively. How do you search backwards through history?
+    </div>
+    <div class="back">
+        <strong>Reverse search:</strong> <code>Ctrl+R</code>
+        <br><strong>Keep searching backwards:</strong> Keep pressing <code>Ctrl+R</code>
+        <br><strong>Search forwards:</strong> <code>Ctrl+S</code> (may need <code>stty -ixon</code> first)
+        <br><strong>Cancel search:</strong> <code>Ctrl+G</code> or <code>Ctrl+C</code>
+        <br><strong>Edit found command:</strong> <code>←</code> or <code>→</code> arrow keys
+        <p><strong>Why:</strong> Reverse-i-search is the most powerful history feature. Fuzzy finds commands as you type.</p>
+        <p><strong>Workflow:</strong></p>
+        <ol>
+            <li>Press <code>Ctrl+R</code></li>
+            <li>Start typing part of command: "dock"</li>
+            <li>It shows most recent match: <code>docker ps -a</code></li>
+            <li>Press <code>Ctrl+R</code> again to see older matches</li>
+            <li>Press <code>Enter</code> to run, or arrow keys to edit</li>
+        </ol>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>You see: <code>(reverse-i-search)`dock': docker run -it ubuntu</code></li>
+            <li>Type more letters to narrow search</li>
+            <li><code>Backspace</code> to remove letters and broaden search</li>
+            <li>Matches anywhere in command, not just beginning</li>
+            <li><code>Ctrl+S</code> for forward search (opposite direction)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history search ctrl-r productivity EN</div>
+</div>
+
+<!-- Card 4 -->
+<div class="card">
+    <div class="front">
+        You see a command in your history (line number 342) that you want to re-run. How do you execute a command by its history number?
+    </div>
+    <div class="back">
+        <strong>Run command by number:</strong> <code>!342</code>
+        <br><strong>See what it will run first:</strong> <code>!342:p</code> (prints without executing)
+        <br><strong>Run N-th from end:</strong> <code>!-3</code> (3rd command from end)
+        <p><strong>Why:</strong> Direct access to any command in history by number. Useful after running <code>history | grep something</code>.</p>
+        <p><strong>Workflow example:</strong></p>
+        <pre>$ history | grep "docker run"
+  342  docker run -it --name mycontainer ubuntu bash
+  401  docker run -d nginx
+$ !342
+docker run -it --name mycontainer ubuntu bash
+# Command executes</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Use <code>:p</code> modifier to preview: <code>!342:p</code> shows command without running</li>
+            <li>After <code>:p</code>, the command is now the last command, so <code>!!</code> to run it</li>
+            <li>Negative numbers: <code>!-1</code> is last command, <code>!-2</code> is second to last</li>
+            <li>Combine with sudo: <code>sudo !342</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history execution shortcuts productivity EN</div>
+</div>
+
+<!-- Card 5 -->
+<div class="card">
+    <div class="front">
+        You want to re-run the most recent command that started with "git". How do you recall commands by prefix?
+    </div>
+    <div class="back">
+        <strong>Run last command starting with string:</strong> <code>!git</code>
+        <br><strong>Preview first:</strong> <code>!git:p</code>
+        <br><strong>More specific:</strong> <code>!git push</code> (finds last command starting with "git push")
+        <p><strong>Why:</strong> Quick way to recall recent commands by how they started. Faster than searching when you remember the beginning.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li><code>!ssh</code> - Last ssh command</li>
+            <li><code>!vim</code> - Last vim command</li>
+            <li><code>!cd</code> - Last cd command</li>
+            <li><code>!python</code> - Last python command</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Always preview with <code>:p</code> if unsure: <code>!git:p</code></li>
+            <li>Won't match commands from middle - only prefix</li>
+            <li>Be specific enough: <code>!d</code> might match <code>docker</code>, <code>diff</code>, or <code>du</code></li>
+            <li>Case sensitive by default</li>
+        </ul>
+        <p><strong>Safety tip:</strong> With destructive commands, always use <code>:p</code> first to verify!</p>
+    </div>
+    <div class="tags">cs bash history prefix shortcuts productivity EN</div>
+</div>
+
+<!-- Card 6 -->
+<div class="card">
+    <div class="front">
+        You want to reference the last argument of the previous command (like a filename you just used). How do you grab it without retyping?
+    </div>
+    <div class="back">
+        <strong>Last argument of previous command:</strong> <code>!$</code> or <code>Alt+.</code> (Alt and period)
+        <br><strong>All arguments:</strong> <code>!*</code>
+        <br><strong>First argument only:</strong> <code>!^</code>
+        <p><strong>Why:</strong> Reuse arguments from previous command. Very common pattern in shell workflows.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Created a file
+$ touch /var/log/app/error.log
+
+# Now edit it - reuse the path
+$ vim !$
+vim /var/log/app/error.log
+
+# Or use Alt+. (press Alt and period)
+$ cat [Alt+.]
+cat /var/log/app/error.log</pre>
+        <p><strong>More examples:</strong></p>
+        <pre>$ mkdir /tmp/test-dir
+$ cd !$
+cd /tmp/test-dir
+
+$ grep "error" logfile.txt
+$ less !$
+less logfile.txt</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>Alt+.</code> is interactive - press multiple times to cycle through last arguments of previous commands</li>
+            <li><code>!$</code> is static - always the last arg of last command</li>
+            <li><code>!*</code> expands to all arguments (excludes command itself)</li>
+            <li><code>!^</code> is first argument (rarely used)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history arguments shortcuts productivity EN</div>
+</div>
+
+<!-- Card 7 -->
+<div class="card">
+    <div class="front">
+        You ran a command with a typo and want to quickly fix and re-run it. How do you do quick substitution?
+    </div>
+    <div class="back">
+        <strong>Quick substitution:</strong> <code>^old^new</code>
+        <br><strong>Alternative:</strong> <code>!!:s/old/new/</code>
+        <p><strong>Why:</strong> Fix typos in previous command without retyping everything. Replaces first occurrence of "old" with "new".</p>
+        <p><strong>Examples:</strong></p>
+        <pre>$ grep "error" lgo.txt
+grep: lgo.txt: No such file or directory
+
+$ ^lgo^log
+grep "error" log.txt
+# Correct file now!</pre>
+        <pre>$ cd /usr/lcoal/bin
+bash: cd: /usr/lcoal/bin: No such file or directory
+
+$ ^lcoal^local
+cd /usr/local/bin
+# Fixed!</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Only replaces first occurrence by default</li>
+            <li>For global replace: <code>!!:gs/old/new/</code></li>
+            <li>Shows the command before executing so you can verify</li>
+            <li>Great for typos, wrong filenames, etc.</li>
+            <li>Syntax is <code>^</code> + old + <code>^</code> + new</li>
+        </ul>
+        <p><strong>Alternative for complex edits:</strong> Press <code>Up arrow</code> then edit with cursor</p>
+    </div>
+    <div class="tags">cs bash history substitution typo-fix productivity EN</div>
+</div>
+
+<!-- Card 8 -->
+<div class="card">
+    <div class="front">
+        You want to edit a previous command in your full text editor before running it. How do you open a command from history in your editor?
+    </div>
+    <div class="back">
+        <strong>Edit last command in editor:</strong> <code>fc</code>
+        <br><strong>Edit specific command:</strong> <code>fc 342</code> (by history number)
+        <br><strong>Edit range:</strong> <code>fc 340 345</code>
+        <br><strong>Set editor:</strong> <code>export EDITOR=vim</code> (or nano, emacs, etc.)
+        <p><strong>Why:</strong> <code>fc</code> ("fix command") opens previous command in editor. Useful for long, complex commands with multiple errors.</p>
+        <p><strong>Workflow:</strong></p>
+        <ol>
+            <li>Type <code>fc</code></li>
+            <li>Editor opens with last command</li>
+            <li>Edit the command</li>
+            <li>Save and quit (<code>:wq</code> in vim)</li>
+            <li>Edited command executes automatically</li>
+        </ol>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Editor used is <code>$EDITOR</code> environment variable</li>
+            <li>If <code>EDITOR</code> not set, uses <code>$FCEDIT</code>, falls back to <code>vi</code></li>
+            <li><code>fc -l</code> lists history (like <code>history</code> command)</li>
+            <li><code>fc -l 10</code> lists last 10 commands</li>
+            <li>Exit editor without saving to abort execution</li>
+        </ul>
+        <p><strong>Ctrl+X Ctrl+E alternative:</strong> In bash, <code>Ctrl+X</code> then <code>Ctrl+E</code> opens current line in editor</p>
+    </div>
+    <div class="tags">cs bash history fc editor productivity EN</div>
+</div>
+
+<!-- Card 9 -->
+<div class="card">
+    <div class="front">
+        You ran a command with a password in it and don't want it saved in history. How do you prevent specific commands from being saved?
+    </div>
+    <div class="back">
+        <strong>Prevent saving (leading space):</strong> Type a space before the command
+        <pre> mysql -u root -p'secret_password' # Space before command</pre>
+        <strong>Remove from current session:</strong> <code>history -d LINE_NUMBER</code>
+        <br><strong>Clear all history:</strong> <code>history -c</code>
+        <p><strong>Why:</strong> Commands starting with space won't be saved to history (if <code>HISTCONTROL=ignorespace</code> is set).</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Leading space only works if <code>HISTCONTROL</code> includes <code>ignorespace</code> or <code>ignoreboth</code></li>
+            <li>Check setting: <code>echo $HISTCONTROL</code></li>
+            <li>Set in <code>~/.bashrc</code>: <code>export HISTCONTROL=ignoreboth</code></li>
+            <li><code>ignoredups</code> - don't save duplicate consecutive commands</li>
+            <li><code>ignoreboth</code> - both ignorespace and ignoredups</li>
+        </ul>
+        <p><strong>Remove specific entry:</strong></p>
+        <pre>$ history | grep password
+  342  mysql -u root -p'secret_password'
+$ history -d 342</pre>
+        <p><strong>Best practice for secrets:</strong> Use environment variables or config files, never type passwords in commands</p>
+    </div>
+    <div class="tags">cs bash history security privacy productivity EN</div>
+</div>
+
+<!-- Card 10 -->
+<div class="card">
+    <div class="front">
+        Your history is getting cluttered with repeated commands like "ls" and "cd". How do you configure history to ignore duplicates?
+    </div>
+    <div class="back">
+        <strong>Ignore consecutive duplicates:</strong> <code>export HISTCONTROL=ignoredups</code>
+        <br><strong>Ignore all duplicates (keep only latest):</strong> <code>export HISTCONTROL=erasedups</code>
+        <br><strong>Both space and dups:</strong> <code>export HISTCONTROL=ignoreboth</code>
+        <p><strong>Why:</strong> Reduces clutter from repeatedly running same commands. Makes history more useful.</p>
+        <p><strong>HISTCONTROL options:</strong></p>
+        <ul>
+            <li><strong>ignorespace:</strong> Commands starting with space not saved</li>
+            <li><strong>ignoredups:</strong> Don't save if same as previous command</li>
+            <li><strong>ignoreboth:</strong> Both ignorespace and ignoredups</li>
+            <li><strong>erasedups:</strong> Remove all previous instances of command before adding new one</li>
+        </ul>
+        <p><strong>Additional history settings:</strong></p>
+        <pre># In ~/.bashrc
+export HISTCONTROL=ignoreboth:erasedups
+export HISTSIZE=10000          # Commands in memory
+export HISTFILESIZE=20000      # Commands in file
+export HISTTIMEFORMAT="%Y-%m-%d %H:%M:%S  "  # Timestamps</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Add to <code>~/.bashrc</code> to make permanent</li>
+            <li><code>erasedups</code> keeps history unique but can be slow with large history</li>
+            <li>Combine options with colon: <code>ignoreboth:erasedups</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history configuration settings productivity EN</div>
+</div>
+
+<!-- Card 11 -->
+<div class="card">
+    <div class="front">
+        You want to see when you ran each command in history (timestamps). How do you add and view timestamps?
+    </div>
+    <div class="back">
+        <strong>Add timestamps to history:</strong> <code>export HISTTIMEFORMAT="%Y-%m-%d %H:%M:%S  "</code>
+        <br><strong>View with timestamps:</strong> <code>history</code> (will now show timestamps)
+        <p><strong>Why:</strong> Timestamps help you remember when you ran commands. Useful for debugging "what changed and when?"</p>
+        <p><strong>Example output with timestamps:</strong></p>
+        <pre>$ history
+  340  2025-01-19 14:23:45  git pull origin main
+  341  2025-01-19 14:24:12  npm install
+  342  2025-01-19 14:25:33  npm test</pre>
+        <p><strong>Common formats:</strong></p>
+        <ul>
+            <li><code>"%F %T  "</code> - Short: 2025-01-19 14:23:45</li>
+            <li><code>"%Y-%m-%d %H:%M:%S  "</code> - Same as above (more explicit)</li>
+            <li><code>"%m/%d/%y %H:%M  "</code> - US format: 01/19/25 14:23</li>
+            <li><code>"%c  "</code> - Locale-specific format</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Add to <code>~/.bashrc</code> to make permanent</li>
+            <li>Timestamps stored when command runs, even if <code>HISTTIMEFORMAT</code> not set yet</li>
+            <li>Two spaces at end improve readability</li>
+            <li>Only affects display, doesn't change history file format</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history timestamps configuration productivity EN</div>
+</div>
+
+<!-- Card 12 -->
+<div class="card">
+    <div class="front">
+        You have multiple terminal windows open and want to make sure all history is saved. How do you handle history across multiple terminal sessions?
+    </div>
+    <div class="back">
+        <strong>Append to history (don't overwrite):</strong> <code>shopt -s histappend</code>
+        <br><strong>Save history immediately:</strong> <code>history -a</code>
+        <br><strong>Reload history from file:</strong> <code>history -r</code>
+        <br><strong>Both (sync):</strong> <code>history -a && history -r</code>
+        <p><strong>Why:</strong> By default, each terminal overwrites history file on exit. With <code>histappend</code>, all terminals append their history.</p>
+        <p><strong>The problem:</strong></p>
+        <ul>
+            <li>Terminal A closes → writes history to <code>~/.bash_history</code></li>
+            <li>Terminal B closes → overwrites history (loses Terminal A's commands)</li>
+            <li>Solution: Use <code>histappend</code> so they append instead</li>
+        </ul>
+        <p><strong>Recommended setup in ~/.bashrc:</strong></p>
+        <pre>shopt -s histappend  # Append, don't overwrite
+export HISTSIZE=10000
+export HISTFILESIZE=20000
+export HISTCONTROL=ignoreboth
+
+# Optional: Save after each command (advanced)
+PROMPT_COMMAND="history -a; history -r"</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>history -a</code> appends current session to file</li>
+            <li><code>history -r</code> reads file into current session</li>
+            <li><code>PROMPT_COMMAND</code> runs before each prompt (syncs history constantly)</li>
+            <li>Downside of constant sync: history order can be confusing across terminals</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history multiple-sessions configuration productivity EN</div>
+</div>
+
+<!-- Card 13 -->
+<div class="card">
+    <div class="front">
+        You want to increase the number of commands saved in history (default is often small). How do you configure history size?
+    </div>
+    <div class="back">
+        <strong>Commands in memory (current session):</strong> <code>export HISTSIZE=10000</code>
+        <br><strong>Commands in file (persistent):</strong> <code>export HISTFILESIZE=20000</code>
+        <br><strong>Unlimited history:</strong> <code>export HISTSIZE=-1</code> and <code>export HISTFILESIZE=-1</code>
+        <p><strong>Why:</strong> Default is often 500-1000 commands. Increasing saves more history for future reference.</p>
+        <p><strong>Difference:</strong></p>
+        <ul>
+            <li><strong>HISTSIZE:</strong> Max commands in memory during session</li>
+            <li><strong>HISTFILESIZE:</strong> Max lines in <code>~/.bash_history</code> file</li>
+            <li>When shell exits, up to HISTSIZE commands written to file</li>
+            <li>When shell starts, reads up to HISTFILESIZE from file</li>
+        </ul>
+        <p><strong>Recommended settings in ~/.bashrc:</strong></p>
+        <pre>export HISTSIZE=10000       # 10k commands in session
+export HISTFILESIZE=20000   # 20k commands in file</pre>
+        <p><strong>Unlimited history:</strong></p>
+        <pre>export HISTSIZE=-1          # No limit in memory
+export HISTFILESIZE=-1      # No limit in file</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Larger history = more disk space (but text is tiny)</li>
+            <li>Can slow down startup slightly with huge files</li>
+            <li>Check file size: <code>wc -l ~/.bash_history</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history configuration settings productivity EN</div>
+</div>
+
+<!-- Card 14 -->
+<div class="card">
+    <div class="front">
+        You want to clear all history for privacy reasons (working on shared computer, etc.). How do you clear history?
+    </div>
+    <div class="back">
+        <strong>Clear current session history:</strong> <code>history -c</code>
+        <br><strong>Delete history file:</strong> <code>rm ~/.bash_history</code>
+        <br><strong>Both (thorough):</strong> <code>history -c && rm ~/.bash_history</code>
+        <br><strong>Clear and logout:</strong> <code>history -c && rm ~/.bash_history && exit</code>
+        <p><strong>Why:</strong> Remove sensitive commands from history. Useful on shared systems or before handing off computer.</p>
+        <p><strong>What each does:</strong></p>
+        <ul>
+            <li><code>history -c</code> - Clears in-memory history (current session)</li>
+            <li><code>rm ~/.bash_history</code> - Deletes saved history file</li>
+            <li>Without both, history can come back when shell exits or starts</li>
+        </ul>
+        <p><strong>Clear specific range:</strong></p>
+        <pre># Delete commands 340-350
+for i in {350..340}; do history -d $i; done
+
+# Or delete one
+history -d 342</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>After clearing, close all terminal windows to ensure it's saved</li>
+            <li>zsh uses <code>~/.zsh_history</code> instead</li>
+            <li>Better: Use leading space for sensitive commands (won't save in first place)</li>
+            <li>Can also disable history temporarily: <code>set +o history</code> (re-enable: <code>set -o history</code>)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history security privacy clear productivity EN</div>
+</div>
+
+<!-- Card 15 -->
+<div class="card">
+    <div class="front">
+        You're in the middle of typing a command and remember you need to reference something from history. How do you search history without losing your current command?
+    </div>
+    <div class="back">
+        <strong>Save current line and search:</strong>
+        <ol>
+            <li>Press <code>Ctrl+R</code> (current line auto-saved)</li>
+            <li>Search for command</li>
+            <li>Press <code>Ctrl+G</code> to cancel</li>
+            <li>Original line is restored!</li>
+        </ol>
+        <strong>Alternative - comment and save:</strong> <code>Ctrl+A</code>, <code>#</code>, <code>Enter</code>
+        <p><strong>Why:</strong> Ctrl+R automatically saves current line, so you don't lose your in-progress command.</p>
+        <p><strong>Comment trick workflow:</strong></p>
+        <pre># Typing: docker run -it ubuntu bash
+# Need to remember port flag...
+# Press Ctrl+A (go to start), type #, Enter
+# Command saved as: #docker run -it ubuntu bash
+# Search history, copy port flag
+# Press Up to retrieve commented command
+# Remove #, add port flag, done</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Ctrl+R keeps your current command in buffer</li>
+            <li>After canceling search (Ctrl+G), your typed command is back</li>
+            <li>Comment trick (<code>#</code>) saves to history so you can retrieve later</li>
+            <li>Copy from history: Use mouse or terminal copy shortcuts</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history search workflow productivity EN</div>
+</div>
+
+<!-- Card 16 -->
+<div class="card">
+    <div class="front">
+        You used arrow keys to navigate history but want to know the keyboard shortcuts that work even when arrow keys aren't available (screen/tmux, remote sessions). What are they?
+    </div>
+    <div class="back">
+        <strong>Previous command:</strong> <code>Ctrl+P</code> (same as Up arrow)
+        <br><strong>Next command:</strong> <code>Ctrl+N</code> (same as Down arrow)
+        <br><strong>Beginning of line:</strong> <code>Ctrl+A</code>
+        <br><strong>End of line:</strong> <code>Ctrl+E</code>
+        <br><strong>Clear line:</strong> <code>Ctrl+U</code>
+        <p><strong>Why:</strong> These work everywhere, even when arrow keys don't (some remote sessions, old terminals, custom key mappings).</p>
+        <p><strong>Full navigation set:</strong></p>
+        <ul>
+            <li><code>Ctrl+P</code> - Previous command (↑)</li>
+            <li><code>Ctrl+N</code> - Next command (↓)</li>
+            <li><code>Ctrl+B</code> - Back one character (←)</li>
+            <li><code>Ctrl+F</code> - Forward one character (→)</li>
+            <li><code>Alt+B</code> - Back one word</li>
+            <li><code>Alt+F</code> - Forward one word</li>
+        </ul>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>These are Readline keybindings (work in bash, most shells, even python REPL)</li>
+            <li>Emacs-style by default (can switch to vi mode)</li>
+            <li>Muscle memory from one tool transfers to others</li>
+            <li><code>Ctrl+R</code> reverse search works everywhere too</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history keyboard-shortcuts readline productivity EN</div>
+</div>
+
+<!-- Card 17 -->
+<div class="card">
+    <div class="front">
+        You ran a command like "git commit -am 'message' file1.txt file2.txt" and want to reuse just the last two arguments (file1.txt file2.txt). How do you reference specific arguments from history?
+    </div>
+    <div class="back">
+        <strong>Last argument:</strong> <code>!$</code> or <code>!:$</code>
+        <br><strong>First argument:</strong> <code>!^</code> or <code>!:^</code>
+        <br><strong>All arguments:</strong> <code>!*</code> or <code>!:*</code>
+        <br><strong>Specific argument:</strong> <code>!:2</code> (second arg), <code>!:3</code> (third arg)
+        <br><strong>Range of arguments:</strong> <code>!:2-4</code> (args 2, 3, 4)
+        <br><strong>From N to end:</strong> <code>!:2-$</code> (args 2 through last)
+        <p><strong>Why:</strong> Pick specific parts of previous command to reuse. More precise than <code>!*</code>.</p>
+        <p><strong>Examples:</strong></p>
+        <pre>$ git commit -am "message" file1.txt file2.txt
+# Get just the files
+$ ls -l !:3-$
+ls -l file1.txt file2.txt
+
+$ echo one two three four five
+one two three four five
+$ echo !:2-4
+echo two three four
+two three four</pre>
+        <p><strong>Argument numbering:</strong></p>
+        <ul>
+            <li><code>!:0</code> - Command itself (e.g., "git")</li>
+            <li><code>!:1</code> - First argument</li>
+            <li><code>!:2</code> - Second argument</li>
+            <li><code>!:$</code> - Last argument</li>
+            <li><code>!:^</code> - First argument (same as !:1)</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history arguments word-designators productivity EN</div>
+</div>
+
+<!-- Card 18 -->
+<div class="card">
+    <div class="front">
+        You want to reference arguments from a command other than the last one (e.g., 3 commands ago). How do you combine history references with argument selection?
+    </div>
+    <div class="back">
+        <strong>Last arg of specific command:</strong> <code>!git:$</code> (last arg of last "git" command)
+        <br><strong>By number:</strong> <code>!342:$</code> (last arg of command 342)
+        <br><strong>N commands ago:</strong> <code>!-3:$</code> (last arg of 3rd command from end)
+        <br><strong>All args from specific:</strong> <code>!git:*</code>
+        <p><strong>Why:</strong> Combine command selection (! prefix) with argument selection (: suffix) for precise history reference.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Multiple commands ago
+$ mkdir /tmp/my-project
+$ cd /some/other/place
+$ ls
+$ cd !mkdir:$
+cd /tmp/my-project
+
+# From specific command number
+$ history | grep docker
+  342  docker run -it --name test ubuntu bash
+$ docker exec !342:3 ps aux
+docker exec test ps aux
+
+# All arguments from previous git command
+$ git add file1.txt file2.txt file3.txt
+$ ls
+$ git status !git add:*
+git status file1.txt file2.txt file3.txt</pre>
+        <p><strong>Pattern:</strong></p>
+        <code>!COMMAND_SELECTOR:ARG_SELECTOR</code>
+        <ul>
+            <li>COMMAND_SELECTOR: <code>!</code>, <code>!!</code>, <code>!git</code>, <code>!342</code>, <code>!-3</code></li>
+            <li>ARG_SELECTOR: <code>$</code>, <code>^</code>, <code>*</code>, <code>2</code>, <code>2-4</code>, <code>2-$</code></li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history arguments advanced productivity EN</div>
+</div>
+
+<!-- Card 19 -->
+<div class="card">
+    <div class="front">
+        You're cycling through history with arrow keys but the commands aren't relevant to what you're typing. How do you search history based on what you've already typed?
+    </div>
+    <div class="back">
+        <strong>Search forward in history (matches typed prefix):</strong> <code>Ctrl+R</code> or configure Up/Down arrows
+        <br><strong>Better: Configure arrows for prefix search:</strong>
+        <pre># Add to ~/.inputrc
+"\e[A": history-search-backward
+"\e[B": history-search-forward</pre>
+        Or in <code>~/.bashrc</code>:
+        <pre>bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'</pre>
+        <p><strong>Why:</strong> After configuration, typing "git" then Up arrow shows only commands starting with "git".</p>
+        <p><strong>Workflow example:</strong></p>
+        <pre># Type "docker"
+$ docker
+# Press Up arrow → cycles through docker commands only
+$ docker ps -a
+# Press Up again
+$ docker run -it ubuntu bash
+# Much faster than cycling through all history!</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Without this, Up arrow cycles through ALL history</li>
+            <li>With this, Up arrow only shows commands matching your typed prefix</li>
+            <li>Type nothing → Up arrow cycles through all (same as before)</li>
+            <li>Type "git p" → Up arrow shows only "git p..." commands</li>
+            <li>Huge productivity boost!</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history search configuration productivity EN</div>
+</div>
+
+<!-- Card 20 -->
+<div class="card">
+    <div class="front">
+        You want to re-run the last command but change one argument (e.g., filename). What's the fastest way to modify and execute?
+    </div>
+    <div class="back">
+        <strong>Quick substitution:</strong> <code>^old^new</code>
+        <br><strong>Arrow key method:</strong> <code>Up arrow</code> → edit with cursor → <code>Enter</code>
+        <br><strong>With argument reference:</strong> Combine <code>!!</code> parts with new args
+        <p><strong>Why:</strong> Multiple approaches depending on how much you need to change.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Method 1: Quick substitution
+$ cat file1.txt
+$ ^file1^file2
+cat file2.txt
+
+# Method 2: Reuse command, change argument
+$ python train.py --epochs 10
+$ !! --epochs 20
+python train.py --epochs 10 --epochs 20  # Oops, appends!
+
+# Better: Arrow up and edit
+$ python train.py --epochs 10
+# Press Up, change 10 to 20, Enter
+
+# Method 3: Reuse parts
+$ cat /var/log/app/error.log
+$ vim !!:$
+vim /var/log/app/error.log</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>For small changes: <code>^old^new</code></li>
+            <li>For medium changes: Up arrow + edit</li>
+            <li>For reusing args: <code>!$</code>, <code>!*</code>, etc.</li>
+            <li>For complex: <code>fc</code> to edit in text editor</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history modification workflow productivity EN</div>
+</div>
+
+<!-- Card 21 -->
+<div class="card">
+    <div class="front">
+        You accidentally ran a destructive command and want to see exactly when you ran it. How do you search history with timestamps?
+    </div>
+    <div class="back">
+        <strong>View history with timestamps:</strong> <code>history</code> (if HISTTIMEFORMAT set)
+        <br><strong>Search with timestamps:</strong> <code>history | grep keyword</code>
+        <br><strong>Enable timestamps:</strong> <code>export HISTTIMEFORMAT="%F %T  "</code>
+        <p><strong>Why:</strong> Timestamps help you reconstruct what happened when, especially for debugging or auditing.</p>
+        <p><strong>Example workflow:</strong></p>
+        <pre>$ export HISTTIMEFORMAT="%F %T  "
+$ history | grep "rm -rf"
+  287  2025-01-19 09:23:15  rm -rf /tmp/old-files
+  342  2025-01-19 14:30:22  rm -rf project/  # Uh oh!
+
+# Now you know: deleted at 14:30:22
+# Can check if backups exist from before that time</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Timestamps only appear if <code>HISTTIMEFORMAT</code> is set</li>
+            <li>But timestamps are ALWAYS recorded (can view later)</li>
+            <li>Add to <code>~/.bashrc</code> to always show timestamps</li>
+            <li>Useful for: debugging, auditing, "when did I last deploy?"</li>
+        </ul>
+        <p><strong>Find recent commands:</strong></p>
+        <pre>history | grep "2025-01-19 14:"  # All commands from 2pm hour</pre>
+    </div>
+    <div class="tags">cs bash history timestamps debugging productivity EN</div>
+</div>
+
+<!-- Card 22 -->
+<div class="card">
+    <div class="front">
+        You want to export your history to share with a coworker or save as documentation. How do you extract and format history?
+    </div>
+    <div class="back">
+        <strong>Save to file:</strong> <code>history > commands.txt</code>
+        <br><strong>Just commands (no numbers):</strong> <code>history | cut -d' ' -f4- > commands.txt</code>
+        <br><strong>Last N commands:</strong> <code>history 50 > recent.txt</code>
+        <br><strong>Specific pattern:</strong> <code>history | grep "docker" > docker-commands.txt</code>
+        <p><strong>Why:</strong> Document your workflow, share complex command sequences, or back up important commands.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Export all docker commands
+history | grep docker > docker-setup.txt
+
+# Export last hour of work (with timestamps)
+export HISTTIMEFORMAT="%F %T  "
+history 100 | grep "2025-01-19 14:" > afternoon-work.txt
+
+# Clean format (commands only, no numbers)
+history | awk '{$1=""; print substr($0,2)}' > clean-commands.txt</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>View raw history file: <code>cat ~/.bash_history</code></li>
+            <li>Filter and format with awk/sed for clean output</li>
+            <li>Great for documenting setup procedures</li>
+            <li>Can share with team or save as runbook</li>
+        </ul>
+        <p><strong>Create executable script from history:</strong></p>
+        <pre>history | grep "docker" | cut -d' ' -f4- > setup.sh
+chmod +x setup.sh</pre>
+    </div>
+    <div class="tags">cs bash history export documentation productivity EN</div>
+</div>
+
+<!-- Card 23 -->
+<div class="card">
+    <div class="front">
+        You want history to ignore certain common commands that clutter it (like "ls", "cd", "pwd"). How do you exclude specific commands from history?
+    </div>
+    <div class="back">
+        <strong>Ignore specific commands:</strong> <code>export HISTIGNORE="ls:cd:pwd:clear:history"</code>
+        <br><strong>Ignore patterns:</strong> <code>export HISTIGNORE="ls*:cd*:pwd:exit"</code>
+        <p><strong>Why:</strong> Keep history focused on important commands. Remove noise from simple navigation commands.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># Ignore common clutter
+export HISTIGNORE="ls:cd:pwd:clear:exit"
+
+# Ignore with wildcards
+export HISTIGNORE="ls*:cd *:pwd:clear:exit:history*"
+
+# Comprehensive ignore list
+export HISTIGNORE="&:ls:[bf]g:exit:history:clear:pwd"</pre>
+        <p><strong>Pattern explanations:</strong></p>
+        <ul>
+            <li><code>&</code> - Duplicate of previous command</li>
+            <li><code>ls*</code> - ls and any variants (ls -la, etc.)</li>
+            <li><code>[bf]g</code> - bg or fg commands</li>
+            <li><code>cd *</code> - cd with any arguments (but not bare cd)</li>
+        </ul>
+        <p><strong>Recommended in ~/.bashrc:</strong></p>
+        <pre>export HISTIGNORE="&:ls:ll:la:cd:pwd:clear:exit:history"
+export HISTCONTROL=ignoreboth</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Patterns are colon-separated</li>
+            <li>Use <code>*</code> for wildcards</li>
+            <li>Combine with <code>HISTCONTROL</code> for maximum effect</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history configuration filtering productivity EN</div>
+</div>
+
+<!-- Card 24 -->
+<div class="card">
+    <div class="front">
+        You're in a reverse-i-search (Ctrl+R) and found what you want, but you want to edit it before running. How do you exit search mode and edit the found command?
+    </div>
+    <div class="back">
+        <strong>Edit the found command:</strong> Press <code>←</code> or <code>→</code> arrow (or <code>Ctrl+F</code>/<code>Ctrl+B</code>)
+        <br><strong>Cancel search:</strong> <code>Ctrl+G</code> (returns to original line)
+        <br><strong>Kill search:</strong> <code>Ctrl+C</code> (clears line)
+        <p><strong>Why:</strong> Often you find almost the right command but need to change an argument. Arrow keys exit search mode and let you edit.</p>
+        <p><strong>Workflow:</strong></p>
+        <ol>
+            <li>Press <code>Ctrl+R</code></li>
+            <li>Type search term: "docker"</li>
+            <li>Find: <code>docker run -it ubuntu bash</code></li>
+            <li>Press <code>→</code> (or <code>←</code>) to exit search</li>
+            <li>Cursor now on command - edit as needed</li>
+            <li>Press <code>Enter</code> to execute</li>
+        </ol>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Any movement key exits search: arrows, Ctrl+A, Ctrl+E</li>
+            <li><code>Enter</code> runs immediately (no chance to edit)</li>
+            <li><code>Ctrl+G</code> cancels and restores what you were typing</li>
+            <li><code>Ctrl+R</code> repeatedly cycles through older matches</li>
+            <li>After exiting, command is in readline buffer - full editing available</li>
+        </ul>
+        <p><strong>Power move:</strong> <code>Ctrl+R</code> → find → <code>←</code> → <code>Ctrl+A</code> (jump to start) → edit → <code>Enter</code></p>
+    </div>
+    <div class="tags">cs bash history ctrl-r editing workflow productivity EN</div>
+</div>
+
+<!-- Card 25 -->
+<div class="card">
+    <div class="front">
+        You're working with sensitive data and want to completely disable history for the current session. How do you turn off history temporarily?
+    </div>
+    <div class="back">
+        <strong>Disable history:</strong> <code>set +o history</code>
+        <br><strong>Re-enable history:</strong> <code>set -o history</code>
+        <br><strong>Check status:</strong> <code>set -o | grep history</code>
+        <p><strong>Why:</strong> Completely stops recording commands. Useful for sensitive operations where you don't want any trace.</p>
+        <p><strong>Workflow:</strong></p>
+        <pre># Before sensitive work
+$ set +o history
+# Now work with passwords, API keys, etc.
+$ mysql -u admin -p'secretpassword'
+$ curl -H "Authorization: Bearer secret_token" api.example.com
+# Commands not saved!
+
+# After sensitive work
+$ set -o history
+# Normal history recording resumes</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li><code>+o</code> disables, <code>-o</code> enables (confusing but standard)</li>
+            <li>Only affects current shell session</li>
+            <li>Commands run while disabled are never saved</li>
+            <li>Forget to re-enable? Your subsequent commands also not saved</li>
+            <li>Alternative: Use leading space for individual commands</li>
+        </ul>
+        <p><strong>Verify it's disabled:</strong></p>
+        <pre>$ set -o | grep history
+history         off</pre>
+    </div>
+    <div class="tags">cs bash history security privacy disable productivity EN</div>
+</div>
+
+<!-- Card 26 -->
+<div class="card">
+    <div class="front">
+        You made a typo when searching with Ctrl+R and want to fix the search term without starting over. How do you edit the search string?
+    </div>
+    <div class="back">
+        <strong>Fix search term:</strong> <code>Backspace</code> to delete characters, then type correct letters
+        <br><strong>Start over:</strong> <code>Ctrl+G</code> to cancel, then <code>Ctrl+R</code> again
+        <p><strong>Why:</strong> Backspace works in reverse-i-search to modify your search term and instantly updates results.</p>
+        <p><strong>Workflow:</strong></p>
+        <pre># Start search
+(reverse-i-search)`':
+# Type "docekr" (typo!)
+(reverse-i-search)`docekr': docker run -it ubuntu
+# No matches found
+
+# Backspace twice to remove "kr"
+(reverse-i-search)`doce': docker run...
+# Backspace once more
+(reverse-i-search)`doc': docker ps -a
+# Now type correct letters: "ker"
+(reverse-i-search)`docker': docker run -it ubuntu
+# Found it!</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Backspace removes last character from search term</li>
+            <li>Results update immediately as you type/delete</li>
+            <li>Can keep pressing Backspace to broaden search</li>
+            <li>Add characters to narrow search</li>
+            <li>No need to restart search for typos</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history ctrl-r search editing productivity EN</div>
+</div>
+
+<!-- Card 27 -->
+<div class="card">
+    <div class="front">
+        You have zsh instead of bash. Do these history techniques work the same? What's different?
+    </div>
+    <div class="back">
+        <strong>Most techniques work identically:</strong>
+        <ul>
+            <li><code>!!</code> - Last command ✓</li>
+            <li><code>!$</code>, <code>!*</code>, <code>!^</code> - Arguments ✓</li>
+            <li><code>!git</code> - Last git command ✓</li>
+            <li><code>Ctrl+R</code> - Reverse search ✓</li>
+            <li><code>^old^new</code> - Quick substitution ✓</li>
+        </ul>
+        <strong>Differences:</strong>
+        <ul>
+            <li><strong>History file:</strong> <code>~/.zsh_history</code> instead of <code>~/.bash_history</code></li>
+            <li><strong>Config file:</strong> <code>~/.zshrc</code> instead of <code>~/.bashrc</code></li>
+            <li><strong>Shared history:</strong> zsh can share history across sessions by default</li>
+            <li><strong>Better completion:</strong> zsh has more powerful history completion</li>
+        </ul>
+        <p><strong>Zsh-specific improvements:</strong></p>
+        <pre># In ~/.zshrc
+setopt SHARE_HISTORY         # Share across sessions
+setopt HIST_IGNORE_ALL_DUPS  # Remove all duplicates
+setopt HIST_FIND_NO_DUPS     # Don't show dups in search
+setopt HIST_REDUCE_BLANKS    # Clean up formatting</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>All the <code>!</code> expansion works the same</li>
+            <li>Ctrl+R reverse search works identically</li>
+            <li>zsh has better autocomplete from history</li>
+            <li>Oh-My-Zsh adds more history features</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash zsh history shell compatibility EN</div>
+</div>
+
+<!-- Card 28 -->
+<div class="card">
+    <div class="front">
+        You want to see your history from yesterday or last week to remember what you did. How do you filter history by time?
+    </div>
+    <div class="back">
+        <strong>Requires timestamps:</strong> <code>export HISTTIMEFORMAT="%F %T  "</code>
+        <br><strong>Filter by date:</strong> <code>history | grep "2025-01-18"</code>
+        <br><strong>Filter by time range:</strong> <code>history | grep "2025-01-19 1[4-5]:"</code> (2pm-3pm hour)
+        <p><strong>Why:</strong> Reconstruct what you did during specific time periods. Great for timesheets, debugging, or documentation.</p>
+        <p><strong>Examples:</strong></p>
+        <pre># All commands from yesterday
+$ export HISTTIMEFORMAT="%F %T  "
+$ history | grep "2025-01-18"
+
+# Morning commands today
+$ history | grep "2025-01-19 0[8-9]:"  # 8am-9am
+$ history | grep "2025-01-19 1[0-1]:"  # 10am-11am
+
+# This afternoon
+$ history | grep "2025-01-19 1[4-7]:"  # 2pm-5pm
+
+# Last week (if you have that much history)
+$ history | grep "2025-01-1[2-8]"</pre>
+        <p><strong>Create daily log:</strong></p>
+        <pre># Save today's work
+TODAY=$(date +%F)
+history | grep "$TODAY" > work-log-$TODAY.txt</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Must have <code>HISTTIMEFORMAT</code> set to see timestamps</li>
+            <li>Timestamps recorded even if format not set (can view retroactively)</li>
+            <li>Use regex with grep for flexible time filtering</li>
+            <li>Great for billable hours tracking</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history timestamps filtering productivity EN</div>
+</div>
+
+<!-- Card 29 -->
+<div class="card">
+    <div class="front">
+        You keep running similar commands with slight variations and want to quickly cycle through just those. How do you use history more efficiently for iterative work?
+    </div>
+    <div class="back">
+        <strong>Method 1: Start typing + Up arrow</strong> (if configured for prefix search)
+        <pre>$ docker run
+# Press Up → cycles through "docker run" commands only</pre>
+        <strong>Method 2: Ctrl+R with specific terms</strong>
+        <pre># Ctrl+R, type "docker run ubuntu"
+# Shows only matching commands</pre>
+        <strong>Method 3: Use !git:p to preview, then !!</strong>
+        <pre>$ !git push:p
+git push origin feature-branch
+$ !!  # Runs it</pre>
+        <p><strong>Why:</strong> Iterative work (testing, debugging, experimenting) involves running similar commands repeatedly. Smart history use speeds this up.</p>
+        <p><strong>Workflow example - testing script:</strong></p>
+        <pre># First try
+$ python script.py --input data.csv --output results.txt
+
+# Modify script, try again (Up arrow)
+$ python script.py --input data.csv --output results.txt
+
+# Change argument (Up, edit)
+$ python script.py --input data.csv --output results2.txt
+
+# Try different input (Up, edit)
+$ python script.py --input newdata.csv --output results2.txt</pre>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Configure prefix search (card 19) for best experience</li>
+            <li>Use <code>!:p</code> to preview before running</li>
+            <li>Combine with <code>!$</code> for argument reuse</li>
+            <li>Keep commands similar → easier to find in history</li>
+        </ul>
+    </div>
+    <div class="tags">cs bash history workflow iterative productivity EN</div>
+</div>
+
+<!-- Card 30 -->
+<div class="card">
+    <div class="front">
+        You want to become a history power user. What's the best minimal configuration to add to ~/.bashrc for productivity?
+    </div>
+    <div class="back">
+        <strong>Recommended ~/.bashrc history configuration:</strong>
+        <pre># History size
+export HISTSIZE=10000
+export HISTFILESIZE=20000
+
+# Avoid duplicates and commands starting with space
+export HISTCONTROL=ignoreboth:erasedups
+
+# Timestamps
+export HISTTIMEFORMAT="%F %T  "
+
+# Append to history, don't overwrite
+shopt -s histappend
+
+# Ignore common clutter
+export HISTIGNORE="ls:ll:la:cd:pwd:clear:exit:history"
+
+# Optional: Prefix search with arrow keys
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'
+
+# Optional: Save history after each command (advanced)
+# PROMPT_COMMAND="history -a; history -r"</pre>
+        <p><strong>Why each setting:</strong></p>
+        <ul>
+            <li><strong>HISTSIZE/HISTFILESIZE:</strong> Large history = more useful</li>
+            <li><strong>ignoreboth:erasedups:</strong> Clean history, no clutter</li>
+            <li><strong>HISTTIMEFORMAT:</strong> Know when you ran commands</li>
+            <li><strong>histappend:</strong> Don't lose history from multiple terminals</li>
+            <li><strong>HISTIGNORE:</strong> Skip noise commands</li>
+            <li><strong>Arrow key bindings:</strong> Huge productivity boost</li>
+        </ul>
+        <p><strong>After adding to ~/.bashrc:</strong></p>
+        <pre>source ~/.bashrc  # Apply changes</pre>
+    </div>
+    <div class="tags">cs bash history configuration best-practices productivity EN</div>
+</div>
+
+</body>
+</html>
