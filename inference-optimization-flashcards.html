@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inference Optimization - CS Vocab Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .front {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .back {
+            line-height: 1.6;
+            color: #34495e;
+        }
+
+        .tags {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .cloze {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inference Optimization Flashcards</h1>
+    <p>Techniques for faster and more efficient model inference</p>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">How do you implement dynamic batching for efficient inference?</div>
+        <div class="back">
+            <strong>Dynamic batching groups requests that arrive within a time window:</strong>
+            <pre><code>import torch
+import asyncio
+from collections import deque
+from typing import List
+
+class DynamicBatcher:
+    """
+    Batch requests dynamically based on arrival time and batch size limits.
+    """
+    def __init__(self, model, max_batch_size=32, max_wait_ms=10):
+        self.model = model
+        self.max_batch_size = max_batch_size
+        self.max_wait_ms = max_wait_ms / 1000  # Convert to seconds
+
+        self.queue = deque()
+        self.results = {}
+
+    async def add_request(self, request_id, input_data):
+        """Add request to queue and wait for result."""
+        future = asyncio.Future()
+        self.queue.append((request_id, input_data, future))
+
+        # Trigger batch processing if queue is large enough
+        if len(self.queue) >= self.max_batch_size:
+            await self.process_batch()
+
+        return await future
+
+    async def process_batch(self):
+        """Process a batch of requests."""
+        if not self.queue:
+            return
+
+        # Collect batch (up to max_batch_size)
+        batch = []
+        while len(batch) < self.max_batch_size and self.queue:
+            batch.append(self.queue.popleft())
+
+        if not batch:
+            return
+
+        # Separate IDs, inputs, and futures
+        request_ids, inputs, futures = zip(*batch)
+
+        # Pad inputs to same length
+        max_len = max(len(inp) for inp in inputs)
+        padded_inputs = [
+            inp + [0] * (max_len - len(inp))
+            for inp in inputs
+        ]
+
+        # Run inference on batch
+        batch_tensor = torch.tensor(padded_inputs)
+
+        with torch.no_grad():
+            outputs = self.model(batch_tensor)
+
+        # Return results to each request
+        for i, (req_id, future) in enumerate(zip(request_ids, futures)):
+            future.set_result(outputs[i])
+
+    async def batch_loop(self):
+        """
+        Continuously process batches based on timeout.
+        Runs in background.
+        """
+        while True:
+            await asyncio.sleep(self.max_wait_ms)
+            if self.queue:
+                await self.process_batch()
+
+# Usage:
+batcher = DynamicBatcher(model, max_batch_size=32, max_wait_ms=10)
+
+# Start background batch processing
+asyncio.create_task(batcher.batch_loop())
+
+# Handle requests (e.g., in web server)
+async def handle_request(request_id, input_data):
+    result = await batcher.add_request(request_id, input_data)
+    return result
+
+# Benefits:
+# ✓ Higher throughput (batch processing is faster)
+# ✓ Lower latency than static batching (don't wait for full batch)
+# ✓ Better GPU utilization
+
+# Trade-offs:
+# - Adds max_wait_ms latency (but small: 10-50ms typical)
+# - More complex than synchronous serving
+# - Need to handle variable sequence lengths</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference batching optimization EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">CLOZE: INT8 quantization reduces model size by <span class="cloze">4x</span> (from fp32) or <span class="cloze">2x</span> (from fp16) while typically maintaining <span class="cloze">< 1%</span> accuracy loss.</div>
+        <div class="back">
+            <strong>Answer: 4x, 2x, < 1%</strong>
+
+            <p>Quantization precision comparison:</p>
+            <pre><code># Precision levels:
+# FP32: 32 bits per parameter (4 bytes)
+# FP16: 16 bits per parameter (2 bytes)
+# INT8: 8 bits per parameter (1 byte)
+# INT4: 4 bits per parameter (0.5 bytes)
+
+# Model size reduction (7B parameter model):
+# FP32: 7B × 4 bytes = 28 GB
+# FP16: 7B × 2 bytes = 14 GB
+# INT8: 7B × 1 byte = 7 GB (4x reduction from fp32)
+# INT4: 7B × 0.5 bytes = 3.5 GB (8x reduction from fp32)
+
+# Accuracy impact (typical):
+# FP32: Baseline accuracy
+# FP16: ~0% loss (equivalent)
+# INT8: 0.5-1% loss
+# INT4: 1-3% loss (depends on calibration)
+
+# Speed impact:
+# INT8: 2-4x faster inference (on modern hardware)
+# INT4: 3-6x faster (but less hardware support)
+
+# Memory bandwidth savings:
+# Key bottleneck: loading weights from memory
+# INT8: 4x less data to transfer
+# → Can be 2-4x faster even if compute is same!</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference quantization int8 cloze EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">How do you implement INT8 quantization with PyTorch?</div>
+        <div class="back">
+            <strong>Post-training quantization (PTQ) - simplest approach:</strong>
+            <pre><code>import torch
+import torch.quantization as quant
+
+# Method 1: Dynamic Quantization (weights only)
+# Fastest to apply, good for LSTMs/transformers
+model_fp32 = YourModel()
+model_fp32.eval()
+
+# Quantize linear layers to INT8
+model_int8 = torch.quantization.quantize_dynamic(
+    model_fp32,
+    {torch.nn.Linear},  # Which layers to quantize
+    dtype=torch.qint8
+)
+
+# Method 2: Static Quantization (weights + activations)
+# Better accuracy, requires calibration data
+model_fp32 = YourModel()
+model_fp32.eval()
+
+# 1. Fuse modules (Conv+BN+ReLU, etc.)
+model_fp32_fused = torch.quantization.fuse_modules(
+    model_fp32,
+    [['conv', 'bn', 'relu']]  # Example fusion
+)
+
+# 2. Specify quantization config
+model_fp32_fused.qconfig = torch.quantization.get_default_qconfig('fbgemm')
+
+# 3. Prepare for quantization (insert observers)
+model_fp32_prepared = torch.quantization.prepare(model_fp32_fused)
+
+# 4. Calibrate with representative data
+with torch.no_grad():
+    for batch in calibration_data:
+        model_fp32_prepared(batch)
+
+# 5. Convert to INT8
+model_int8 = torch.quantization.convert(model_fp32_prepared)
+
+# Method 3: Using Hugging Face Optimum
+from optimum.onnxruntime import ORTQuantizer, ORTModelForSequenceClassification
+from optimum.onnxruntime.configuration import AutoQuantizationConfig
+
+# Load model
+model = ORTModelForSequenceClassification.from_pretrained("model_name")
+
+# Configure quantization
+qconfig = AutoQuantizationConfig.avx512_vnni(is_static=False)
+
+# Quantize
+quantizer = ORTQuantizer.from_pretrained(model)
+quantizer.quantize(save_dir="quantized_model", quantization_config=qconfig)
+
+# Inference with quantized model
+inputs = tokenizer("Hello", return_tensors="pt")
+
+# FP32 inference
+with torch.no_grad():
+    outputs_fp32 = model_fp32(**inputs)
+
+# INT8 inference (2-4x faster)
+with torch.no_grad():
+    outputs_int8 = model_int8(**inputs)
+
+# Memory comparison:
+import os
+def get_model_size(model):
+    torch.save(model.state_dict(), "temp.pt")
+    size = os.path.getsize("temp.pt") / 1e6  # MB
+    os.remove("temp.pt")
+    return size
+
+print(f"FP32: {get_model_size(model_fp32):.1f} MB")
+print(f"INT8: {get_model_size(model_int8):.1f} MB")</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference quantization int8 pytorch EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">What is continuous batching and how does it differ from dynamic batching?</div>
+        <div class="back">
+            <strong>Continuous batching processes requests at different generation steps simultaneously:</strong>
+
+            <p><strong>Dynamic batching (traditional):</strong></p>
+            <pre><code># Problem: All sequences must finish before batch ends
+# Request A: generates 10 tokens (finishes early)
+# Request B: generates 50 tokens (others wait!)
+# Request C: generates 20 tokens
+
+# Timeline:
+# Step 1-10:  Process A, B, C together
+# Step 11-20: Process B, C (A done, slot wasted!)
+# Step 21-50: Process B only (B, C done, 2 slots wasted!)
+
+# GPU utilization degrades over time as sequences finish</code></pre>
+
+            <p><strong>Continuous batching (vLLM, TGI):</strong></p>
+            <pre><code># Solution: Add new requests as old ones finish
+
+# Timeline:
+# Step 1-10:  Process [A, B, C] (batch size 3)
+# Step 11:    A finishes, D joins → [B, C, D] (still 3!)
+# Step 21:    C finishes, E joins → [B, D, E]
+# Step 51:    B finishes, F joins → [D, E, F]
+
+# GPU utilization stays high!
+
+# Pseudocode implementation:
+class ContinuousBatcher:
+    def __init__(self, model, max_batch_size=32):
+        self.model = model
+        self.max_batch_size = max_batch_size
+        self.active_requests = {}  # request_id -> state
+        self.waiting_queue = deque()
+
+    def step(self):
+        """Single generation step for all active requests."""
+        # Get active request IDs
+        active_ids = list(self.active_requests.keys())
+
+        if not active_ids:
+            # No active requests, try to start new ones
+            self.add_from_queue()
+            return
+
+        # Gather inputs for current step
+        inputs = []
+        for req_id in active_ids:
+            state = self.active_requests[req_id]
+            inputs.append(state['current_tokens'])
+
+        # Batch inference
+        with torch.no_grad():
+            outputs = self.model(pad_batch(inputs))
+
+        # Update each request
+        finished = []
+        for i, req_id in enumerate(active_ids):
+            next_token = outputs[i].argmax()
+
+            state = self.active_requests[req_id]
+            state['current_tokens'].append(next_token)
+
+            # Check if finished
+            if next_token == EOS_TOKEN or len(state['current_tokens']) >= MAX_LEN:
+                finished.append(req_id)
+                state['done'] = True
+
+        # Remove finished requests
+        for req_id in finished:
+            del self.active_requests[req_id]
+
+        # Add new requests to fill empty slots
+        self.add_from_queue()
+
+    def add_from_queue(self):
+        """Fill empty slots with waiting requests."""
+        while (len(self.active_requests) < self.max_batch_size and
+               self.waiting_queue):
+            new_request = self.waiting_queue.popleft()
+            self.active_requests[new_request['id']] = new_request
+
+# Benefits:
+# ✓ Much higher throughput (2-10x vs static batching)
+# ✓ Better GPU utilization (always near max_batch_size)
+# ✓ Lower latency for short requests (don't wait for long ones)
+
+# Used in:
+# - vLLM (very popular)
+# - Text Generation Inference (TGI)
+# - TensorRT-LLM</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference continuous-batching vllm optimization EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">CLOZE: Continuous batching achieves <span class="cloze">2-10x higher throughput</span> than dynamic batching by <span class="cloze">replacing finished sequences with new requests</span> instead of waiting for the entire batch to complete.</div>
+        <div class="back">
+            <strong>Answer: 2-10x higher throughput, replacing finished sequences with new requests</strong>
+
+            <p>Throughput comparison:</p>
+            <pre><code># Scenario: Serving LLM with varying output lengths
+# Average: 50 tokens/request
+# Distribution: 10% short (10 tokens), 80% medium (50 tokens), 10% long (200 tokens)
+
+# Static batching (batch_size=8):
+# Wait for full batch, process until all done
+# Worst case: 7 requests finish at 50 tokens, 1 finishes at 200
+# → 150 tokens of wasted compute (7 idle slots × 150 steps)
+# Throughput: ~40 tokens/second
+
+# Dynamic batching (timeout=50ms):
+# Similar issue but with timeout
+# Still wait for slowest in batch
+# Throughput: ~60 tokens/second
+
+# Continuous batching:
+# As soon as any request finishes, new one starts
+# Example timeline (8 slots):
+# t=0: Start requests [1,2,3,4,5,6,7,8]
+# t=10: Request 1 done (short), start request 9
+#       Active: [2,3,4,5,6,7,8,9]
+# t=20: Request 9 done, start request 10
+#       Active: [2,3,4,5,6,7,8,10]
+# ...always 8 active requests!
+
+# Throughput: ~150 tokens/second (2.5x improvement!)
+
+# Real-world vLLM benchmarks:
+# Model: Llama 2 7B
+# Hardware: A100 GPU
+# Request rate: 2 req/sec, avg 50 tokens
+
+# Static batching:
+#   Throughput: 180 tok/sec
+#   Avg latency: 2.5 sec
+
+# Continuous batching (vLLM):
+#   Throughput: 600 tok/sec (3.3x!)
+#   Avg latency: 1.2 sec (2x better!)
+
+# Key insight: Keep GPU busy ALL the time
+# No idle slots = maximum throughput</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference continuous-batching cloze throughput EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">How do you implement speculative decoding for faster generation?</div>
+        <div class="back">
+            <strong>Speculative decoding uses small model to draft tokens, large model to verify:</strong>
+            <pre><code>import torch
+
+def speculative_decoding(target_model, draft_model, input_ids,
+                        max_new_tokens=50, num_draft_tokens=4):
+    """
+    Generate with speculative decoding.
+
+    target_model: Large, accurate model
+    draft_model: Small, fast model
+    num_draft_tokens: How many tokens to speculate (typically 4-8)
+    """
+    current_ids = input_ids.clone()
+
+    for step in range(max_new_tokens):
+        # 1. Draft phase: small model generates K tokens (fast)
+        draft_ids = current_ids.clone()
+        draft_tokens = []
+
+        for _ in range(num_draft_tokens):
+            with torch.no_grad():
+                draft_logits = draft_model(draft_ids)
+                next_token = draft_logits[:, -1, :].argmax(dim=-1)
+
+            draft_tokens.append(next_token)
+            draft_ids = torch.cat([draft_ids, next_token.unsqueeze(-1)], dim=1)
+
+        # 2. Verify phase: large model processes all at once (parallel!)
+        # Verify original + all K draft tokens in one forward pass
+        with torch.no_grad():
+            # Get target model's opinion on draft sequence
+            target_logits = target_model(draft_ids)
+
+        # 3. Accept/reject draft tokens
+        accepted = 0
+        for i in range(num_draft_tokens):
+            # Position in sequence
+            pos = current_ids.size(1) + i
+
+            # Target model's distribution at this position
+            target_probs = torch.softmax(target_logits[:, pos, :], dim=-1)
+
+            # Draft token at this position
+            draft_token = draft_tokens[i]
+
+            # Accept if target model agrees (sample from target)
+            target_token = torch.multinomial(target_probs, num_samples=1)
+
+            if target_token == draft_token:
+                # Accept draft token
+                current_ids = torch.cat([current_ids, draft_token.unsqueeze(-1)], dim=1)
+                accepted += 1
+            else:
+                # Reject: use target's token and stop verification
+                current_ids = torch.cat([current_ids, target_token], dim=1)
+                break
+
+        # If all draft tokens accepted, generate one more from target
+        if accepted == num_draft_tokens:
+            with torch.no_grad():
+                final_logits = target_model(current_ids)
+                final_token = final_logits[:, -1, :].argmax(dim=-1)
+            current_ids = torch.cat([current_ids, final_token.unsqueeze(-1)], dim=1)
+
+        # Check stopping condition
+        if current_ids[0, -1] == eos_token_id:
+            break
+
+    return current_ids
+
+# Why it's faster:
+# Without speculation:
+#   Generate N tokens = N forward passes (sequential)
+
+# With speculation (K=4 draft tokens):
+#   Best case: 4 tokens/pass → 4x speedup
+#   Worst case: 1 token/pass (if all rejected) → same as baseline
+#   Typical: 2-3 tokens/pass → 2-3x speedup
+
+# Requirements:
+# 1. Draft model must be much faster (e.g., 7B vs 70B, or distilled)
+# 2. Draft model must be reasonably accurate (~70-80% acceptance rate)
+# 3. Batch size 1 (parallel processing within single sequence)
+
+# Example setup:
+# Draft: Llama 2 7B (fast, ~50ms/token)
+# Target: Llama 2 70B (slow, ~200ms/token)
+# Speedup: 2-2.5x
+
+# Used in:
+# - Medusa (multiple draft heads)
+# - SpecInfer
+# - Research: Google, Meta papers</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference speculative-decoding optimization speed EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">How do you profile model inference to identify bottlenecks?</div>
+        <div class="back">
+            <strong>Use PyTorch profiler to measure operator timings:</strong>
+            <pre><code>import torch
+from torch.profiler import profile, ProfilerActivity, record_function
+
+# Method 1: PyTorch Profiler
+def profile_inference(model, input_data, num_warmup=10, num_iterations=100):
+    """Profile model inference with PyTorch profiler."""
+    model.eval()
+
+    # Warmup
+    with torch.no_grad():
+        for _ in range(num_warmup):
+            _ = model(input_data)
+
+    # Profile
+    with profile(
+        activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+        record_shapes=True,
+        profile_memory=True,
+        with_stack=True
+    ) as prof:
+        with torch.no_grad():
+            for _ in range(num_iterations):
+                with record_function("model_inference"):
+                    _ = model(input_data)
+
+    # Print results
+    print(prof.key_averages().table(
+        sort_by="cuda_time_total",
+        row_limit=20
+    ))
+
+    # Export for visualization
+    prof.export_chrome_trace("trace.json")
+    # Open chrome://tracing and load trace.json
+
+# Method 2: Simple timing
+import time
+
+def time_inference(model, input_data, num_runs=100):
+    """Simple timing measurement."""
+    model.eval()
+
+    # Warmup
+    with torch.no_grad():
+        for _ in range(10):
+            _ = model(input_data)
+
+    # Synchronize GPU
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+
+    start = time.time()
+
+    with torch.no_grad():
+        for _ in range(num_runs):
+            output = model(input_data)
+
+            # IMPORTANT: Synchronize after each iteration
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+
+    end = time.time()
+
+    avg_time = (end - start) / num_runs * 1000  # Convert to ms
+
+    print(f"Average inference time: {avg_time:.2f} ms")
+    print(f"Throughput: {num_runs / (end - start):.1f} samples/sec")
+
+    return avg_time
+
+# Method 3: Per-layer timing
+def profile_layers(model, input_data):
+    """Time each layer individually."""
+    model.eval()
+
+    # Register forward hooks
+    layer_times = {}
+
+    def make_hook(name):
+        def hook(module, input, output):
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+            start = time.time()
+
+            # Process happens here (implicitly)
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+            end = time.time()
+
+            layer_times[name] = (end - start) * 1000
+
+        return hook
+
+    # Register hooks for all modules
+    for name, module in model.named_modules():
+        if len(list(module.children())) == 0:  # Leaf module
+            module.register_forward_hook(make_hook(name))
+
+    # Run inference
+    with torch.no_grad():
+        _ = model(input_data)
+
+    # Print results
+    for name, time_ms in sorted(layer_times.items(), key=lambda x: x[1], reverse=True)[:20]:
+        print(f"{name:50s}: {time_ms:.3f} ms")
+
+# Analyzing results:
+# Look for:
+# 1. Hotspot operations (which ops take most time?)
+# 2. Memory bottlenecks (high memory bandwidth usage?)
+# 3. CPU operations (should be on GPU!)
+# 4. Unnecessary data transfers (CPU ↔ GPU)
+
+# Common bottlenecks:
+# - Attention (O(n²)) - consider sparse/efficient attention
+# - Large matmuls - consider quantization
+# - Memory bandwidth - reduce precision (fp16, int8)
+# - CPU overhead - batch more aggressively</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference profiling optimization debugging EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">CLOZE: PagedAttention (used in vLLM) reduces KV cache memory waste by <span class="cloze">up to 4x</span> by managing memory in <span class="cloze">fixed-size pages</span> rather than contiguous blocks.</div>
+        <div class="back">
+            <strong>Answer: up to 4x, fixed-size pages</strong>
+
+            <p>KV cache memory management:</p>
+            <pre><code># Traditional KV cache (contiguous memory):
+# Problem: Must allocate max_length upfront
+
+# Example: max_length=2048, batch_size=8
+# Allocate: 8 × 2048 = 16,384 slots
+# Actual usage varies:
+# Request 1: generates 100 tokens → 1,948 slots wasted
+# Request 2: generates 500 tokens → 1,548 slots wasted
+# Request 3: generates 2048 tokens → 0 wasted
+# Average waste: ~50-80% of allocated memory!
+
+# PagedAttention (vLLM):
+# Solution: Allocate memory in small pages (like OS virtual memory)
+
+# Page size: 16 tokens
+# Each request gets pages on-demand:
+# Request 1 (100 tokens): 7 pages (112 slots) → only 12 wasted
+# Request 2 (500 tokens): 32 pages (512 slots) → only 12 wasted
+
+# Memory savings:
+# Traditional:
+#   8 requests × 2048 slots = 16,384 slots allocated
+#   Actual usage: ~3,000 tokens generated
+#   Waste: 13,384 slots (82%!)
+
+# PagedAttention:
+#   Only allocate pages as needed
+#   3,000 tokens = 188 pages × 16 = 3,008 slots
+#   Waste: 8 slots (0.3%!)
+
+# Benefits:
+# ✓ 3-4x higher batch sizes (same memory)
+# ✓ No memory fragmentation
+# ✓ Can serve more requests concurrently
+
+# Implementation concept:
+class PagedKVCache:
+    def __init__(self, num_layers, page_size=16):
+        self.page_size = page_size
+        self.pages = {}  # Allocate pages on demand
+        self.request_pages = {}  # Track which pages each request uses
+
+    def allocate_page(self):
+        """Allocate new page."""
+        page_id = len(self.pages)
+        # Each page stores (K, V) for page_size tokens
+        self.pages[page_id] = {
+            'K': torch.zeros(num_layers, page_size, d_k),
+            'V': torch.zeros(num_layers, page_size, d_k)
+        }
+        return page_id
+
+    def get_kv(self, request_id, position):
+        """Get K, V for specific position."""
+        page_idx = position // self.page_size
+        offset = position % self.page_size
+
+        # Get page for this request
+        if request_id not in self.request_pages:
+            self.request_pages[request_id] = []
+
+        # Allocate page if needed
+        while page_idx >= len(self.request_pages[request_id]):
+            page_id = self.allocate_page()
+            self.request_pages[request_id].append(page_id)
+
+        page_id = self.request_pages[request_id][page_idx]
+        page = self.pages[page_id]
+
+        return page['K'][:, offset], page['V'][:, offset]
+
+# Result: Much more efficient memory usage
+# Can batch 32 requests instead of 8 (4x throughput!)</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference paged-attention vllm cloze memory EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">How do you export and optimize a PyTorch model with ONNX?</div>
+        <div class="back">
+            <strong>ONNX enables deployment on optimized runtimes:</strong>
+            <pre><code>import torch
+import onnx
+import onnxruntime as ort
+
+# Step 1: Export PyTorch model to ONNX
+model = YourModel().eval()
+dummy_input = torch.randn(1, 128, 768)  # Example input
+
+torch.onnx.export(
+    model,
+    dummy_input,
+    "model.onnx",
+    input_names=['input'],
+    output_names=['output'],
+    dynamic_axes={
+        'input': {0: 'batch', 1: 'sequence'},  # Variable batch and sequence
+        'output': {0: 'batch', 1: 'sequence'}
+    },
+    opset_version=14,
+    do_constant_folding=True  # Optimize constant operations
+)
+
+# Step 2: Verify ONNX model
+onnx_model = onnx.load("model.onnx")
+onnx.checker.check_model(onnx_model)
+print("ONNX model is valid!")
+
+# Step 3: Optimize with ONNX Runtime
+from onnxruntime.transformers import optimizer
+
+optimized_model = optimizer.optimize_model(
+    "model.onnx",
+    model_type='bert',  # or 'gpt2', 'bart', etc.
+    num_heads=12,
+    hidden_size=768,
+    optimization_options=None  # Use defaults
+)
+optimized_model.save_model_to_file("model_optimized.onnx")
+
+# Step 4: Run inference with ONNX Runtime
+session = ort.InferenceSession(
+    "model_optimized.onnx",
+    providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
+)
+
+# Prepare input
+input_data = {
+    'input': dummy_input.numpy()
+}
+
+# Run inference
+outputs = session.run(None, input_data)
+
+# Compare speed: PyTorch vs ONNX
+import time
+
+# PyTorch
+start = time.time()
+with torch.no_grad():
+    for _ in range(100):
+        _ = model(dummy_input)
+torch_time = (time.time() - start) / 100
+
+# ONNX Runtime
+start = time.time()
+for _ in range(100):
+    _ = session.run(None, input_data)
+onnx_time = (time.time() - start) / 100
+
+print(f"PyTorch: {torch_time*1000:.2f} ms")
+print(f"ONNX: {onnx_time*1000:.2f} ms")
+print(f"Speedup: {torch_time/onnx_time:.2f}x")
+
+# Common optimizations ONNX Runtime applies:
+# 1. Operator fusion (LayerNorm, GELU, etc.)
+# 2. Constant folding
+# 3. Redundant node elimination
+# 4. Format conversions (NCHW ↔ NHWC)
+# 5. Quantization support
+
+# Using Optimum (easier):
+from optimum.onnxruntime import ORTModelForSequenceClassification
+
+# Convert and optimize in one step
+ort_model = ORTModelForSequenceClassification.from_pretrained(
+    "bert-base-uncased",
+    export=True,  # Export to ONNX
+    provider="CUDAExecutionProvider"
+)
+
+# Inference (same API as transformers)
+outputs = ort_model(**inputs)
+
+# Typical speedups:
+# - BERT: 1.5-2x faster
+# - GPT-2: 1.3-1.8x faster
+# - ResNet: 2-3x faster</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference onnx optimization deployment EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">What are the key differences between tensor parallelism and pipeline parallelism?</div>
+        <div class="back">
+            <strong>Two strategies for distributing large models across GPUs:</strong>
+
+            <p><strong>Tensor Parallelism:</strong> Split individual layers across GPUs</p>
+            <pre><code># Single layer split across 4 GPUs:
+# Linear layer: (batch, seq, 4096) → (batch, seq, 4096)
+# Weight matrix: (4096, 4096)
+
+# With tensor parallelism (4 GPUs):
+# GPU 0: processes columns 0-1023    (4096/4 = 1024)
+# GPU 1: processes columns 1024-2047
+# GPU 2: processes columns 2048-3071
+# GPU 3: processes columns 3072-4095
+
+# Each GPU:
+#   Input: (batch, seq, 4096) - full input
+#   Weight: (4096, 1024) - 1/4 of full weight
+#   Output: (batch, seq, 1024) - partial result
+
+# All-gather: Combine results from all GPUs
+# Final: (batch, seq, 4096)
+
+# Benefits:
+# ✓ All GPUs work simultaneously on same batch
+# ✓ Low latency (all layers run in parallel)
+# ✗ High communication (all-reduce after each layer)
+# ✗ Limited to GPUs within same node (fast interconnect needed)
+
+# Use when: Model fits with 2-8 GPUs on same node</code></pre>
+
+            <p><strong>Pipeline Parallelism:</strong> Split layers across GPUs</p>
+            <pre><code># Model with 24 layers split across 4 GPUs:
+# GPU 0: Layers 0-5
+# GPU 1: Layers 6-11
+# GPU 2: Layers 12-17
+# GPU 3: Layers 18-23
+
+# Sequential processing (naive):
+# GPU 0 → GPU 1 → GPU 2 → GPU 3
+# Problem: Only 1 GPU active at a time! (3 idle)
+
+# Solution: Microbatching
+# Split batch of 8 into 4 microbatches of 2
+
+# Timeline:
+# Step 1: GPU0(micro1)
+# Step 2: GPU0(micro2), GPU1(micro1)
+# Step 3: GPU0(micro3), GPU1(micro2), GPU2(micro1)
+# Step 4: GPU0(micro4), GPU1(micro3), GPU2(micro2), GPU3(micro1)
+# Step 5:              GPU1(micro4), GPU2(micro3), GPU3(micro2)
+# Step 6:                            GPU2(micro4), GPU3(micro3)
+# Step 7:                                          GPU3(micro4)
+
+# Benefits:
+# ✓ Can scale to many GPUs (even across nodes)
+# ✓ Less communication than tensor parallelism
+# ✗ Pipeline bubble (some GPUs idle)
+# ✗ More complex to implement
+
+# Use when: Model needs >8 GPUs</code></pre>
+
+            <p><strong>3D Parallelism:</strong> Combine both + data parallelism</p>
+            <pre><code># Example: GPT-3 175B on 128 GPUs
+# - Data parallelism: 4 replicas
+# - Pipeline parallelism: 8 stages
+# - Tensor parallelism: 4-way per stage
+# Total: 4 × 8 × 4 = 128 GPUs
+
+# Each GPU handles:
+# - 1/4 of batch (data parallel)
+# - 1/8 of layers (pipeline)
+# - 1/4 of each layer (tensor)
+
+# This is how massive models are trained!</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference parallelism tensor-parallelism pipeline-parallelism EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">CLOZE: Speculative decoding achieves <span class="cloze">2-3x speedup</span> by using a <span class="cloze">small draft model</span> to propose tokens and a <span class="cloze">large target model</span> to verify them in parallel.</div>
+        <div class="back">
+            <strong>Answer: 2-3x speedup, small draft model, large target model</strong>
+
+            <p>Speedup analysis:</p>
+            <pre><code># Setup:
+# Draft model: 7B params, 50ms per forward pass
+# Target model: 70B params, 200ms per forward pass
+# Draft K=4 tokens ahead
+
+# Standard generation (100 tokens):
+# 100 iterations × 200ms = 20,000ms = 20 seconds
+
+# Speculative decoding:
+# Each iteration:
+#   Draft 4 tokens: 4 × 50ms = 200ms
+#   Verify in parallel: 200ms (single pass for all 4!)
+#   Total: 400ms per iteration
+
+# Best case (all accepted):
+#   100 tokens / 4 = 25 iterations
+#   25 × 400ms = 10,000ms = 10 seconds
+#   Speedup: 2x
+
+# Realistic case (75% acceptance):
+#   Average 3 tokens per iteration
+#   100 tokens / 3 = 34 iterations
+#   34 × 400ms = 13,600ms = 13.6 seconds
+#   Speedup: 1.47x
+
+# Worst case (50% acceptance):
+#   Average 2 tokens per iteration
+#   100 tokens / 2 = 50 iterations
+#   50 × 400ms = 20,000ms = 20 seconds
+#   Speedup: 1x (same as baseline)
+
+# Key factors for speedup:
+# 1. Acceptance rate (higher = better)
+#    - Depends on draft model quality
+#    - Typical: 60-80%
+
+# 2. Speed ratio (draft/target)
+#    - Want draft >> faster than target
+#    - 4x faster = good
+#    - 2x faster = marginal benefit
+
+# 3. Number of draft tokens (K)
+#    - Higher K = more potential speedup
+#    - But lower acceptance rate
+#    - Typical: K=4-6
+
+# Example configurations:
+# Llama 2 7B → Llama 2 70B: 2-2.5x speedup
+# Distilled model → Full model: 2.5-3x speedup
+# Same model, INT8 → FP16: 1.5-2x speedup</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference speculative-decoding cloze speedup EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">How do you implement model pruning for inference optimization?</div>
+        <div class="back">
+            <strong>Pruning removes less important weights to reduce model size:</strong>
+            <pre><code>import torch
+import torch.nn.utils.prune as prune
+
+# Method 1: Magnitude Pruning (simplest)
+# Remove weights with smallest absolute values
+
+def magnitude_prune_model(model, amount=0.3):
+    """
+    Prune 30% of weights with smallest magnitude.
+    """
+    for name, module in model.named_modules():
+        if isinstance(module, torch.nn.Linear):
+            prune.l1_unstructured(module, name='weight', amount=amount)
+
+    return model
+
+# Method 2: Structured Pruning (better for speedup)
+# Prune entire channels/neurons
+
+def structured_prune_model(model, amount=0.3):
+    """
+    Prune entire neurons (rows/columns of weight matrices).
+    """
+    for name, module in model.named_modules():
+        if isinstance(module, torch.nn.Linear):
+            # Prune output channels (rows)
+            prune.ln_structured(
+                module,
+                name='weight',
+                amount=amount,
+                n=2,  # L2 norm
+                dim=0  # Prune rows
+            )
+
+    return model
+
+# Method 3: Gradual Pruning During Training
+# Iteratively increase pruning amount
+
+class GradualPruning:
+    def __init__(self, model, initial_sparsity=0.0, final_sparsity=0.9,
+                 start_step=0, end_step=10000, frequency=100):
+        self.model = model
+        self.initial_sparsity = initial_sparsity
+        self.final_sparsity = final_sparsity
+        self.start_step = start_step
+        self.end_step = end_step
+        self.frequency = frequency
+
+    def step(self, current_step):
+        """Update pruning mask based on current step."""
+        if current_step < self.start_step or current_step > self.end_step:
+            return
+
+        if current_step % self.frequency != 0:
+            return
+
+        # Compute current target sparsity
+        progress = (current_step - self.start_step) / (self.end_step - self.start_step)
+        current_sparsity = self.initial_sparsity + \
+                          (self.final_sparsity - self.initial_sparsity) * progress
+
+        # Apply pruning
+        for name, module in self.model.named_modules():
+            if isinstance(module, torch.nn.Linear):
+                prune.l1_unstructured(module, name='weight', amount=current_sparsity)
+
+# Making pruning permanent:
+def make_pruning_permanent(model):
+    """
+    Remove pruning reparameterization, actually delete weights.
+    """
+    for name, module in model.named_modules():
+        if isinstance(module, torch.nn.Linear):
+            if hasattr(module, 'weight_orig'):
+                prune.remove(module, 'weight')
+
+    return model
+
+# Usage pipeline:
+# 1. Train model normally
+model = train_model()
+
+# 2. Prune
+pruned_model = magnitude_prune_model(model, amount=0.5)
+
+# 3. Fine-tune (recover accuracy)
+pruned_model = finetune_model(pruned_model, num_epochs=5)
+
+# 4. Make permanent
+pruned_model = make_pruning_permanent(pruned_model)
+
+# 5. Optional: Further compress with quantization
+pruned_quantized = torch.quantization.quantize_dynamic(
+    pruned_model,
+    {torch.nn.Linear},
+    dtype=torch.qint8
+)
+
+# Results:
+# Unpruned model: 7B params, 14GB (fp16)
+# 50% pruned: 3.5B params, 7GB
+# 50% pruned + INT8: 3.5B params, 3.5GB (4x reduction!)
+
+# Speedup:
+# Unstructured pruning: ~1.1-1.3x (needs sparse kernels)
+# Structured pruning: ~1.5-2x (dense operations, smaller matrices)
+# Pruned + quantized: ~2-3x
+
+# Use cases:
+# - Edge deployment (mobile, embedded)
+# - Reduce serving costs
+# - Trade accuracy for speed (often <1% accuracy loss at 50% sparsity)</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference pruning compression optimization EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">How do you optimize inference latency vs throughput trade-offs?</div>
+        <div class="back">
+            <strong>Latency and throughput often require different optimizations:</strong>
+
+            <p><strong>Latency-optimized (minimize time per request):</strong></p>
+            <pre><code># Goal: Single request completes ASAP
+# Target: Interactive applications (chatbots, search)
+
+# Optimizations:
+# 1. Batch size = 1 (no batching delay)
+# 2. Use speculative decoding (2-3x faster per request)
+# 3. Aggressive quantization (INT8, even INT4)
+# 4. Tensor parallelism (if using multiple GPUs)
+# 5. Smaller models (7B instead of 70B)
+
+# Configuration:
+config = {
+    'batch_size': 1,
+    'max_batch_delay_ms': 0,  # No waiting
+    'use_speculative_decoding': True,
+    'quantization': 'int8',
+    'num_gpus': 1,  # Or 2-4 with tensor parallelism
+}
+
+# Metrics:
+# - P50 latency: 50ms (median)
+# - P99 latency: 100ms (99th percentile)
+# - Throughput: 20 req/sec (secondary concern)
+
+# Example: Single user chatbot
+# User types, expects response in <100ms
+# Throughput doesn't matter (only 1 user)</code></pre>
+
+            <p><strong>Throughput-optimized (maximize requests/second):</strong></p>
+            <pre><code># Goal: Process maximum requests/time
+# Target: Batch processing, offline inference, high-traffic services
+
+# Optimizations:
+# 1. Large batch sizes (32-128)
+# 2. Continuous batching (vLLM, TGI)
+# 3. PagedAttention (fit more requests in memory)
+# 4. Pipeline parallelism (if using many GPUs)
+# 5. Larger models OK (amortize compute over big batch)
+
+# Configuration:
+config = {
+    'batch_size': 64,
+    'max_batch_delay_ms': 50,  # Wait to accumulate batch
+    'use_continuous_batching': True,
+    'use_paged_attention': True,
+    'quantization': 'fp16',  # Less aggressive (better quality)
+    'num_gpus': 8,  # Pipeline parallelism
+}
+
+# Metrics:
+# - Throughput: 500 req/sec (primary goal)
+# - P50 latency: 500ms (acceptable)
+# - P99 latency: 2000ms (acceptable for batch)
+
+# Example: Batch translation service
+# Process 1M documents overnight
+# Latency per doc doesn't matter, total time does</code></pre>
+
+            <p><strong>Balanced approach:</strong></p>
+            <pre><code># Most real-world services need both!
+
+# Strategy: Dynamic batching with latency SLO
+config = {
+    'max_batch_size': 32,
+    'max_batch_delay_ms': 10,  # Small delay for batching
+    'target_p99_latency_ms': 200,  # Latency SLO
+    'use_continuous_batching': True,
+    'quantization': 'int8',
+}
+
+# Adaptive batching:
+# - If latency < target: increase batch size
+# - If latency > target: decrease batch size
+# - Continuously adjust to meet SLO while maximizing throughput
+
+class AdaptiveBatcher:
+    def __init__(self, target_latency_ms=200):
+        self.target_latency = target_latency_ms
+        self.current_batch_size = 16
+        self.latency_history = []
+
+    def adjust_batch_size(self):
+        if not self.latency_history:
+            return
+
+        p99_latency = np.percentile(self.latency_history, 99)
+
+        if p99_latency < self.target_latency * 0.8:
+            # Headroom: increase batch size
+            self.current_batch_size = min(
+                self.current_batch_size + 4,
+                128  # Max
+            )
+        elif p99_latency > self.target_latency:
+            # Missing target: decrease batch size
+            self.current_batch_size = max(
+                self.current_batch_size - 4,
+                1  # Min
+            )
+
+        self.latency_history = []  # Reset
+
+# Trade-off summary:
+# Low latency: batch_size=1, no waiting → 20 req/sec
+# High throughput: batch_size=64, wait 50ms → 500 req/sec
+# Balanced: batch_size=16-32, wait 10ms → 200 req/sec with <200ms latency</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference latency throughput trade-offs optimization EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">CLOZE: INT4 quantization reduces model size by <span class="cloze">8x</span> compared to FP32 but typically incurs <span class="cloze">1-3%</span> accuracy loss, requiring careful <span class="cloze">calibration</span> to minimize degradation.</div>
+        <div class="back">
+            <strong>Answer: 8x, 1-3%, calibration</strong>
+
+            <p>Quantization comparison table:</p>
+            <pre><code># Precision comparison for 7B parameter model:
+
+# FP32 (baseline):
+# Size: 7B × 4 bytes = 28 GB
+# Accuracy: 100% (reference)
+# Speed: 1x (baseline)
+
+# FP16:
+# Size: 7B × 2 bytes = 14 GB (2x reduction)
+# Accuracy: ~99.99% (virtually no loss)
+# Speed: 1.5-2x faster
+
+# INT8:
+# Size: 7B × 1 byte = 7 GB (4x reduction)
+# Accuracy: 99-99.5% (0.5-1% loss)
+# Speed: 2-4x faster
+# Calibration: Required (100-1000 samples)
+
+# INT4:
+# Size: 7B × 0.5 bytes = 3.5 GB (8x reduction!)
+# Accuracy: 97-99% (1-3% loss)
+# Speed: 3-6x faster (limited hardware support)
+# Calibration: Critical (need more samples, careful tuning)
+
+# Why INT4 is harder:
+# - Only 16 possible values per weight!
+# - Must choose quantization ranges carefully
+# - Different layers may need different scales
+
+# INT4 quantization methods:
+# 1. GPTQ (weights only, activation fp16)
+# 2. AWQ (weight-only, activation-aware)
+# 3. NF4 (NormalFloat, used in QLoRA)
+
+# Calibration importance:
+# Without calibration (naive quantization):
+# INT8: 2-3% accuracy loss
+# INT4: 5-10% accuracy loss
+
+# With calibration (collect activation statistics):
+# INT8: 0.5-1% accuracy loss ✓
+# INT4: 1-3% accuracy loss ✓
+
+# Calibration process:
+# 1. Run model on representative data (100-1000 samples)
+# 2. Collect activation ranges for each layer
+# 3. Compute optimal quantization scales
+# 4. Apply scales to quantize weights
+
+# When to use each:
+# FP16: Default (good balance)
+# INT8: Production serving (good quality, big savings)
+# INT4: Edge/mobile, or when memory-constrained
+#       (accept some quality loss)</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference quantization int4 cloze accuracy EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">How do you implement Flash Attention for faster inference?</div>
+        <div class="back">
+            <strong>Flash Attention reduces memory I/O for faster attention:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+# Standard attention (slow):
+def standard_attention(Q, K, V):
+    """
+    O(n²) memory, many HBM reads/writes.
+    """
+    # Compute attention scores: (batch, heads, seq, seq)
+    scores = Q @ K.transpose(-2, -1) / math.sqrt(d_k)
+
+    # Softmax: requires materializing full score matrix
+    attn = F.softmax(scores, dim=-1)  # Stores O(n²) matrix!
+
+    # Apply to values
+    output = attn @ V
+
+    return output
+
+# Flash Attention (fast) - using PyTorch 2.0+:
+def flash_attention(Q, K, V, is_causal=False):
+    """
+    Uses scaled_dot_product_attention with Flash Attention backend.
+    """
+    # Automatically uses Flash Attention if available
+    output = F.scaled_dot_product_attention(
+        Q, K, V,
+        is_causal=is_causal,
+        dropout_p=0.0
+    )
+
+    return output
+
+# Or use flash-attn library directly:
+from flash_attn import flash_attn_func
+
+def flash_attention_v2(Q, K, V, causal=False):
+    """
+    Use flash-attn library (fastest implementation).
+    pip install flash-attn
+    """
+    # Q, K, V: (batch, seq_len, num_heads, head_dim)
+    # Note: Different layout than standard!
+
+    output = flash_attn_func(
+        Q, K, V,
+        causal=causal,
+        softmax_scale=1.0 / math.sqrt(Q.size(-1))
+    )
+
+    return output
+
+# Performance comparison (seq_len=2048):
+import time
+
+Q = torch.randn(1, 32, 2048, 64, device='cuda')  # (batch, heads, seq, d_k)
+K = torch.randn(1, 32, 2048, 64, device='cuda')
+V = torch.randn(1, 32, 2048, 64, device='cuda')
+
+# Standard attention
+torch.cuda.synchronize()
+start = time.time()
+for _ in range(100):
+    _ = standard_attention(Q, K, V)
+torch.cuda.synchronize()
+standard_time = (time.time() - start) / 100
+
+# Flash Attention
+torch.cuda.synchronize()
+start = time.time()
+for _ in range(100):
+    _ = flash_attention(Q, K, V)
+torch.cuda.synchronize()
+flash_time = (time.time() - start) / 100
+
+print(f"Standard: {standard_time*1000:.2f} ms")
+print(f"Flash: {flash_time*1000:.2f} ms")
+print(f"Speedup: {standard_time/flash_time:.2f}x")
+
+# Typical results (A100 GPU, seq_len=2048):
+# Standard: 45 ms
+# Flash Attention: 15 ms
+# Speedup: 3x
+
+# Memory comparison:
+# Standard: O(batch × heads × seq² × 2 bytes)
+#          = 1 × 32 × 2048² × 2 = 256 MB
+# Flash: O(batch × seq × d_model × 2 bytes)
+#       = 1 × 2048 × 2048 × 2 = 8 MB
+# Memory reduction: 32x!
+
+# Why Flash Attention is faster:
+# 1. Tiling: Computes attention in blocks that fit in SRAM
+# 2. Kernel fusion: Combines operations (no intermediate storage)
+# 3. Recomputation: Recomputes values in backward pass (vs storing)
+# 4. No materialization: Never stores full attention matrix
+
+# Benefits:
+# ✓ 2-4x faster inference
+# ✓ 10-20x less memory (enables longer sequences)
+# ✓ Exact attention (not approximate!)
+# ✓ Scales to very long contexts (32K+ tokens)
+
+# Availability:
+# - PyTorch 2.0+: Built-in (automatic)
+# - Requires: Ampere GPU or newer (A100, A6000, RTX 3090+)
+# - Turing/Volta: Use flash-attn v1 (slower but still helps)</code></pre>
+        </div>
+        <div class="tags">cs pythonML inference flash-attention optimization memory EN</div>
+    </div>
+
+</body>
+</html>

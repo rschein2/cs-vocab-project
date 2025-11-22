@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed-Forward Networks & Activations - CS Vocab Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .front {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .back {
+            line-height: 1.6;
+            color: #34495e;
+        }
+
+        .tags {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .cloze {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>Feed-Forward Networks & Activations Flashcards</h1>
+    <p>Transformer FFN layers, activations, and gating mechanisms with PyTorch implementations</p>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">How do you implement a standard transformer FFN (feed-forward network) layer?</div>
+        <div class="back">
+            <strong>Standard FFN is a two-layer MLP with expansion:</strong>
+            <pre><code>import torch.nn as nn
+
+class FeedForward(nn.Module):
+    def __init__(self, d_model, d_ff, dropout=0.1):
+        """
+        d_model: model dimension (e.g., 512, 768, 4096)
+        d_ff: hidden dimension (typically 4 * d_model)
+        """
+        super().__init__()
+        self.linear1 = nn.Linear(d_model, d_ff)
+        self.linear2 = nn.Linear(d_ff, d_model)
+        self.dropout = nn.Dropout(dropout)
+        self.activation = nn.GELU()  # or nn.ReLU()
+
+    def forward(self, x):
+        """
+        x: (batch, seq_len, d_model)
+        Returns: (batch, seq_len, d_model)
+        """
+        # Expand: d_model -> d_ff
+        x = self.linear1(x)
+        x = self.activation(x)
+        x = self.dropout(x)
+
+        # Project back: d_ff -> d_model
+        x = self.linear2(x)
+        x = self.dropout(x)
+
+        return x
+
+# Usage in transformer block:
+class TransformerBlock(nn.Module):
+    def forward(self, x):
+        # Self-attention with residual
+        x = x + self.self_attn(self.norm1(x))
+
+        # FFN with residual (post-norm shown)
+        x = x + self.ffn(self.norm2(x))
+
+        return x</code></pre>
+            <p>Key points: Expands to d_ff (typically 4x), applies activation, projects back. Uses residual connections.</p>
+        </div>
+        <div class="tags">cs pythonML transformers ffn mlp EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">CLOZE: The standard transformer FFN expands the hidden dimension by a factor of <span class="cloze">4</span>, so d_ff = <span class="cloze">4 × d_model</span>.</div>
+        <div class="back">
+            <strong>Answer: 4, 4 × d_model</strong>
+            <p>Why 4x expansion?</p>
+            <ul>
+                <li><strong>Capacity:</strong> Provides model capacity to learn complex transformations</li>
+                <li><strong>Empirical:</strong> Found to work well in original Transformer paper</li>
+                <li><strong>Trade-off:</strong> Balance between expressiveness and compute/memory</li>
+                <li><strong>Parameters:</strong> FFN typically accounts for 2/3 of transformer parameters</li>
+            </ul>
+            <pre><code># Examples:
+# BERT-base: d_model=768, d_ff=3072 (4x)
+# GPT-2: d_model=768, d_ff=3072 (4x)
+# Llama 2 7B: d_model=4096, d_ff=11008 (~2.7x, uses SwiGLU)
+
+# Parameter count for FFN:
+# Linear1: d_model × d_ff = 768 × 3072 = 2.36M
+# Linear2: d_ff × d_model = 3072 × 768 = 2.36M
+# Total: ~4.7M parameters per FFN layer
+
+# Some models vary this ratio:
+# - Smaller ratio (2-3x): Memory-constrained settings
+# - Larger ratio (5-8x): When you have compute budget</code></pre>
+        </div>
+        <div class="tags">cs pythonML transformers ffn cloze expansion EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">What is GELU activation and how do you implement it?</div>
+        <div class="back">
+            <strong>GELU (Gaussian Error Linear Unit) - smooth approximation to ReLU:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+import math
+
+# Method 1: PyTorch built-in (exact)
+gelu = nn.GELU()
+output = gelu(x)
+
+# Method 2: Exact formula
+def gelu_exact(x):
+    """
+    GELU(x) = x * Φ(x)
+    where Φ(x) is the cumulative distribution function of standard normal
+    """
+    return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
+
+# Method 3: Tanh approximation (faster, used in GPT-2)
+def gelu_approx(x):
+    """
+    Faster approximation used in original BERT/GPT-2
+    """
+    return 0.5 * x * (1.0 + torch.tanh(
+        math.sqrt(2.0 / math.pi) * (x + 0.044715 * torch.pow(x, 3))
+    ))
+
+# Comparison with ReLU:
+x = torch.randn(100)
+
+relu_out = torch.relu(x)          # Hard threshold at 0
+gelu_out = gelu(x)                # Smooth, allows small negatives
+
+# Properties:
+# ✓ Smooth (differentiable everywhere)
+# ✓ Non-monotonic (unlike ReLU)
+# ✓ Small negative values can pass through
+# ✓ Used in: BERT, GPT-2, GPT-3, many modern transformers</code></pre>
+
+            <p><strong>Intuition:</strong> GELU weights inputs by their magnitude - larger positive values pass through more, very negative values are dropped.</p>
+        </div>
+        <div class="tags">cs pythonML activation gelu transformers EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">What are the main activation functions used in transformers and when to use each?</div>
+        <div class="back">
+            <strong>Common transformer activation functions:</strong>
+
+            <p><strong>1. GELU (Gaussian Error Linear Unit)</strong></p>
+            <pre><code>nn.GELU()
+# Used in: BERT, GPT-2, GPT-3, ViT
+# Pros: Smooth, empirically better performance
+# Cons: Slightly slower than ReLU</code></pre>
+
+            <p><strong>2. ReLU (Rectified Linear Unit)</strong></p>
+            <pre><code>nn.ReLU()
+# Used in: Original Transformer, some older models
+# Pros: Fast, simple
+# Cons: Dead neurons, not as expressive</code></pre>
+
+            <p><strong>3. SiLU / Swish (Sigmoid Linear Unit)</strong></p>
+            <pre><code>nn.SiLU()  # or nn.Swish()
+# SiLU(x) = x * sigmoid(x)
+# Used in: Llama (in SwiGLU), EfficientNet
+# Pros: Smooth, self-gated
+# Cons: More compute than ReLU</code></pre>
+
+            <p><strong>4. GeLU variants in GLU structures</strong></p>
+            <pre><code># Used in gated architectures (covered in GLU cards)
+# SwiGLU: Uses SiLU in gating (Llama 2)
+# GeGLU: Uses GELU in gating (T5)</code></pre>
+
+            <p><strong>Performance comparison (approximate):</strong></p>
+            <pre><code># Speed: ReLU > SiLU ≈ GELU > GLU variants
+# Quality: GLU variants > GELU > SiLU > ReLU
+# Memory: All similar except GLU (2x parameters)</code></pre>
+
+            <p><strong>Rule of thumb:</strong> Use GELU for modern transformers (BERT-style), SwiGLU for LLMs (GPT-style).</p>
+        </div>
+        <div class="tags">cs pythonML activation functions transformers EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">How do you implement a Gated Linear Unit (GLU) and its variants?</div>
+        <div class="back">
+            <strong>GLU uses gating mechanism to control information flow:</strong>
+
+            <p><strong>Original GLU:</strong></p>
+            <pre><code>class GLU(nn.Module):
+    def __init__(self, d_model, d_ff):
+        super().__init__()
+        # Split: need 2 * d_ff for gating
+        self.linear = nn.Linear(d_model, 2 * d_ff)
+
+    def forward(self, x):
+        # x: (batch, seq_len, d_model)
+        x = self.linear(x)  # (batch, seq_len, 2 * d_ff)
+
+        # Split into two halves
+        value, gate = x.chunk(2, dim=-1)  # Each: (batch, seq_len, d_ff)
+
+        # GLU: value ⊙ σ(gate)
+        return value * torch.sigmoid(gate)</code></pre>
+
+            <p><strong>GeGLU (GELU-GLU, used in T5):</strong></p>
+            <pre><code>class GeGLU(nn.Module):
+    def __init__(self, d_model, d_ff):
+        super().__init__()
+        self.linear = nn.Linear(d_model, 2 * d_ff)
+        self.gelu = nn.GELU()
+
+    def forward(self, x):
+        x = self.linear(x)
+        value, gate = x.chunk(2, dim=-1)
+
+        # GeGLU: value ⊙ GELU(gate)
+        return value * self.gelu(gate)</code></pre>
+
+            <p><strong>SwiGLU (Swish-GLU, used in Llama 2, PaLM):</strong></p>
+            <pre><code>class SwiGLU(nn.Module):
+    def __init__(self, d_model, d_ff):
+        super().__init__()
+        self.w1 = nn.Linear(d_model, d_ff, bias=False)
+        self.w2 = nn.Linear(d_model, d_ff, bias=False)
+        self.w3 = nn.Linear(d_ff, d_model, bias=False)
+
+    def forward(self, x):
+        # SwiGLU: (Swish(W1·x) ⊙ W2·x) · W3
+        # where Swish(x) = x * sigmoid(x) = SiLU(x)
+        return self.w3(F.silu(self.w1(x)) * self.w2(x))</code></pre>
+
+            <p>Key insight: Gating allows the model to learn what information to pass through, improving expressiveness.</p>
+        </div>
+        <div class="tags">cs pythonML glu geglu swiglu gating transformers EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">CLOZE: GLU variants require <span class="cloze">~2x</span> the parameters of standard FFN because they need separate projections for <span class="cloze">value and gate</span>.</div>
+        <div class="back">
+            <strong>Answer: ~2x, value and gate</strong>
+
+            <p>Parameter comparison:</p>
+            <pre><code># Standard FFN:
+# W1: d_model × d_ff
+# W2: d_ff × d_model
+# Total: 2 × d_model × d_ff
+
+# SwiGLU FFN (Llama 2):
+# W1 (gate): d_model × d_ff
+# W2 (value): d_model × d_ff
+# W3 (output): d_ff × d_model
+# Total: 3 × d_model × d_ff (1.5x more!)
+
+# To match parameter count, Llama uses smaller d_ff:
+# Standard: d_ff = 4 × d_model
+# SwiGLU: d_ff ≈ 2.7 × d_model (so 3 × 2.7 ≈ 8, close to 2 × 4 = 8)
+
+# Example - Llama 2 7B:
+d_model = 4096
+d_ff_swiglu = 11008  # ≈ 2.7 × d_model
+
+# Parameters:
+w1 = d_model * d_ff_swiglu  # 45,088,768
+w2 = d_model * d_ff_swiglu  # 45,088,768
+w3 = d_ff_swiglu * d_model  # 45,088,768
+total = 135,266,304  # ~135M per FFN layer
+
+# vs standard FFN with d_ff = 4 × 4096 = 16384:
+standard = 2 * d_model * (4 * d_model)  # 134,217,728 (~134M)
+
+# Nearly same parameter count, but SwiGLU performs better!</code></pre>
+        </div>
+        <div class="tags">cs pythonML glu parameters cloze efficiency EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">How do you implement a complete SwiGLU FFN layer like in Llama 2?</div>
+        <div class="back">
+            <strong>Complete SwiGLU FFN with proper initialization:</strong>
+            <pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class LlamaFFN(nn.Module):
+    def __init__(self, d_model, multiple_of=256, ffn_dim_multiplier=None):
+        """
+        Llama-style FFN with SwiGLU activation.
+
+        d_model: model dimension
+        multiple_of: ensure hidden dim is multiple of this (for efficiency)
+        ffn_dim_multiplier: optional multiplier for hidden dimension
+        """
+        super().__init__()
+
+        # Compute hidden dimension (Llama uses ~2.7x)
+        hidden_dim = 4 * d_model
+        hidden_dim = int(2 * hidden_dim / 3)
+        if ffn_dim_multiplier is not None:
+            hidden_dim = int(ffn_dim_multiplier * hidden_dim)
+
+        # Round to nearest multiple_of for hardware efficiency
+        hidden_dim = multiple_of * ((hidden_dim + multiple_of - 1) // multiple_of)
+
+        # Three linear layers (no bias in Llama)
+        self.w1 = nn.Linear(d_model, hidden_dim, bias=False)  # gate
+        self.w2 = nn.Linear(hidden_dim, d_model, bias=False)  # output
+        self.w3 = nn.Linear(d_model, hidden_dim, bias=False)  # value
+
+    def forward(self, x):
+        """
+        x: (batch, seq_len, d_model)
+        Returns: (batch, seq_len, d_model)
+        """
+        # SwiGLU: W2(SiLU(W1(x)) ⊙ W3(x))
+        return self.w2(F.silu(self.w1(x)) * self.w3(x))
+
+# Usage in Llama block:
+class LlamaBlock(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        self.attention = LlamaAttention(d_model, num_heads)
+        self.ffn = LlamaFFN(d_model)
+        self.attention_norm = RMSNorm(d_model)
+        self.ffn_norm = RMSNorm(d_model)
+
+    def forward(self, x):
+        # Pre-norm for both attention and FFN
+        x = x + self.attention(self.attention_norm(x))
+        x = x + self.ffn(self.ffn_norm(x))
+        return x
+
+# Example dimensions:
+# Llama 2 7B: d_model=4096, hidden_dim=11008
+# Llama 2 13B: d_model=5120, hidden_dim=13824
+# Llama 2 70B: d_model=8192, hidden_dim=28672</code></pre>
+        </div>
+        <div class="tags">cs pythonML swiglu llama ffn implementation EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">CLOZE: In the SwiGLU activation, Swish(x) = x × σ(x) is equivalent to <span class="cloze">SiLU(x)</span> in PyTorch.</div>
+        <div class="back">
+            <strong>Answer: SiLU(x) (Sigmoid Linear Unit)</strong>
+
+            <p>The Swish/SiLU activation:</p>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+# All equivalent:
+def swish(x):
+    return x * torch.sigmoid(x)
+
+def silu(x):
+    return x * torch.sigmoid(x)
+
+# PyTorch built-in (use this):
+output = F.silu(x)  # Most efficient
+
+# Properties:
+# - Smooth and non-monotonic
+# - Self-gated (uses input to gate itself)
+# - Range: approximately [-0.28, ∞)
+# - Derivative: σ(x) + x·σ(x)·(1-σ(x))
+
+# Visualization:
+import matplotlib.pyplot as plt
+x = torch.linspace(-4, 4, 100)
+
+relu = F.relu(x)
+gelu = F.gelu(x)
+silu = F.silu(x)
+
+plt.plot(x, relu, label='ReLU')
+plt.plot(x, gelu, label='GELU')
+plt.plot(x, silu, label='SiLU/Swish')
+plt.legend()
+plt.title('Activation Functions')
+
+# Key difference from ReLU:
+# - ReLU: hard cutoff at 0
+# - SiLU: smooth transition, small negatives can pass</code></pre>
+
+            <p>Used in: Llama, PaLM, Mistral, many modern LLMs.</p>
+        </div>
+        <div class="tags">cs pythonML activation silu swish cloze EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">How do you implement dropout correctly in FFN layers?</div>
+        <div class="back">
+            <strong>Dropout placement in FFN (two common approaches):</strong>
+
+            <p><strong>Approach 1: After activation (BERT-style):</strong></p>
+            <pre><code>class FFN_BERT(nn.Module):
+    def __init__(self, d_model, d_ff, dropout=0.1):
+        super().__init__()
+        self.linear1 = nn.Linear(d_model, d_ff)
+        self.linear2 = nn.Linear(d_ff, d_model)
+        self.dropout = nn.Dropout(dropout)
+        self.activation = nn.GELU()
+
+    def forward(self, x):
+        x = self.linear1(x)
+        x = self.activation(x)
+        x = self.dropout(x)  # After activation
+
+        x = self.linear2(x)
+        x = self.dropout(x)  # After output projection
+
+        return x</code></pre>
+
+            <p><strong>Approach 2: Only after output projection (GPT-style):</strong></p>
+            <pre><code>class FFN_GPT(nn.Module):
+    def __init__(self, d_model, d_ff, dropout=0.1):
+        super().__init__()
+        self.linear1 = nn.Linear(d_model, d_ff)
+        self.linear2 = nn.Linear(d_ff, d_model)
+        self.dropout = nn.Dropout(dropout)
+        self.activation = nn.GELU()
+
+    def forward(self, x):
+        x = self.linear1(x)
+        x = self.activation(x)
+        # No dropout here
+
+        x = self.linear2(x)
+        x = self.dropout(x)  # Only after final projection
+
+        return x</code></pre>
+
+            <p><strong>Key considerations:</strong></p>
+            <ul>
+                <li>BERT-style: More regularization (dropout in 2 places)</li>
+                <li>GPT-style: Less regularization, faster training</li>
+                <li>Modern LLMs often use lower dropout (0.0-0.1)</li>
+                <li>Residual dropout is separate from FFN dropout</li>
+            </ul>
+
+            <pre><code># In transformer block:
+def forward(self, x):
+    # Attention
+    attn_out = self.attention(self.norm1(x))
+    x = x + self.dropout_attn(attn_out)  # Residual dropout
+
+    # FFN
+    ffn_out = self.ffn(self.norm2(x))  # FFN has internal dropout
+    x = x + self.dropout_ffn(ffn_out)   # Residual dropout
+
+    return x</code></pre>
+        </div>
+        <div class="tags">cs pythonML ffn dropout regularization EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">What is Mixture of Experts (MoE) and how do you implement a basic sparse MoE FFN?</div>
+        <div class="back">
+            <strong>MoE uses multiple "expert" FFNs with learned routing:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class MoEFFN(nn.Module):
+    def __init__(self, d_model, d_ff, num_experts=8, top_k=2):
+        """
+        Sparse MoE: Each token is routed to top_k experts.
+
+        num_experts: number of expert FFN networks
+        top_k: number of experts to use per token
+        """
+        super().__init__()
+        self.num_experts = num_experts
+        self.top_k = top_k
+
+        # Router: decides which experts to use
+        self.router = nn.Linear(d_model, num_experts)
+
+        # Expert networks (each is a standard FFN)
+        self.experts = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(d_model, d_ff),
+                nn.GELU(),
+                nn.Linear(d_ff, d_model)
+            )
+            for _ in range(num_experts)
+        ])
+
+    def forward(self, x):
+        """
+        x: (batch, seq_len, d_model)
+        """
+        batch_size, seq_len, d_model = x.shape
+
+        # Flatten batch and sequence for routing
+        x_flat = x.view(-1, d_model)  # (batch * seq_len, d_model)
+
+        # Compute router logits
+        router_logits = self.router(x_flat)  # (batch * seq_len, num_experts)
+
+        # Get top-k experts per token
+        router_weights, selected_experts = torch.topk(
+            router_logits, self.top_k, dim=-1
+        )
+        # router_weights: (batch * seq_len, top_k)
+        # selected_experts: (batch * seq_len, top_k) - expert indices
+
+        # Softmax over selected experts
+        router_weights = F.softmax(router_weights, dim=-1)
+
+        # Initialize output
+        output = torch.zeros_like(x_flat)
+
+        # Process each expert
+        for i in range(self.num_experts):
+            # Find tokens routed to this expert
+            expert_mask = (selected_experts == i).any(dim=-1)
+            if expert_mask.any():
+                expert_input = x_flat[expert_mask]
+
+                # Apply expert
+                expert_output = self.experts[i](expert_input)
+
+                # Get weights for this expert
+                expert_weights = router_weights[expert_mask]
+                expert_weights = expert_weights[
+                    (selected_experts[expert_mask] == i).nonzero(as_tuple=True)[1]
+                ].unsqueeze(-1)
+
+                # Add weighted output
+                output[expert_mask] += expert_weights * expert_output
+
+        return output.view(batch_size, seq_len, d_model)
+
+# Usage:
+moe_ffn = MoEFFN(d_model=768, d_ff=3072, num_experts=8, top_k=2)
+output = moe_ffn(x)  # Only 2 out of 8 experts used per token</code></pre>
+
+            <p><strong>Benefits:</strong> Scales model capacity without proportional compute increase. <strong>Used in:</strong> Switch Transformer, GLaM, Mixtral 8x7B.</p>
+        </div>
+        <div class="tags">cs pythonML moe mixture-of-experts sparse ffn EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">CLOZE: In Mixture of Experts with top-k=2 routing, each token uses only <span class="cloze">2 out of N experts</span>, providing conditional computation that scales model capacity with <span class="cloze">constant compute per token</span>.</div>
+        <div class="back">
+            <strong>Answer: 2 out of N experts, constant compute per token</strong>
+
+            <p>MoE efficiency breakdown:</p>
+            <pre><code># Dense model (standard transformer):
+# Every token goes through the same FFN
+# Compute per token: O(d_model × d_ff)
+
+# Sparse MoE:
+# Each token routed to top_k experts out of num_experts total
+# Compute per token: O(k × d_model × d_ff)
+# Where k is constant (typically 1 or 2)
+
+# Example: Mixtral 8x7B
+num_experts = 8
+top_k = 2
+d_model = 4096
+d_ff = 14336  # per expert
+
+# Dense equivalent would be ~56B parameters
+# But only uses 2/8 experts per token ≈ 14B active parameters
+
+# Compute saved:
+dense_flops = d_model * d_ff * 2  # up and down projection
+moe_flops = d_model * d_ff * 2 * (top_k / num_experts)
+speedup = num_experts / top_k  # 8/2 = 4x model capacity for same compute!
+
+# Trade-offs:
+# ✓ Pros: Massive capacity scaling
+# ✓ Pros: Specialization (experts can specialize on domains)
+# ✗ Cons: More complex training (load balancing)
+# ✗ Cons: Higher memory (all experts in memory)
+# ✗ Cons: Communication overhead in distributed training</code></pre>
+
+            <p>Real models: Switch Transformer (top_k=1), Mixtral (top_k=2), GPT-4 (rumored to use MoE).</p>
+        </div>
+        <div class="tags">cs pythonML moe sparse-compute cloze efficiency EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">How do you implement parallel attention and FFN (like in PaLM)?</div>
+        <div class="back">
+            <strong>Parallel architecture computes attention and FFN simultaneously:</strong>
+
+            <p><strong>Standard (Sequential):</strong></p>
+            <pre><code># Traditional transformer:
+x = x + attention(norm(x))
+x = x + ffn(norm(x))
+
+# Attention and FFN are sequential</code></pre>
+
+            <p><strong>Parallel (PaLM-style):</strong></p>
+            <pre><code>class ParallelTransformerBlock(nn.Module):
+    def __init__(self, d_model, num_heads, d_ff):
+        super().__init__()
+        self.attention = MultiHeadAttention(d_model, num_heads)
+        self.ffn = FeedForward(d_model, d_ff)
+        self.norm = nn.LayerNorm(d_model)
+
+    def forward(self, x):
+        """
+        Parallel: attention and FFN operate on same normalized input
+        """
+        # Single normalization
+        x_norm = self.norm(x)
+
+        # Compute attention and FFN in parallel
+        attn_out = self.attention(x_norm)
+        ffn_out = self.ffn(x_norm)
+
+        # Add both outputs to residual
+        return x + attn_out + ffn_out
+
+# Alternative implementation with separate norms (GPT-J style):
+class ParallelBlockSeparateNorms(nn.Module):
+    def __init__(self, d_model, num_heads, d_ff):
+        super().__init__()
+        self.attention = MultiHeadAttention(d_model, num_heads)
+        self.ffn = FeedForward(d_model, d_ff)
+        self.norm_attn = nn.LayerNorm(d_model)
+        self.norm_ffn = nn.LayerNorm(d_model)
+
+    def forward(self, x):
+        # Separate norms, parallel execution
+        attn_out = self.attention(self.norm_attn(x))
+        ffn_out = self.ffn(self.norm_ffn(x))
+
+        return x + attn_out + ffn_out</code></pre>
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>15-20% training speedup (reduced sequential depth)</li>
+                <li>Better hardware utilization (more parallelism)</li>
+                <li>Slightly different gradient flow</li>
+            </ul>
+
+            <p><strong>Used in:</strong> PaLM, GPT-J, GPT-NeoX.</p>
+        </div>
+        <div class="tags">cs pythonML parallel-attention ffn architecture palm EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">How do you compute memory usage and FLOPs for FFN layers?</div>
+        <div class="back">
+            <strong>Memory and compute analysis for FFN:</strong>
+            <pre><code>def compute_ffn_stats(batch_size, seq_len, d_model, d_ff, num_layers):
+    """
+    Compute memory and FLOPs for FFN layers.
+    """
+    # === PARAMETERS ===
+    # Standard FFN: 2 linear layers
+    params_per_layer = (d_model * d_ff) + (d_ff * d_model)
+    total_params = params_per_layer * num_layers
+
+    # In bytes (fp16):
+    param_memory_gb = (total_params * 2) / 1e9
+
+    # === ACTIVATIONS (per forward pass) ===
+    # Input: (batch, seq_len, d_model)
+    # After linear1: (batch, seq_len, d_ff)
+    # After linear2: (batch, seq_len, d_model)
+    activation_elements = batch_size * seq_len * (d_model + d_ff + d_model)
+    activation_memory_gb = (activation_elements * 2) / 1e9 * num_layers
+
+    # === FLOPs (per forward pass) ===
+    # Linear1: batch * seq_len * d_model * d_ff * 2 (matmul)
+    # Linear2: batch * seq_len * d_ff * d_model * 2
+    flops_per_layer = 2 * batch_size * seq_len * (
+        d_model * d_ff + d_ff * d_model
+    )
+    total_flops = flops_per_layer * num_layers
+
+    return {
+        'parameters': total_params,
+        'param_memory_gb': param_memory_gb,
+        'activation_memory_gb': activation_memory_gb,
+        'total_memory_gb': param_memory_gb + activation_memory_gb,
+        'flops': total_flops,
+        'flops_tflops': total_flops / 1e12
+    }
+
+# Example: GPT-2 style model
+stats = compute_ffn_stats(
+    batch_size=8,
+    seq_len=1024,
+    d_model=768,
+    d_ff=3072,
+    num_layers=12
+)
+
+print(f"Parameters: {stats['parameters'] / 1e6:.1f}M")
+print(f"Param memory: {stats['param_memory_gb']:.2f} GB")
+print(f"Activation memory: {stats['activation_memory_gb']:.2f} GB")
+print(f"Total FLOPs: {stats['flops_tflops']:.2f} TFLOPs")
+
+# Output:
+# Parameters: 56.6M
+# Param memory: 0.11 GB
+# Activation memory: 1.81 GB
+# Total FLOPs: 1.13 TFLOPs
+
+# Key insight: FFN accounts for ~2/3 of transformer parameters!
+# (Attention is only ~1/3)</code></pre>
+        </div>
+        <div class="tags">cs pythonML ffn memory flops compute optimization EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">CLOZE: FFN layers typically account for about <span class="cloze">2/3</span> of total transformer parameters, while attention accounts for <span class="cloze">1/3</span>.</div>
+        <div class="back">
+            <strong>Answer: 2/3, 1/3</strong>
+
+            <p>Parameter breakdown:</p>
+            <pre><code># For a transformer layer with:
+d_model = 768
+d_ff = 3072  # 4x expansion
+num_heads = 12
+
+# === ATTENTION PARAMETERS ===
+# Q, K, V projections: 3 × (d_model × d_model)
+# Output projection: d_model × d_model
+attn_params = 4 * (d_model * d_model)
+attn_params = 4 * (768 * 768) = 2,359,296  # ~2.4M
+
+# === FFN PARAMETERS ===
+# Linear1: d_model × d_ff
+# Linear2: d_ff × d_model
+ffn_params = (d_model * d_ff) + (d_ff * d_model)
+ffn_params = (768 * 3072) + (3072 * 768) = 4,718,592  # ~4.7M
+
+# === RATIO ===
+total = attn_params + ffn_params  # 7,077,888
+ffn_ratio = ffn_params / total    # 0.67 (2/3)
+attn_ratio = attn_params / total  # 0.33 (1/3)
+
+print(f"FFN: {ffn_ratio:.1%}")   # 66.7%
+print(f"Attn: {attn_ratio:.1%}") # 33.3%
+
+# This is why:
+# - FFN is the bottleneck for model capacity
+# - MoE focuses on scaling FFN, not attention
+# - Memory optimization often targets FFN first</code></pre>
+
+            <p>Note: This ratio holds across most transformer architectures (BERT, GPT, T5, etc.).</p>
+        </div>
+        <div class="tags">cs pythonML ffn parameters cloze transformer-architecture EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">How do you implement an FFN layer with reversible residuals for memory efficiency?</div>
+        <div class="back">
+            <strong>Reversible layers allow recomputing activations instead of storing them:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+class ReversibleFFN(nn.Module):
+    """
+    Reversible residual: x_out = x_in + F(x_in)
+    Can reconstruct x_in from x_out without storing x_in.
+    """
+    def __init__(self, d_model, d_ff):
+        super().__init__()
+        self.ffn = FeedForward(d_model, d_ff)
+
+    def forward(self, x):
+        """Forward pass (training)."""
+        return x + self.ffn(x)
+
+    def backward_pass(self, x_out, dy):
+        """
+        Recompute x_in from x_out, then compute gradients.
+
+        x_out = x_in + F(x_in)
+        Therefore: x_in = x_out - F(x_out)  (approximately, use fixed-point)
+        """
+        # Recompute input (fixed-point iteration)
+        x_in = x_out
+        for _ in range(5):  # Few iterations usually sufficient
+            x_in = x_out - self.ffn(x_in).detach()
+
+        # Now compute gradients with recomputed x_in
+        with torch.enable_grad():
+            x_in.requires_grad = True
+            y = x_in + self.ffn(x_in)
+            y.backward(dy)
+
+        return x_in.grad
+
+# Complete reversible transformer block:
+class ReversibleTransformerBlock(nn.Module):
+    """
+    Reversible transformer using pair of residuals:
+    Y1 = X1 + Attention(X2)
+    Y2 = X2 + FFN(Y1)
+
+    Can invert:
+    X2 = Y2 - FFN(Y1)
+    X1 = Y1 - Attention(X2)
+    """
+    def __init__(self, d_model, num_heads, d_ff):
+        super().__init__()
+        self.attention = MultiHeadAttention(d_model, num_heads)
+        self.ffn = FeedForward(d_model, d_ff)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+
+    def forward(self, x1, x2):
+        """
+        x1, x2: Two streams (can initialize x2 = x1)
+        """
+        # Forward
+        y1 = x1 + self.attention(self.norm1(x2))
+        y2 = x2 + self.ffn(self.norm2(y1))
+        return y1, y2
+
+    def inverse(self, y1, y2):
+        """Reconstruct inputs from outputs."""
+        x2 = y2 - self.ffn(self.norm2(y1))
+        x1 = y1 - self.attention(self.norm1(x2))
+        return x1, x2
+
+# Memory savings:
+# - Standard: O(n_layers × batch × seq_len × d_model) activation memory
+# - Reversible: O(batch × seq_len × d_model) - only store output!
+# - Trade-off: ~30% slower due to recomputation</code></pre>
+
+            <p>Used in: Reformer, RevNet. Less common now with gradient checkpointing.</p>
+        </div>
+        <div class="tags">cs pythonML ffn reversible memory-efficient gradient-checkpointing EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">What is the difference between SwiGLU and GeGLU, and when would you use each?</div>
+        <div class="back">
+            <strong>Comparison of GLU variants:</strong>
+
+            <p><strong>GeGLU (GELU-GLU):</strong></p>
+            <pre><code># Used in: T5, some vision transformers
+def geglu(x):
+    x, gate = x.chunk(2, dim=-1)
+    return x * F.gelu(gate)
+
+class GeGLU_FFN(nn.Module):
+    def forward(self, x):
+        x = self.w1(x)  # Expand to 2 * d_ff
+        x = geglu(x)    # Split and gate with GELU
+        return self.w2(x)</code></pre>
+
+            <p><strong>SwiGLU (Swish-GLU / SiLU-GLU):</strong></p>
+            <pre><code># Used in: Llama 2, PaLM, Mistral
+def swiglu(x):
+    x, gate = x.chunk(2, dim=-1)
+    return x * F.silu(gate)  # SiLU = Swish
+
+class SwiGLU_FFN(nn.Module):
+    def forward(self, x):
+        # Llama-style: separate projections
+        return self.w2(F.silu(self.w1(x)) * self.w3(x))</code></pre>
+
+            <p><strong>Performance comparison:</strong></p>
+            <pre><code># Empirical results (approximate):
+# Model quality: SwiGLU ≥ GeGLU > GELU > ReLU
+# Speed: ReLU > GELU ≈ SiLU > GeGLU ≈ SwiGLU
+
+# Memory:
+# Standard FFN: 2 × d_model × d_ff parameters
+# GeGLU/SwiGLU: ~3 × d_model × d_ff parameters (1.5x more)
+
+# SwiGLU often compensates with smaller d_ff:
+# Standard: d_ff = 4 × d_model
+# SwiGLU: d_ff ≈ 2.7 × d_model
+# Net result: similar parameters, better performance</code></pre>
+
+            <p><strong>When to use:</strong></p>
+            <ul>
+                <li><strong>SwiGLU:</strong> Modern LLMs, when you want best performance</li>
+                <li><strong>GeGLU:</strong> T5-style models, encoder-decoder architectures</li>
+                <li><strong>Standard GELU:</strong> Smaller models, faster training, BERT-style</li>
+            </ul>
+
+            <p>Rule of thumb: Use SwiGLU for new LLM projects (it's become the standard).</p>
+        </div>
+        <div class="tags">cs pythonML swiglu geglu glu comparison EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">How do you implement bias-free linear layers like in Llama?</div>
+        <div class="back">
+            <strong>Modern LLMs often omit bias terms for simplicity and efficiency:</strong>
+            <pre><code>import torch.nn as nn
+
+# Standard linear (with bias):
+linear_with_bias = nn.Linear(d_model, d_ff, bias=True)
+# Parameters: d_model × d_ff + d_ff
+
+# Bias-free linear (Llama-style):
+linear_no_bias = nn.Linear(d_model, d_ff, bias=False)
+# Parameters: d_model × d_ff only
+
+# Why remove bias?
+# 1. Fewer parameters (small savings)
+# 2. Simpler implementation
+# 3. Layer normalization makes bias redundant
+# 4. Empirically works just as well
+
+# Example: Llama 2 FFN (all bias=False)
+class LlamaFFN(nn.Module):
+    def __init__(self, d_model, hidden_dim):
+        super().__init__()
+        self.w1 = nn.Linear(d_model, hidden_dim, bias=False)
+        self.w2 = nn.Linear(hidden_dim, d_model, bias=False)
+        self.w3 = nn.Linear(d_model, hidden_dim, bias=False)
+
+    def forward(self, x):
+        return self.w2(F.silu(self.w1(x)) * self.w3(x))
+
+# Parameter savings:
+d_model = 4096
+hidden_dim = 11008
+
+# With bias:
+params_with = (d_model * hidden_dim + hidden_dim) * 2 + \
+              (hidden_dim * d_model + d_model)
+# 135,299,072
+
+# Without bias:
+params_without = (d_model * hidden_dim) * 2 + (hidden_dim * d_model)
+# 135,266,304
+
+# Savings: ~33K parameters per layer (0.02%)
+# Multiplied by many layers: meaningful savings
+
+# Models using bias-free:
+# ✓ Llama, Llama 2
+# ✓ Mistral
+# ✓ Falcon
+# ✗ GPT-2, GPT-3 (still use bias)
+# ✗ BERT (uses bias)</code></pre>
+        </div>
+        <div class="tags">cs pythonML linear-layers bias llama optimization EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">CLOZE: The key difference between standard FFN and SwiGLU is that SwiGLU uses <span class="cloze">gating with element-wise multiplication</span> instead of just a simple activation function.</div>
+        <div class="back">
+            <strong>Answer: gating with element-wise multiplication</strong>
+
+            <p>Comparison:</p>
+            <pre><code># Standard FFN:
+# h = activation(W1 · x)
+# output = W2 · h
+
+x = input  # (batch, seq_len, d_model)
+h = activation(linear1(x))  # Apply activation
+output = linear2(h)  # Project back
+
+# Information flow: x → linear → activation → linear
+# Each dimension processed independently by activation
+
+# SwiGLU FFN:
+# g = SiLU(W1 · x)  (gate)
+# v = W3 · x         (value)
+# h = g ⊙ v          (element-wise multiplication)
+# output = W2 · h
+
+gate = F.silu(self.w1(x))   # Gating signal
+value = self.w3(x)           # Value to be gated
+h = gate * value             # Element-wise gating
+output = self.w2(h)
+
+# Information flow: x → [gate branch, value branch] → multiply → linear
+# Gate learns to control which information passes through
+
+# Key insight:
+# Standard: Activation is fixed (GELU always behaves the same)
+# SwiGLU: Gating is input-dependent (different for each input)
+#         The model learns what to "let through"</code></pre>
+
+            <p>This gating mechanism makes SwiGLU more expressive - it can learn complex, input-dependent transformations.</p>
+        </div>
+        <div class="tags">cs pythonML swiglu gating cloze mechanism EN</div>
+    </div>
+
+    <!-- Card 19 -->
+    <div class="card">
+        <div class="front">How do you implement expert load balancing in Mixture of Experts?</div>
+        <div class="back">
+            <strong>Load balancing ensures all experts are used roughly equally:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class MoEWithLoadBalancing(nn.Module):
+    def __init__(self, d_model, d_ff, num_experts=8, top_k=2,
+                 load_balance_loss_weight=0.01):
+        super().__init__()
+        self.num_experts = num_experts
+        self.top_k = top_k
+        self.load_balance_weight = load_balance_loss_weight
+
+        self.router = nn.Linear(d_model, num_experts)
+        self.experts = nn.ModuleList([
+            FeedForward(d_model, d_ff) for _ in range(num_experts)
+        ])
+
+    def forward(self, x):
+        batch_size, seq_len, d_model = x.shape
+        x_flat = x.view(-1, d_model)
+
+        # Router logits
+        router_logits = self.router(x_flat)
+        router_probs = F.softmax(router_logits, dim=-1)
+
+        # Top-k routing
+        top_k_probs, top_k_indices = torch.topk(router_probs, self.top_k, dim=-1)
+        top_k_probs = top_k_probs / top_k_probs.sum(dim=-1, keepdim=True)
+
+        # === LOAD BALANCING LOSS ===
+        # Encourage uniform distribution across experts
+
+        # 1. Count tokens per expert
+        expert_counts = torch.zeros(self.num_experts, device=x.device)
+        for i in range(self.num_experts):
+            expert_counts[i] = (top_k_indices == i).float().sum()
+
+        # 2. Auxiliary loss (from Switch Transformer paper)
+        # Encourages: P(expert) × fraction_of_tokens_to_expert ≈ 1/num_experts
+        num_tokens = x_flat.size(0) * self.top_k
+        f_i = expert_counts / num_tokens  # Fraction routed to expert i
+        P_i = router_probs.mean(dim=0)     # Probability of selecting expert i
+
+        # Load balance loss: num_experts × sum(P_i × f_i)
+        # Minimum when both are uniform (1/num_experts)
+        load_balance_loss = self.num_experts * (P_i * f_i).sum()
+
+        # 3. Capacity factor: limit tokens per expert
+        capacity_per_expert = int(
+            (num_tokens / self.num_experts) * 1.5  # 1.5x capacity factor
+        )
+
+        # Route and compute
+        output = torch.zeros_like(x_flat)
+        for i in range(self.num_experts):
+            expert_mask = (top_k_indices == i).any(dim=-1)
+            if expert_mask.any():
+                # Limit to capacity
+                expert_tokens = expert_mask.nonzero().squeeze(-1)
+                if len(expert_tokens) > capacity_per_expert:
+                    expert_tokens = expert_tokens[:capacity_per_expert]
+                    expert_mask = torch.zeros_like(expert_mask)
+                    expert_mask[expert_tokens] = True
+
+                if expert_mask.any():
+                    expert_input = x_flat[expert_mask]
+                    expert_output = self.experts[i](expert_input)
+
+                    # Get routing weights
+                    indices = (top_k_indices[expert_mask] == i).nonzero(as_tuple=True)[1]
+                    weights = top_k_probs[expert_mask, indices].unsqueeze(-1)
+
+                    output[expert_mask] += weights * expert_output
+
+        output = output.view(batch_size, seq_len, d_model)
+
+        # Return output and auxiliary loss
+        return output, load_balance_loss * self.load_balance_weight
+
+# Usage in training:
+def training_step(batch):
+    output, aux_loss = moe_layer(batch)
+    main_loss = criterion(output, target)
+    total_loss = main_loss + aux_loss  # Add auxiliary loss
+    total_loss.backward()</code></pre>
+        </div>
+        <div class="tags">cs pythonML moe load-balancing auxiliary-loss EN</div>
+    </div>
+
+    <!-- Card 20 -->
+    <div class="card">
+        <div class="front">How do you implement gradient checkpointing for FFN layers to save memory?</div>
+        <div class="back">
+            <strong>Gradient checkpointing recomputes activations during backward pass:</strong>
+            <pre><code>import torch
+from torch.utils.checkpoint import checkpoint
+
+class FFNWithCheckpointing(nn.Module):
+    def __init__(self, d_model, d_ff, use_checkpoint=True):
+        super().__init__()
+        self.use_checkpoint = use_checkpoint
+        self.ffn = FeedForward(d_model, d_ff)
+
+    def forward(self, x):
+        if self.use_checkpoint and self.training:
+            # Recompute forward pass during backward
+            return checkpoint(self._forward_impl, x, use_reentrant=False)
+        else:
+            return self._forward_impl(x)
+
+    def _forward_impl(self, x):
+        return self.ffn(x)
+
+# In transformer block:
+class TransformerBlock(nn.Module):
+    def __init__(self, d_model, num_heads, d_ff, use_checkpoint=False):
+        super().__init__()
+        self.use_checkpoint = use_checkpoint
+        self.attention = MultiHeadAttention(d_model, num_heads)
+        self.ffn = FeedForward(d_model, d_ff)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+
+    def forward(self, x):
+        if self.use_checkpoint and self.training:
+            return checkpoint(self._forward_impl, x, use_reentrant=False)
+        else:
+            return self._forward_impl(x)
+
+    def _forward_impl(self, x):
+        x = x + self.attention(self.norm1(x))
+        x = x + self.ffn(self.norm2(x))
+        return x
+
+# Memory savings example:
+batch_size = 8
+seq_len = 2048
+d_model = 1024
+num_layers = 24
+
+# Without checkpointing:
+# Stores activations for all layers: ~24 layers worth
+activation_memory = batch_size * seq_len * d_model * num_layers * 2  # fp16
+print(f"Without checkpoint: {activation_memory / 1e9:.2f} GB")
+# ~1.97 GB
+
+# With checkpointing:
+# Only stores checkpointed layer boundaries
+checkpoint_memory = batch_size * seq_len * d_model * 2  # Just input/output
+print(f"With checkpoint: {checkpoint_memory / 1e9:.2f} GB")
+# ~0.08 GB
+
+# Trade-off:
+# ✓ Memory: Reduced by ~num_layers factor
+# ✗ Speed: ~30% slower training (recomputes forward pass)
+
+# Practical usage:
+model = TransformerModel(
+    use_checkpoint=True  # Enable for long sequences or large models
+)</code></pre>
+        </div>
+        <div class="tags">cs pythonML gradient-checkpointing memory-optimization ffn EN</div>
+    </div>
+
+    <!-- Card 21 -->
+    <div class="card">
+        <div class="front">What is the computational complexity of FFN layers and how does it compare to attention?</div>
+        <div class="back">
+            <strong>Complexity analysis for FFN vs Attention:</strong>
+            <pre><code># Notation:
+# n = sequence length
+# d = model dimension (d_model)
+# h = number of attention heads
+
+# === FFN COMPLEXITY ===
+# Two matrix multiplications:
+# 1. W1: (n, d) × (d, 4d) → (n, 4d)
+# 2. W2: (n, 4d) × (4d, d) → (n, d)
+
+# FLOPs: 2 × n × d × 4d = 8nd²
+# Memory: O(nd) for activations
+
+FFN_flops = 8 * n * d * d  # O(nd²)
+
+# === ATTENTION COMPLEXITY ===
+# 1. QKV projections: 3 × (n, d) × (d, d) = 6nd²
+# 2. Attention scores: (n, d) × (d, n) = 2n²d
+# 3. Attention output: (n, n) × (n, d) = 2n²d
+# 4. Output projection: (n, d) × (d, d) = 2nd²
+
+# FLOPs: 8nd² + 4n²d
+# Memory: O(n²) for attention matrix + O(nd) for features
+
+Attention_flops = 8 * n * d * d + 4 * n * n * d  # O(nd² + n²d)
+
+# === COMPARISON ===
+# For short sequences (n < d):
+#   FFN: O(nd²) dominates
+#   Attention: O(nd²) dominates
+#   → FFN and Attention similar cost
+
+# For long sequences (n > d):
+#   FFN: O(nd²) - linear in n
+#   Attention: O(n²d) - quadratic in n
+#   → Attention becomes the bottleneck
+
+# Example: GPT-2 style
+n = 1024
+d = 768
+
+ffn_cost = 8 * n * d * d
+attn_cost = 8 * n * d * d + 4 * n * n * d
+
+print(f"FFN: {ffn_cost / 1e9:.2f}G FLOPs")
+print(f"Attention: {attn_cost / 1e9:.2f}G FLOPs")
+print(f"Ratio: {attn_cost / ffn_cost:.2f}x")
+
+# Output:
+# FFN: 4.83G FLOPs
+# Attention: 7.98G FLOPs (1.65x more)
+
+# As n increases, attention cost grows quadratically!</code></pre>
+
+            <p>This is why sparse/efficient attention becomes critical for long sequences.</p>
+        </div>
+        <div class="tags">cs pythonML complexity ffn attention flops EN</div>
+    </div>
+
+    <!-- Card 22 -->
+    <div class="card">
+        <div class="front">CLOZE: For sequence length n > d_model, <span class="cloze">attention</span> has O(n²d) complexity and becomes the bottleneck, while FFN remains O(nd²) - linear in sequence length.</div>
+        <div class="back">
+            <strong>Answer: attention</strong>
+
+            <p>Scaling behavior with sequence length:</p>
+            <pre><code>import matplotlib.pyplot as plt
+import numpy as np
+
+d = 1024  # Fixed model dimension
+
+# Varying sequence lengths
+seq_lengths = [128, 256, 512, 1024, 2048, 4096, 8192]
+
+ffn_flops = [8 * n * d * d for n in seq_lengths]
+attn_flops = [8 * n * d * d + 4 * n * n * d for n in seq_lengths]
+
+# Normalize by smallest
+ffn_norm = [f / ffn_flops[0] for f in ffn_flops]
+attn_norm = [f / attn_flops[0] for f in attn_flops]
+
+# Print results:
+for i, n in enumerate(seq_lengths):
+    print(f"n={n:5d}: FFN={ffn_norm[i]:5.1f}x, Attn={attn_norm[i]:6.1f}x")
+
+# Output:
+# n=  128: FFN=  1.0x, Attn=   1.0x
+# n=  256: FFN=  2.0x, Attn=   2.9x
+# n=  512: FFN=  4.0x, Attn=   9.7x
+# n= 1024: FFN=  8.0x, Attn=  34.8x
+# n= 2048: FFN= 16.0x, Attn= 134.1x  ← Attention explodes!
+# n= 4096: FFN= 32.0x, Attn= 530.4x
+# n= 8192: FFN= 64.0x, Attn=2114.6x
+
+# Attention grows quadratically while FFN grows linearly!
+# This is why:
+# - Long context requires efficient attention (Flash, sparse)
+# - FFN scaling is "easier" (just more compute, not quadratic)</code></pre>
+
+            <p>Solutions: Flash Attention, sparse attention, or alternative architectures (Mamba, RWKV).</p>
+        </div>
+        <div class="tags">cs pythonML complexity attention ffn cloze scaling EN</div>
+    </div>
+
+    <!-- Card 23 -->
+    <div class="card">
+        <div class="front">How do you implement different initialization strategies for FFN weights?</div>
+        <div class="back">
+            <strong>Common initialization methods for transformer FFN:</strong>
+            <pre><code>import torch.nn as nn
+import math
+
+class FFNWithInit(nn.Module):
+    def __init__(self, d_model, d_ff, init_method='xavier'):
+        super().__init__()
+        self.linear1 = nn.Linear(d_model, d_ff)
+        self.linear2 = nn.Linear(d_ff, d_model)
+
+        # Apply initialization
+        self._init_weights(init_method)
+
+    def _init_weights(self, method):
+        if method == 'xavier':
+            # Xavier/Glorot initialization (default in PyTorch)
+            nn.init.xavier_uniform_(self.linear1.weight)
+            nn.init.xavier_uniform_(self.linear2.weight)
+            # Variance: 2 / (fan_in + fan_out)
+
+        elif method == 'kaiming':
+            # He/Kaiming initialization (good for ReLU)
+            nn.init.kaiming_uniform_(self.linear1.weight, nonlinearity='relu')
+            nn.init.kaiming_uniform_(self.linear2.weight, nonlinearity='relu')
+            # Variance: 2 / fan_in
+
+        elif method == 'gpt':
+            # GPT-2/3 style initialization
+            std = 0.02  # Small fixed std
+            nn.init.normal_(self.linear1.weight, mean=0.0, std=std)
+            nn.init.normal_(self.linear2.weight, mean=0.0, std=std)
+
+        elif method == 'scaled_gpt':
+            # GPT with residual scaling (for deep networks)
+            # Scale down layers that feed into residuals
+            std_1 = 0.02
+            std_2 = 0.02 / math.sqrt(2 * num_layers)  # Scale by depth
+            nn.init.normal_(self.linear1.weight, mean=0.0, std=std_1)
+            nn.init.normal_(self.linear2.weight, mean=0.0, std=std_2)
+
+        elif method == 'llama':
+            # Llama initialization
+            # Use Xavier but with custom scaling
+            nn.init.xavier_uniform_(self.linear1.weight)
+            nn.init.xavier_uniform_(self.linear2.weight)
+
+        # Bias initialization (if present)
+        if self.linear1.bias is not None:
+            nn.init.zeros_(self.linear1.bias)
+            nn.init.zeros_(self.linear2.bias)
+
+# Comparison:
+# Xavier: Good general purpose, assumes linear activations
+# Kaiming: Better for ReLU-like activations
+# GPT-style: Small fixed std, conservative initialization
+# Scaled GPT: Helps with very deep networks (>20 layers)
+
+# Rule of thumb:
+# - BERT-style: Xavier
+# - GPT-style: Small normal (std=0.02)
+# - ResNet-style: Kaiming
+# - Deep transformers (>50 layers): Scaled initialization</code></pre>
+        </div>
+        <div class="tags">cs pythonML initialization weights ffn training EN</div>
+    </div>
+
+    <!-- Card 24 -->
+    <div class="card">
+        <div class="front">How do you implement expert specialization analysis in Mixture of Experts?</div>
+        <div class="back">
+            <strong>Analyzing what each expert learns:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+from collections import defaultdict
+
+def analyze_expert_specialization(model, dataloader, num_experts):
+    """
+    Analyze which experts activate for which types of inputs.
+    """
+    # Track routing decisions
+    expert_token_counts = defaultdict(int)  # Total tokens per expert
+    expert_examples = defaultdict(list)      # Sample inputs per expert
+
+    model.eval()
+    with torch.no_grad():
+        for batch in dataloader:
+            inputs, labels = batch
+
+            # Get router logits (need to modify MoE to return these)
+            outputs, router_logits = model(inputs, return_router=True)
+
+            # Get top-k expert choices
+            _, expert_choices = torch.topk(router_logits, k=2, dim=-1)
+
+            # Count assignments
+            for expert_id in range(num_experts):
+                mask = (expert_choices == expert_id).any(dim=-1)
+                expert_token_counts[expert_id] += mask.sum().item()
+
+                # Save sample inputs for this expert
+                if mask.any():
+                    sample_inputs = inputs[mask][:5]  # First 5 examples
+                    expert_examples[expert_id].extend(sample_inputs.cpu())
+
+    # Analyze specialization
+    print("Expert Specialization Analysis:")
+    print("=" * 60)
+
+    total_tokens = sum(expert_token_counts.values())
+
+    for expert_id in range(num_experts):
+        count = expert_token_counts[expert_id]
+        percentage = 100 * count / total_tokens
+
+        print(f"\nExpert {expert_id}:")
+        print(f"  Tokens: {count:,} ({percentage:.1f}%)")
+
+        # Compute entropy of routing to this expert
+        # Lower entropy = more specialized
+        examples = expert_examples[expert_id][:100]
+        if examples:
+            # Analyze patterns in routed tokens
+            # (e.g., look at token IDs, embeddings, etc.)
+            print(f"  Sample tokens: {examples[:10]}")
+
+    # Compute routing entropy (overall diversity)
+    probs = torch.tensor([expert_token_counts[i] / total_tokens
+                          for i in range(num_experts)])
+    entropy = -(probs * torch.log(probs + 1e-10)).sum()
+    max_entropy = math.log(num_experts)
+    normalized_entropy = entropy / max_entropy
+
+    print(f"\nRouting Entropy: {normalized_entropy:.3f}")
+    print(f"  (0 = all tokens to one expert, 1 = uniform)")
+
+    # Check for dead experts
+    dead_experts = [i for i in range(num_experts)
+                   if expert_token_counts[i] < total_tokens * 0.01]
+    if dead_experts:
+        print(f"\n⚠️  Dead experts (< 1% load): {dead_experts}")
+
+    return expert_token_counts, expert_examples
+
+# Usage:
+expert_stats, expert_samples = analyze_expert_specialization(
+    moe_model, val_loader, num_experts=8
+)
+
+# Common findings:
+# - Experts often specialize by domain (code vs prose)
+# - Or by syntactic role (nouns vs verbs)
+# - Some experts become "generalists" (handle everything)
+# - Dead experts indicate training issues</code></pre>
+        </div>
+        <div class="tags">cs pythonML moe analysis specialization experts EN</div>
+    </div>
+
+    <!-- Card 25 -->
+    <div class="card">
+        <div class="front">What are the key differences in FFN design between encoder-only (BERT) and decoder-only (GPT) models?</div>
+        <div class="back">
+            <strong>FFN design choices vary by architecture:</strong>
+
+            <p><strong>BERT-style (encoder-only):</strong></p>
+            <pre><code>class BERT_FFN(nn.Module):
+    def __init__(self, d_model=768, d_ff=3072, dropout=0.1):
+        super().__init__()
+        self.linear1 = nn.Linear(d_model, d_ff)
+        self.linear2 = nn.Linear(d_ff, d_model)
+        self.dropout = nn.Dropout(dropout)
+        self.activation = nn.GELU()  # GELU activation
+
+    def forward(self, x):
+        x = self.linear1(x)
+        x = self.activation(x)
+        x = self.dropout(x)  # Dropout after activation
+        x = self.linear2(x)
+        x = self.dropout(x)  # Dropout after projection
+        return x
+
+# Characteristics:
+# ✓ GELU activation
+# ✓ Dropout in 2 places
+# ✓ 4x expansion (d_ff = 4 × d_model)
+# ✓ Post-norm or Pre-norm
+# ✓ Biases included</code></pre>
+
+            <p><strong>GPT-style (decoder-only):</strong></p>
+            <pre><code>class GPT_FFN(nn.Module):
+    def __init__(self, d_model=768, d_ff=3072, dropout=0.1):
+        super().__init__()
+        self.c_fc = nn.Linear(d_model, d_ff)    # "fully connected"
+        self.c_proj = nn.Linear(d_ff, d_model)  # "projection"
+        self.dropout = nn.Dropout(dropout)
+        self.activation = nn.GELU()
+
+    def forward(self, x):
+        x = self.c_fc(x)
+        x = self.activation(x)
+        # No dropout here in GPT-2
+        x = self.c_proj(x)
+        x = self.dropout(x)  # Only after final projection
+        return x
+
+# Characteristics:
+# ✓ GELU activation
+# ✓ Single dropout location
+# ✓ 4x expansion
+# ✓ Pre-norm standard
+# ✓ Biases included</code></pre>
+
+            <p><strong>Modern LLMs (Llama-style):</strong></p>
+            <pre><code>class Llama_FFN(nn.Module):
+    def __init__(self, d_model=4096, hidden_dim=11008):
+        super().__init__()
+        # SwiGLU: ~2.7x expansion (not 4x)
+        # No biases
+        # No dropout
+        self.w1 = nn.Linear(d_model, hidden_dim, bias=False)
+        self.w2 = nn.Linear(hidden_dim, d_model, bias=False)
+        self.w3 = nn.Linear(d_model, hidden_dim, bias=False)
+
+    def forward(self, x):
+        # SwiGLU activation
+        return self.w2(F.silu(self.w1(x)) * self.w3(x))
+
+# Characteristics:
+# ✓ SwiGLU (gated activation)
+# ✓ No dropout (large models don't need it)
+# ✓ ~2.7x expansion (compensates for 3 matrices)
+# ✓ Pre-norm (RMSNorm)
+# ✓ No biases</code></pre>
+
+            <p><strong>Summary:</strong></p>
+            <ul>
+                <li>BERT: More regularization (2x dropout), GELU</li>
+                <li>GPT: Less regularization, GELU</li>
+                <li>Modern LLMs: No regularization, SwiGLU, no biases</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML ffn bert gpt llama architecture EN</div>
+    </div>
+
+</body>
+</html>

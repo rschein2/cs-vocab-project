@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Loss Functions & Objectives - CS Vocab</title>
+    <style>
+        .card {
+            font-family: Arial, sans-serif;
+            font-size: 0.75em;
+            text-align: left;
+        }
+        .cloze {
+            font-weight: bold;
+            color: blue;
+        }
+        pre, code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        pre {
+            padding: 10px;
+            border-left: 3px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1: Cross-Entropy Loss Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement cross-entropy loss from scratch in PyTorch. Include both the mathematical formula and the implementation. Why do we use log_softmax instead of softmax + log?</p>
+    <h4>Answer:</h4>
+    <p><strong>Mathematical formula:</strong></p>
+    <pre>CE(y, ŷ) = -∑ y_i * log(ŷ_i)
+
+For classification with logits z:
+CE = -∑ y_i * log(softmax(z_i))
+   = -∑ y_i * (z_i - log(∑ exp(z_j)))</pre>
+
+    <p><strong>PyTorch implementation:</strong></p>
+    <pre>import torch
+import torch.nn.functional as F
+
+def cross_entropy_from_scratch(logits, targets):
+    """
+    Args:
+        logits: (batch_size, num_classes) - raw model outputs
+        targets: (batch_size,) - class indices
+    """
+    # Manual implementation
+    log_probs = F.log_softmax(logits, dim=-1)
+    loss = F.nll_loss(log_probs, targets)
+
+    # Or equivalently, in one step:
+    loss = F.cross_entropy(logits, targets)
+
+    return loss
+
+# Example usage
+logits = torch.randn(32, 10)  # batch_size=32, num_classes=10
+targets = torch.randint(0, 10, (32,))
+loss = cross_entropy_from_scratch(logits, targets)</pre>
+
+    <p><strong>Why log_softmax instead of softmax + log:</strong></p>
+    <pre>1. Numerical stability: log(exp(x)) can overflow/underflow
+   softmax(x) = exp(x) / sum(exp(x)) - large exp values overflow
+
+2. log_softmax uses log-sum-exp trick:
+   log_softmax(x) = x - log(sum(exp(x)))
+                  = x - log_sum_exp(x)
+
+   Where log_sum_exp is computed stably as:
+   max_x = max(x)
+   log_sum_exp(x) = max_x + log(sum(exp(x - max_x)))
+
+3. Better gradients: avoids dividing very small numbers</pre>
+</div>
+
+<!-- Card 2: Focal Loss (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Focal Loss addresses class imbalance by down-weighting {{c1::easy examples}}. The formula is FL = {{c2::-α(1-p_t)^γ * log(p_t)}}, where γ is typically {{c3::2}}, α balances class importance, and p_t is the model's confidence for the correct class. It reduces loss for {{c4::high-confidence correct predictions}} by the factor {{c5::(1-p_t)^γ}}.</p>
+</div>
+
+<!-- Card 3: Focal Loss Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement Focal Loss in PyTorch. When would you use it over standard cross-entropy?</p>
+    <h4>Answer:</h4>
+    <p><strong>Focal Loss implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.25, gamma=2.0, reduction='mean'):
+        """
+        Args:
+            alpha: Balancing factor (0-1), higher = more weight on positive class
+            gamma: Focusing parameter, higher = more focus on hard examples
+            reduction: 'mean', 'sum', or 'none'
+        """
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.reduction = reduction
+
+    def forward(self, logits, targets):
+        """
+        Args:
+            logits: (N, C) raw scores
+            targets: (N,) class indices
+        """
+        ce_loss = F.cross_entropy(logits, targets, reduction='none')
+        p_t = torch.exp(-ce_loss)  # probability of correct class
+
+        focal_weight = (1 - p_t) ** self.gamma
+        focal_loss = self.alpha * focal_weight * ce_loss
+
+        if self.reduction == 'mean':
+            return focal_loss.mean()
+        elif self.reduction == 'sum':
+            return focal_loss.sum()
+        return focal_loss
+
+# Usage
+criterion = FocalLoss(alpha=0.25, gamma=2.0)
+loss = criterion(logits, targets)</pre>
+
+    <p><strong>When to use Focal Loss:</strong></p>
+    <pre>1. Severe class imbalance (e.g., 1:1000 ratio)
+   - Object detection: background vs objects
+   - Medical imaging: normal vs rare diseases
+
+2. When easy examples dominate training
+   - Model gets 95% correct, but needs to focus on hard 5%
+
+3. NOT needed when:
+   - Classes are balanced
+   - Using weighted sampling or class weights
+   - Model struggles on all examples (not just hard ones)
+
+Typical settings:
+- γ=2.0 for moderate imbalance (1:10 to 1:100)
+- γ=5.0 for severe imbalance (1:1000+)
+- α=0.25 for binary classification with rare positive class</pre>
+</div>
+
+<!-- Card 4: Contrastive Loss vs Triplet Loss -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Compare contrastive loss and triplet loss for metric learning. What are the key differences in their formulations and when would you use each?</p>
+    <h4>Answer:</h4>
+    <p><strong>Contrastive Loss (pairs):</strong></p>
+    <pre>L = y * d² + (1-y) * max(margin - d, 0)²
+
+Where:
+- d = ||f(x1) - f(x2)|| (euclidean distance)
+- y = 1 if same class, 0 if different
+- margin = minimum distance for negative pairs
+
+Uses pairs: (anchor, positive) or (anchor, negative)</pre>
+
+    <p><strong>Triplet Loss (triplets):</strong></p>
+    <pre>L = max(||f(a) - f(p)||² - ||f(a) - f(n)||² + margin, 0)
+
+Where:
+- a = anchor
+- p = positive (same class as anchor)
+- n = negative (different class)
+- margin = minimum gap between positive and negative
+
+Uses triplets: (anchor, positive, negative)</pre>
+
+    <p><strong>Key differences:</strong></p>
+    <pre>Contrastive Loss:
++ Simpler: only needs pairs
++ Easier to sample
+- Treats positive/negative pairs independently
+- Doesn't directly optimize relative distances
+
+Triplet Loss:
++ Directly optimizes: d(a,p) < d(a,n)
++ Better for ranking/retrieval tasks
+- Harder to sample (need all 3)
+- Sensitive to triplet mining strategy
+
+When to use:
+- Contrastive: SimCLR, face verification (yes/no decision)
+- Triplet: Face recognition, image retrieval (ranking matters)</pre>
+</div>
+
+<!-- Card 5: CTC Loss (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>CTC (Connectionist Temporal Classification) Loss is used for {{c1::sequence-to-sequence problems without alignment}}, such as {{c2::speech recognition and OCR}}. It introduces a {{c3::blank token}} to handle variable-length outputs and uses {{c4::dynamic programming}} to sum over all possible alignments. CTC assumes outputs are {{c5::conditionally independent given the input}}.</p>
+</div>
+
+<!-- Card 6: CTC Loss Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement CTC Loss in PyTorch for speech recognition. What are the input requirements and key parameters?</p>
+    <h4>Answer:</h4>
+    <p><strong>CTC Loss implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+
+def train_with_ctc(model, audio_features, transcripts):
+    """
+    Args:
+        audio_features: (batch, time, n_mels) spectrograms
+        transcripts: list of strings like ["hello", "world"]
+    """
+    # Model outputs log probabilities per timestep
+    logits = model(audio_features)  # (batch, time, vocab_size)
+    log_probs = nn.functional.log_softmax(logits, dim=-1)
+
+    # Prepare for CTC
+    # CTC expects: (time, batch, vocab_size)
+    log_probs = log_probs.permute(1, 0, 2)
+
+    # Convert transcripts to indices
+    char_to_idx = {c: i for i, c in enumerate("abcdefghijklmnopqrstuvwxyz ")}
+    targets = []
+    target_lengths = []
+
+    for transcript in transcripts:
+        target = [char_to_idx[c] for c in transcript.lower()]
+        targets.extend(target)
+        target_lengths.append(len(target))
+
+    targets = torch.tensor(targets)
+    target_lengths = torch.tensor(target_lengths)
+    input_lengths = torch.full((len(transcripts),), log_probs.size(0), dtype=torch.long)
+
+    # Compute CTC loss
+    ctc_loss = nn.CTCLoss(blank=0, reduction='mean', zero_infinity=True)
+    loss = ctc_loss(log_probs, targets, input_lengths, target_lengths)
+
+    return loss
+
+# CTC Decoding (greedy)
+def ctc_decode(log_probs, blank=0):
+    """Greedy CTC decoding"""
+    # log_probs: (time, vocab_size)
+    pred_indices = log_probs.argmax(dim=-1)  # (time,)
+
+    # Remove consecutive duplicates
+    pred_collapsed = [pred_indices[0].item()]
+    for pred in pred_indices[1:]:
+        if pred != pred_collapsed[-1]:
+            pred_collapsed.append(pred.item())
+
+    # Remove blanks
+    pred_final = [p for p in pred_collapsed if p != blank]
+
+    return pred_final</pre>
+
+    <p><strong>Key requirements:</strong></p>
+    <pre>1. Input format: (time, batch, vocab_size) - log probabilities
+2. Targets: concatenated target sequences (1D tensor)
+3. Input lengths: length of each sequence (before padding)
+4. Target lengths: length of each target sequence
+
+Important constraints:
+- input_length[i] >= target_length[i] for all i
+- Blank token (usually 0) for modeling repetitions/no-output
+- zero_infinity=True to handle infinite loss cases</pre>
+</div>
+
+<!-- Card 7: Label Smoothing Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement label smoothing in PyTorch. Why does it improve model calibration and generalization?</p>
+    <h4>Answer:</h4>
+    <p><strong>Label smoothing implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class LabelSmoothingCrossEntropy(nn.Module):
+    def __init__(self, smoothing=0.1):
+        """
+        Args:
+            smoothing: Amount of smoothing (typically 0.1)
+        """
+        super().__init__()
+        self.smoothing = smoothing
+        self.confidence = 1.0 - smoothing
+
+    def forward(self, logits, targets):
+        """
+        Args:
+            logits: (N, C) raw scores
+            targets: (N,) class indices
+        """
+        log_probs = F.log_softmax(logits, dim=-1)
+
+        # Create smoothed labels
+        n_classes = logits.size(-1)
+        smooth_targets = torch.zeros_like(log_probs)
+        smooth_targets.fill_(self.smoothing / (n_classes - 1))
+        smooth_targets.scatter_(1, targets.unsqueeze(1), self.confidence)
+
+        loss = (-smooth_targets * log_probs).sum(dim=-1).mean()
+        return loss
+
+# Alternative: PyTorch built-in (v1.10+)
+loss = F.cross_entropy(logits, targets, label_smoothing=0.1)
+
+# Example
+criterion = LabelSmoothingCrossEntropy(smoothing=0.1)
+loss = criterion(logits, targets)</pre>
+
+    <p><strong>Why label smoothing works:</strong></p>
+    <pre>Without smoothing:
+- Target: [0, 0, 1, 0, 0] (one-hot)
+- Model pushed to output arbitrarily high logits → overconfident
+
+With smoothing (ε=0.1):
+- Target: [0.025, 0.025, 0.9, 0.025, 0.025]
+- Model outputs reasonable confidence → better calibrated
+
+Benefits:
+1. Prevents overconfidence
+   - Model can't achieve 0 loss with extreme logits
+
+2. Better calibration
+   - Predicted probabilities match actual accuracy
+
+3. Regularization effect
+   - Penalizes extreme predictions
+   - Improves generalization (1-2% on ImageNet)
+
+Typical values:
+- ε = 0.1 for image classification
+- ε = 0.1-0.3 for NLP tasks
+- Don't use if dataset has label noise</pre>
+</div>
+
+<!-- Card 8: Perplexity (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Perplexity is defined as {{c1::exp(cross_entropy)}} or equivalently {{c2::2^(bits_per_token)}}. A perplexity of 10 means the model is {{c3::as uncertain as if choosing uniformly from 10 options}}. Lower perplexity indicates {{c4::better language modeling performance}}. It's computed as {{c5::exp(-1/N * ∑ log P(w_i | context))}}.</p>
+</div>
+
+<!-- Card 9: Loss Functions by Task -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Match common loss functions to their typical use cases. Provide PyTorch function names.</p>
+    <h4>Answer:</h4>
+    <pre><strong>Classification:</strong>
+nn.CrossEntropyLoss()
+- Multi-class classification
+- Input: logits (N, C), targets (N,)
+
+nn.BCEWithLogitsLoss()
+- Binary classification or multi-label
+- Input: logits (N,) or (N, C), targets same shape
+
+<strong>Regression:</strong>
+nn.MSELoss()
+- Standard regression
+- Sensitive to outliers
+
+nn.L1Loss() / nn.SmoothL1Loss()
+- Robust to outliers
+- SmoothL1 = L2 for small errors, L1 for large
+
+nn.HuberLoss()
+- Similar to SmoothL1, different threshold
+
+<strong>Sequence Modeling:</strong>
+nn.CTCLoss()
+- Speech recognition, OCR (no alignment)
+
+nn.CrossEntropyLoss() with shifted targets
+- Language modeling, machine translation
+
+<strong>Metric Learning:</strong>
+nn.TripletMarginLoss()
+- Face recognition, image retrieval
+
+nn.CosineEmbeddingLoss()
+- Similarity learning
+
+<strong>Generative Models:</strong>
+nn.BCEWithLogitsLoss()
+- GAN discriminator
+
+Custom KL divergence
+- VAE (KL + reconstruction loss)
+
+<strong>Special Cases:</strong>
+FocalLoss (custom)
+- Severe class imbalance
+
+nn.NLLLoss()
+- When model outputs log probabilities directly</pre>
+</div>
+
+<!-- Card 10: KL Divergence vs Cross-Entropy -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>What is the relationship between KL divergence and cross-entropy? When would you use KL divergence as a loss function?</p>
+    <h4>Answer:</h4>
+    <p><strong>Relationship:</strong></p>
+    <pre>KL(P || Q) = ∑ P(x) * log(P(x) / Q(x))
+           = ∑ P(x) * log(P(x)) - ∑ P(x) * log(Q(x))
+           = -H(P) + H(P, Q)
+           = -Entropy(P) + CrossEntropy(P, Q)
+
+For classification with one-hot P:
+- Entropy(P) = 0 (one-hot has no uncertainty)
+- KL(P || Q) = CrossEntropy(P, Q)
+- Minimizing KL ≡ minimizing cross-entropy
+
+For soft targets (P has uncertainty):
+- Entropy(P) is constant (doesn't affect optimization)
+- Still equivalent to minimize KL or cross-entropy</pre>
+
+    <p><strong>KL divergence implementation:</strong></p>
+    <pre>import torch
+import torch.nn.functional as F
+
+# KL divergence between distributions
+def kl_divergence(p_logits, q_logits):
+    """
+    Args:
+        p_logits: target distribution logits
+        q_logits: predicted distribution logits
+    """
+    p = F.softmax(p_logits, dim=-1)
+    log_q = F.log_softmax(q_logits, dim=-1)
+
+    kl = (p * (p.log() - log_q)).sum(dim=-1).mean()
+    return kl
+
+# PyTorch built-in
+kl = F.kl_div(F.log_softmax(q_logits, dim=-1),
+              F.softmax(p_logits, dim=-1),
+              reduction='batchmean')</pre>
+
+    <p><strong>When to use KL divergence:</strong></p>
+    <pre>1. Knowledge distillation
+   - Student learns from teacher's soft probabilities
+   - KL(teacher || student)
+
+2. VAE loss
+   - KL(q(z|x) || p(z)) regularizes latent space
+   - Combined with reconstruction loss
+
+3. Policy learning (RL)
+   - KL(old_policy || new_policy) for trust region
+
+4. Soft targets / label uncertainty
+   - When ground truth is a distribution, not one-hot
+
+NOT for standard classification with hard labels:
+   - Use CrossEntropyLoss instead (equivalent but more efficient)</pre>
+</div>
+
+<!-- Card 11: Huber Loss (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Huber Loss combines {{c1::MSE for small errors}} and {{c2::MAE for large errors}}, making it {{c3::robust to outliers}}. The transition point is controlled by {{c4::delta parameter}}. Formula: if |error| ≤ δ use {{c5::0.5 * error²}}, else use {{c6::δ * (|error| - 0.5δ)}}.</p>
+</div>
+
+<!-- Card 12: Huber Loss Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement Huber Loss and compare it to MSE and MAE. When should you use each for regression?</p>
+    <h4>Answer:</h4>
+    <p><strong>Huber Loss implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+
+def huber_loss_manual(pred, target, delta=1.0):
+    """
+    Args:
+        pred: predictions (N,)
+        target: ground truth (N,)
+        delta: threshold between L2 and L1
+    """
+    error = pred - target
+    abs_error = error.abs()
+
+    quadratic = torch.min(abs_error, torch.tensor(delta))
+    linear = abs_error - quadratic
+
+    loss = 0.5 * quadratic ** 2 + delta * linear
+    return loss.mean()
+
+# PyTorch built-in
+huber = nn.HuberLoss(delta=1.0)
+loss = huber(pred, target)
+
+# Also: SmoothL1Loss (equivalent with delta=1.0)
+smooth_l1 = nn.SmoothL1Loss(beta=1.0)
+loss = smooth_l1(pred, target)</pre>
+
+    <p><strong>Comparison:</strong></p>
+    <pre>MSE (L2 Loss):
+Loss = (pred - target)²
+Gradient = 2 * (pred - target)
+
++ Smooth gradients
++ Penalizes large errors heavily
+- Very sensitive to outliers (squared term)
+- Large gradients for outliers → unstable training
+
+MAE (L1 Loss):
+Loss = |pred - target|
+Gradient = sign(pred - target)
+
++ Robust to outliers
++ Uniform gradient
+- Non-smooth at 0 (can cause issues)
+- Constant gradient → may not converge precisely
+
+Huber Loss:
+Loss = L2 if |error| ≤ δ else L1
+
++ Best of both: smooth near 0, robust to outliers
++ Stable gradients
+- Extra hyperparameter (delta)
+
+When to use:
+- MSE: Clean data, need smooth optimization
+- MAE: Many outliers, need robustness
+- Huber: Balance between the two (most practical)</pre>
+
+    <p><strong>Choosing delta:</strong></p>
+    <pre>delta = 1.0 → transition at error = 1
+- Use data statistics: delta ≈ median(|errors|)
+- Larger delta → more like MSE
+- Smaller delta → more like MAE</pre>
+</div>
+
+<!-- Card 13: Dice Loss for Segmentation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement Dice Loss for semantic segmentation. Why is it better than pixel-wise cross-entropy for imbalanced segmentation tasks?</p>
+    <h4>Answer:</h4>
+    <p><strong>Dice Loss implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class DiceLoss(nn.Module):
+    def __init__(self, smooth=1.0):
+        """
+        Args:
+            smooth: Smoothing factor to avoid division by zero
+        """
+        super().__init__()
+        self.smooth = smooth
+
+    def forward(self, pred, target):
+        """
+        Args:
+            pred: (N, C, H, W) - logits or probabilities
+            target: (N, C, H, W) - one-hot encoded or (N, H, W) - class indices
+        """
+        # Convert logits to probabilities
+        if pred.size() == target.size():
+            # Already probabilities or one-hot targets
+            pred_probs = torch.sigmoid(pred) if pred.max() > 1 else pred
+        else:
+            # Multi-class: apply softmax
+            pred_probs = F.softmax(pred, dim=1)
+            # Convert target to one-hot
+            target = F.one_hot(target, num_classes=pred.size(1))
+            target = target.permute(0, 3, 1, 2).float()
+
+        # Flatten
+        pred_flat = pred_probs.view(-1)
+        target_flat = target.view(-1)
+
+        # Dice coefficient
+        intersection = (pred_flat * target_flat).sum()
+        union = pred_flat.sum() + target_flat.sum()
+
+        dice_coeff = (2. * intersection + self.smooth) / (union + self.smooth)
+
+        # Dice loss = 1 - Dice coefficient
+        return 1 - dice_coeff
+
+# Combined loss (common in practice)
+class DiceCELoss(nn.Module):
+    def __init__(self, dice_weight=0.5, ce_weight=0.5):
+        super().__init__()
+        self.dice_weight = dice_weight
+        self.ce_weight = ce_weight
+        self.dice = DiceLoss()
+        self.ce = nn.CrossEntropyLoss()
+
+    def forward(self, pred, target):
+        dice_loss = self.dice(pred, target)
+        ce_loss = self.ce(pred, target)
+        return self.dice_weight * dice_loss + self.ce_weight * ce_loss</pre>
+
+    <p><strong>Why Dice Loss for segmentation:</strong></p>
+    <pre>Problem with pixel-wise cross-entropy:
+- Severe class imbalance: 95% background, 5% object
+- Model learns to predict all background → 95% accuracy!
+- Cross-entropy optimizes per-pixel, doesn't care about overlap
+
+Dice Loss advantages:
+1. Measures overlap directly
+   Dice = 2 * |A ∩ B| / (|A| + |B|)
+
+2. Handles class imbalance naturally
+   - Cares about true positives vs false positives/negatives
+   - Not dominated by correct background pixels
+
+3. Differentiable version of IoU
+   - Dice ≈ 2 * IoU / (1 + IoU)
+
+4. Range: [0, 1] where 1 = perfect overlap
+
+Best practice:
+- Use Dice + CE combined (0.5 * dice + 0.5 * ce)
+- Dice handles imbalance, CE provides per-pixel gradients
+- Common in medical imaging (tumor segmentation, etc.)</pre>
+</div>
+
+<!-- Card 14: Ranking Losses (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Ranking losses optimize {{c1::relative ordering}} rather than absolute values. Hinge loss (SVM) enforces margin {{c2::max(0, 1 - y*(w·x))}}, pairwise ranking loss ensures {{c3::positive scores > negative scores by margin}}, and ListNet uses {{c4::permutation probability}} to optimize the full ranking. Used in {{c5::information retrieval and recommendation systems}}.</p>
+</div>
+
+<!-- Card 15: Temperature Scaling in Loss -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Explain temperature scaling in softmax for knowledge distillation. How does temperature affect the loss landscape?</p>
+    <h4>Answer:</h4>
+    <p><strong>Temperature scaling:</strong></p>
+    <pre>Standard softmax:
+p_i = exp(z_i) / ∑ exp(z_j)
+
+With temperature T:
+p_i = exp(z_i / T) / ∑ exp(z_j / T)</pre>
+
+    <p><strong>Effect of temperature:</strong></p>
+    <pre>T = 1: Standard softmax
+- Sharp distribution
+- [0.01, 0.05, 0.94] → winner-take-all
+
+T > 1 (e.g., T=5): Soft targets
+- Smooth distribution
+- [0.15, 0.25, 0.60] → reveals model uncertainty
+- "Dark knowledge" - relative confidences
+
+T < 1 (e.g., T=0.5): Sharper distribution
+- [0.001, 0.001, 0.998] → more confident
+- Used in sampling for generation
+
+T → 0: One-hot (argmax)
+T → ∞: Uniform distribution</pre>
+
+    <p><strong>Knowledge distillation implementation:</strong></p>
+    <pre>import torch
+import torch.nn.functional as F
+
+def distillation_loss(student_logits, teacher_logits, labels, T=3.0, alpha=0.7):
+    """
+    Args:
+        student_logits: Student model outputs
+        teacher_logits: Teacher model outputs (no grad)
+        labels: Ground truth
+        T: Temperature for soft targets
+        alpha: Weight for soft loss (1-alpha for hard loss)
+    """
+    # Soft loss: student learns from teacher's distribution
+    soft_student = F.log_softmax(student_logits / T, dim=-1)
+    soft_teacher = F.softmax(teacher_logits / T, dim=-1)
+    soft_loss = F.kl_div(soft_student, soft_teacher, reduction='batchmean')
+    soft_loss = soft_loss * (T ** 2)  # Scale by T²
+
+    # Hard loss: student learns from ground truth
+    hard_loss = F.cross_entropy(student_logits, labels)
+
+    # Combined loss
+    return alpha * soft_loss + (1 - alpha) * hard_loss
+
+# Usage
+teacher.eval()
+with torch.no_grad():
+    teacher_logits = teacher(inputs)
+
+student_logits = student(inputs)
+loss = distillation_loss(student_logits, teacher_logits, labels, T=3.0)</pre>
+
+    <p><strong>Why T² scaling:</strong></p>
+    <pre>Gradient magnitude ∝ 1/T for soft targets
+To balance with hard loss (T=1), multiply by T²:
+
+soft_loss = KL(teacher||student, T) * T²
+
+This ensures:
+- Soft and hard losses have similar magnitudes
+- α and (1-α) meaningfully balance the two terms
+
+Common settings:
+- T = 3-5 for distillation
+- α = 0.7-0.9 (more weight on soft targets)
+- During inference: use T = 1 (standard softmax)</pre>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tokenization - CS Vocab Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .front {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .back {
+            line-height: 1.6;
+            color: #34495e;
+        }
+
+        .tags {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .cloze {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tokenization Flashcards</h1>
+    <p>Tokenization algorithms and vocabulary management with practical implementations</p>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">How does Byte Pair Encoding (BPE) tokenization work?</div>
+        <div class="back">
+            <strong>BPE iteratively merges most frequent pairs of bytes/characters:</strong>
+
+            <p><strong>Training BPE:</strong></p>
+            <pre><code>def train_bpe(corpus, num_merges=1000):
+    """
+    Train BPE tokenizer on corpus.
+    """
+    # Step 1: Initialize with characters
+    vocab = set()
+    word_freqs = {}  # word -> frequency
+
+    for word in corpus:
+        word_freqs[word] = word_freqs.get(word, 0) + 1
+        vocab.update(word)  # Add all characters
+
+    # Step 2: Iteratively merge most frequent pairs
+    merges = []  # Track merge operations
+
+    for i in range(num_merges):
+        # Count all adjacent pairs
+        pair_freqs = {}
+
+        for word, freq in word_freqs.items():
+            symbols = list(word)
+            for j in range(len(symbols) - 1):
+                pair = (symbols[j], symbols[j+1])
+                pair_freqs[pair] = pair_freqs.get(pair, 0) + freq
+
+        if not pair_freqs:
+            break
+
+        # Find most frequent pair
+        best_pair = max(pair_freqs, key=pair_freqs.get)
+        merges.append(best_pair)
+
+        # Merge the pair in all words
+        new_word_freqs = {}
+        for word, freq in word_freqs.items():
+            new_word = word.replace(
+                best_pair[0] + best_pair[1],
+                best_pair[0] + best_pair[1]  # Merged symbol
+            )
+            new_word_freqs[new_word] = freq
+
+        word_freqs = new_word_freqs
+        vocab.add(best_pair[0] + best_pair[1])
+
+    return vocab, merges
+
+# Example:
+corpus = ["low", "lower", "newest", "widest"]
+
+# Iteration 1:
+# Pairs: ("l","o"):2, ("o","w"):2, ("w","e"):2, ("e","s"):2, ("s","t"):2
+# Most frequent: ("l","o") appears 2 times
+# Merge: "lo" becomes new token
+# Vocabulary: [..., "l", "o", "lo"]
+
+# After merging: ["lo", "w"], ["lo", "w", "e", "r"], ["n", "e", "w", "e", "s", "t"], ...
+
+# Iteration 2:
+# Find next most frequent pair and merge...
+
+# Using Hugging Face tokenizers:
+from tokenizers import Tokenizer, models, pre_tokenizers, trainers
+
+tokenizer = Tokenizer(models.BPE())
+tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+
+trainer = trainers.BpeTrainer(vocab_size=30000, special_tokens=["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]"])
+
+tokenizer.train_from_iterator(corpus, trainer=trainer)
+tokenizer.save("tokenizer.json")</code></pre>
+
+            <p>Used in: GPT-2, GPT-3, RoBERTa</p>
+        </div>
+        <div class="tags">cs pythonML tokenization bpe encoding EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">CLOZE: BPE (Byte Pair Encoding) starts with <span class="cloze">individual characters</span> and iteratively merges the <span class="cloze">most frequent pair</span> of adjacent tokens.</div>
+        <div class="back">
+            <strong>Answer: individual characters, most frequent pair</strong>
+
+            <p>BPE process step-by-step:</p>
+            <pre><code># Example: Tokenizing "lower"
+
+# Step 0: Start with characters
+tokens = ['l', 'o', 'w', 'e', 'r']
+
+# After training, learned merges might be:
+# Merge 1: ('l', 'o') → 'lo'
+# Merge 2: ('e', 'r') → 'er'
+# Merge 3: ('w', 'e') → 'we'
+# Merge 4: ('lo', 'we') → 'lowe'
+# Merge 5: ('lowe', 'r') → 'lower'
+
+# Applying merges:
+# Initial: ['l', 'o', 'w', 'e', 'r']
+# After merge 1: ['lo', 'w', 'e', 'r']
+# After merge 2: ['lo', 'w', 'er']
+# After merge 3: ['lo', 'wer']  (if 'wer' was merged)
+# Or: ['lower']  (if whole word was learned)
+
+# Tokenizing unknown word "lowest":
+# Initial: ['l', 'o', 'w', 'e', 's', 't']
+# After merge 1 ('lo'): ['lo', 'w', 'e', 's', 't']
+# After merge 3 ('we'): ['lo', 'we', 's', 't']
+# Final: ['lo', 'we', 'st']  (if 'st' was merged)
+# Or: ['lo', 'w', 'est']  (depending on learned merges)
+
+# Key insight:
+# - Common words/subwords: few tokens
+# - Rare words: more tokens (broken into parts)
+# - Unknown words: handled via subword units</code></pre>
+        </div>
+        <div class="tags">cs pythonML bpe tokenization cloze algorithm EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">What's the difference between BPE (GPT-2), WordPiece (BERT), and SentencePiece?</div>
+        <div class="back">
+            <strong>Three main tokenization algorithms:</strong>
+
+            <p><strong>1. BPE (GPT-2, RoBERTa):</strong></p>
+            <pre><code># Byte-level BPE (GPT-2):
+# - Operates on bytes, not characters
+# - Can represent any text (even invalid UTF-8)
+# - Vocabulary contains byte sequences
+
+from transformers import GPT2Tokenizer
+
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+tokens = tokenizer.tokenize("Hello world!")
+# ['Hello', 'Ġworld', '!']  (Ġ = space)
+
+# Properties:
+# ✓ Fully deterministic
+# ✓ No unknown tokens (can always fall back to bytes)
+# ✓ Efficient for English
+
+# Algorithm: Merge most frequent pairs greedily</code></pre>
+
+            <p><strong>2. WordPiece (BERT, DistilBERT):</strong></p>
+            <pre><code># WordPiece:
+# - Similar to BPE but uses likelihood-based merging
+# - Uses ## prefix for continuation tokens
+
+from transformers import BertTokenizer
+
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+tokens = tokenizer.tokenize("Hello world!")
+# ['hello', 'world', '!']
+
+# Tokenizing "unhappiness":
+tokens = tokenizer.tokenize("unhappiness")
+# ['un', '##hap', '##pi', '##ness']
+#         ↑ ## indicates continuation
+
+# Properties:
+# ✓ Learns subwords based on likelihood
+# ✓ ## prefix for word pieces
+# ✓ [UNK] token for truly unknown characters
+
+# Algorithm: Choose merges that maximize likelihood on training data</code></pre>
+
+            <p><strong>3. SentencePiece (T5, ALBERT, XLNet):</strong></p>
+            <pre><code># SentencePiece:
+# - Language-agnostic (no pre-tokenization)
+# - Treats space as normal character (▁)
+# - Can use BPE or unigram algorithm
+
+from transformers import T5Tokenizer
+
+tokenizer = T5Tokenizer.from_pretrained("t5-small")
+tokens = tokenizer.tokenize("Hello world!")
+# ['▁Hello', '▁world', '!']
+#   ↑ ▁ represents space
+
+# Properties:
+# ✓ Reversible (can decode back to exact original)
+# ✓ No language-specific preprocessing
+# ✓ Works for any language (including no spaces, like Chinese)
+# ✓ Two algorithms: BPE or unigram
+
+# Unigram algorithm (SentencePiece default):
+# - Starts with large vocabulary
+# - Iteratively removes tokens that minimize loss</code></pre>
+
+            <p><strong>Summary:</strong></p>
+            <ul>
+                <li>BPE: Byte-level, greedy merging</li>
+                <li>WordPiece: Likelihood-based, ## prefix</li>
+                <li>SentencePiece: Language-agnostic, ▁ for space</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML tokenization bpe wordpiece sentencepiece comparison EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">How do you handle special tokens in tokenization ([CLS], [SEP], [PAD], etc.)?</div>
+        <div class="back">
+            <strong>Special tokens serve specific purposes in model input:</strong>
+            <pre><code>from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+# Special tokens in BERT:
+print(tokenizer.special_tokens_map)
+# {
+#   'unk_token': '[UNK]',   # Unknown tokens
+#   'sep_token': '[SEP]',   # Separator between sentences
+#   'pad_token': '[PAD]',   # Padding for batching
+#   'cls_token': '[CLS]',   # Classification token (start)
+#   'mask_token': '[MASK]'  # Masked language modeling
+# }
+
+# Token IDs for special tokens:
+print(f"[CLS] = {tokenizer.cls_token_id}")  # 101
+print(f"[SEP] = {tokenizer.sep_token_id}")  # 102
+print(f"[PAD] = {tokenizer.pad_token_id}")  # 0
+
+# Encoding with special tokens:
+text1 = "Hello world"
+text2 = "How are you?"
+
+# Single sentence:
+encoded = tokenizer.encode(text1, add_special_tokens=True)
+# [101, 7592, 2088, 102]
+# [CLS] Hello world [SEP]
+
+# Sentence pair:
+encoded = tokenizer.encode(text1, text2, add_special_tokens=True)
+# [101, 7592, 2088, 102, 2129, 2024, 2017, 1029, 102]
+# [CLS] Hello world [SEP] How are you? [SEP]
+
+# Decoding (special tokens automatically handled):
+decoded = tokenizer.decode(encoded)
+# "[CLS] Hello world [SEP] How are you? [SEP]"
+
+# Skip special tokens in decoding:
+decoded = tokenizer.decode(encoded, skip_special_tokens=True)
+# "Hello world How are you?"
+
+# GPT-2 style (different special tokens):
+gpt2_tokenizer = AutoTokenizer.from_pretrained("gpt2")
+print(gpt2_tokenizer.special_tokens_map)
+# {
+#   'unk_token': '<|endoftext|>',  # Also used as EOS, BOS
+#   'bos_token': '<|endoftext|>',
+#   'eos_token': '<|endoftext|>',
+# }
+# Note: GPT-2 has no PAD token by default (add if needed)
+
+# Adding custom special tokens:
+tokenizer.add_special_tokens({
+    'additional_special_tokens': ['[QUOTE]', '[/QUOTE]']
+})
+
+# Must resize model embeddings after adding tokens:
+# model.resize_token_embeddings(len(tokenizer))</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization special-tokens bert gpt EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">CLOZE: In BERT, the <span class="cloze">[CLS]</span> token is added at the beginning and represents the <span class="cloze">entire sequence</span>, while <span class="cloze">[SEP]</span> separates different sentences.</div>
+        <div class="back">
+            <strong>Answer: [CLS], entire sequence, [SEP]</strong>
+
+            <p>Special token usage patterns:</p>
+            <pre><code># BERT input format:
+# [CLS] Sentence A [SEP] Sentence B [SEP]
+
+# Example 1: Single sentence classification
+text = "This movie is great!"
+# [CLS] This movie is great ! [SEP]
+#   ↑                              ↑
+#   Classification token         End marker
+
+# The [CLS] token's final hidden state is used for classification:
+outputs = model(input_ids)
+cls_hidden = outputs.last_hidden_state[:, 0, :]  # First position
+logits = classification_head(cls_hidden)
+
+# Example 2: Sentence pair (QA, NLI)
+question = "What is the capital of France?"
+answer = "Paris is the capital."
+# [CLS] What is the capital of France ? [SEP] Paris is the capital . [SEP]
+#   ↑                                      ↑                            ↑
+# Aggregate                          Separator                      End
+
+# Example 3: Token classification (NER)
+text = "John lives in Paris"
+# [CLS] John lives in Paris [SEP]
+#        ↑     ↑     ↑   ↑
+#      Token embeddings used (not [CLS])
+
+# GPT-style (different convention):
+# Text <|endoftext|>
+# No [CLS] token - uses last token or mean pooling
+
+# T5-style (encoder-decoder):
+# Encoder: "translate English to French: Hello" </s>
+# Decoder: </s> "Bonjour" </s>
+
+# LLaMA-style (decoder-only):
+# <s> This is a prompt [/INST] This is a response </s>
+# <s> = BOS (beginning of sequence)
+# </s> = EOS (end of sequence)</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization special-tokens cloze bert EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">How do you implement tokenization and create token embeddings from scratch?</div>
+        <div class="back">
+            <strong>Full pipeline from text to embeddings:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+class SimpleTokenizer:
+    """Minimalist tokenizer for demonstration."""
+    def __init__(self, vocab):
+        self.vocab = vocab  # word -> id
+        self.id_to_token = {v: k for k, v in vocab.items()}
+
+        # Special tokens
+        self.pad_token = "[PAD]"
+        self.unk_token = "[UNK]"
+        self.pad_token_id = vocab.get(self.pad_token, 0)
+        self.unk_token_id = vocab.get(self.unk_token, 1)
+
+    def encode(self, text, max_length=None, padding=False):
+        """Convert text to token IDs."""
+        # Simple whitespace tokenization
+        tokens = text.lower().split()
+
+        # Map to IDs
+        ids = [self.vocab.get(token, self.unk_token_id) for token in tokens]
+
+        # Truncate
+        if max_length and len(ids) > max_length:
+            ids = ids[:max_length]
+
+        # Pad
+        if padding and max_length:
+            ids = ids + [self.pad_token_id] * (max_length - len(ids))
+
+        return ids
+
+    def decode(self, ids, skip_special_tokens=True):
+        """Convert token IDs back to text."""
+        tokens = [self.id_to_token.get(id, self.unk_token) for id in ids]
+
+        if skip_special_tokens:
+            tokens = [t for t in tokens if t not in [self.pad_token, self.unk_token]]
+
+        return " ".join(tokens)
+
+# Create vocabulary
+vocab = {
+    "[PAD]": 0,
+    "[UNK]": 1,
+    "hello": 2,
+    "world": 3,
+    "how": 4,
+    "are": 5,
+    "you": 6,
+}
+
+tokenizer = SimpleTokenizer(vocab)
+
+# Encode text
+text = "hello world how are you"
+token_ids = tokenizer.encode(text, max_length=10, padding=True)
+print(f"Token IDs: {token_ids}")
+# [2, 3, 4, 5, 6, 0, 0, 0, 0, 0]
+
+# Create embedding layer
+vocab_size = len(vocab)
+embedding_dim = 768
+
+embedding = nn.Embedding(
+    num_embeddings=vocab_size,
+    embedding_dim=embedding_dim,
+    padding_idx=0  # Don't update embeddings for PAD token
+)
+
+# Convert to tensor and embed
+token_ids_tensor = torch.tensor([token_ids])  # (1, seq_len)
+embeddings = embedding(token_ids_tensor)  # (1, seq_len, embedding_dim)
+
+print(f"Embeddings shape: {embeddings.shape}")
+# torch.Size([1, 10, 768])
+
+# Embeddings are learned during training:
+# - Initially random
+# - Updated via backpropagation
+# - Similar words get similar embeddings</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization embeddings implementation EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">How do you handle padding and truncation when tokenizing batches?</div>
+        <div class="back">
+            <strong>Padding and truncation ensure uniform sequence lengths:</strong>
+            <pre><code>from transformers import AutoTokenizer
+import torch
+
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+# Different length sentences
+texts = [
+    "Short text.",
+    "This is a much longer sentence with many more words.",
+    "Medium length sentence here."
+]
+
+# Method 1: Pad to longest in batch
+encoded = tokenizer(
+    texts,
+    padding=True,  # Pad to longest sequence
+    truncation=False,
+    return_tensors="pt"
+)
+
+print(encoded['input_ids'].shape)
+# torch.Size([3, 12]) - padded to longest (12 tokens)
+
+print(encoded['input_ids'])
+# tensor([
+#   [101, 2460, 3793, 1012, 102, 0, 0, 0, 0, 0, 0, 0],  # Padded with 0s
+#   [101, 2023, 2003, ..., 2616, 102, 0],               # Few padding
+#   [101, 5396, 3091, ..., 2182, 1012, 102, 0, 0, 0]    # Some padding
+# ])
+
+# Method 2: Pad to fixed max_length
+encoded = tokenizer(
+    texts,
+    padding='max_length',
+    max_length=20,
+    truncation=True,  # Truncate if longer than max_length
+    return_tensors="pt"
+)
+
+print(encoded['input_ids'].shape)
+# torch.Size([3, 20]) - all sequences exactly 20 tokens
+
+# Attention mask (important!):
+print(encoded['attention_mask'])
+# tensor([
+#   [1, 1, 1, 1, 1, 0, 0, 0, ...],  # 1 for real tokens, 0 for padding
+#   [1, 1, 1, 1, 1, 1, 1, 1, ...],
+#   [1, 1, 1, 1, 1, 1, 1, 0, ...]
+# ])
+
+# Method 3: No padding (for single examples or dynamic batching)
+encoded = tokenizer(
+    texts[0],
+    padding=False,
+    truncation=False,
+    return_tensors="pt"
+)
+# Shape: (1, actual_length) - no padding
+
+# Truncation strategies:
+# 'longest_first': Truncate longest sequence in pair first
+# 'only_first': Only truncate first sequence
+# 'only_second': Only truncate second sequence
+# False: No truncation (error if too long)
+
+encoded = tokenizer(
+    text="Very " * 1000,  # Super long text
+    max_length=512,
+    truncation=True,
+    padding='max_length',
+    return_tensors="pt"
+)
+# Will be truncated to 512 tokens
+
+# Using attention masks in model:
+outputs = model(
+    input_ids=encoded['input_ids'],
+    attention_mask=encoded['attention_mask']
+)
+# Model ignores padded positions (thanks to attention mask)</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization padding truncation batching EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">CLOZE: Subword tokenization (BPE, WordPiece) handles unknown words by <span class="cloze">breaking them into known subword units</span>, eliminating the need for large <span class="cloze">unknown token ([UNK])</span> vocabularies.</div>
+        <div class="back">
+            <strong>Answer: breaking them into known subword units, unknown token ([UNK])</strong>
+
+            <p>Benefits of subword tokenization:</p>
+            <pre><code># Word-level tokenization (old approach):
+vocab = ["the", "cat", "sat", "on", "mat", "[UNK]"]
+
+# Problem: Unknown words → [UNK]
+"The caterpillar sat on the mat"
+# → ["the", "[UNK]", "sat", "on", "the", "mat"]
+#          ↑ Lost information!
+
+# Subword tokenization (BPE/WordPiece):
+# Learns common subwords during training
+
+# Example vocabulary (simplified):
+vocab = ["cat", "er", "pill", "ar", "s", "##at", "##ter", ...]
+
+# Unknown word "caterpillar":
+# → ["cat", "##er", "##pill", "##ar"]
+#    ↑ Broken into known pieces!
+
+# Real example with BERT:
+from transformers import BertTokenizer
+
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
+# Common word:
+print(tokenizer.tokenize("unhappiness"))
+# ['un', '##hap', '##pi', '##ness']
+
+# Rare/unknown word:
+print(tokenizer.tokenize("antidisestablishmentarianism"))
+# ['anti', '##dis', '##esta', '##bli', '##shment', '##arian', '##ism']
+#   ↑ Broken into morphemes!
+
+# Made-up word:
+print(tokenizer.tokenize("flibbertigibbet"))
+# ['fl', '##ib', '##ber', '##tig', '##ib', '##bet']
+#   ↑ Still representable!
+
+# Benefits:
+# ✓ No information loss (vs [UNK])
+# ✓ Smaller vocabulary (vs word-level)
+# ✓ Handles morphology (prefixes, suffixes)
+# ✓ Works across languages
+# ✓ Open vocabulary (any text representable)
+
+# Trade-off:
+# ✗ Longer sequences (words → multiple tokens)
+# ✗ More complex than word-level</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization subword cloze vocabulary EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">How do you train a custom BPE tokenizer from scratch?</div>
+        <div class="back">
+            <strong>Training a tokenizer on domain-specific data:</strong>
+            <pre><code>from tokenizers import Tokenizer, models, pre_tokenizers, trainers, processors
+
+# Step 1: Create a BPE tokenizer
+tokenizer = Tokenizer(models.BPE(unk_token="[UNK]"))
+
+# Step 2: Set pre-tokenizer (splits on whitespace/punctuation)
+tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+
+# Step 3: Configure trainer
+trainer = trainers.BpeTrainer(
+    vocab_size=30000,  # Target vocabulary size
+    min_frequency=2,   # Minimum times a pair must appear
+    special_tokens=[
+        "[PAD]",
+        "[UNK]",
+        "[CLS]",
+        "[SEP]",
+        "[MASK]"
+    ],
+    show_progress=True
+)
+
+# Step 4: Train on corpus
+files = ["train.txt", "val.txt"]  # Your text files
+tokenizer.train(files, trainer)
+
+# Or train from iterator:
+def get_training_corpus():
+    with open("large_file.txt", "r") as f:
+        for line in f:
+            yield line
+
+tokenizer.train_from_iterator(get_training_corpus(), trainer)
+
+# Step 5: Add post-processor (add special tokens)
+tokenizer.post_processor = processors.ByteLevel(trim_offsets=False)
+
+# Step 6: Save tokenizer
+tokenizer.save("my_tokenizer.json")
+
+# Step 7: Test tokenizer
+encoding = tokenizer.encode("Hello world!")
+print(f"Tokens: {encoding.tokens}")
+print(f"IDs: {encoding.ids}")
+
+# Decode
+decoded = tokenizer.decode(encoding.ids)
+print(f"Decoded: {decoded}")
+
+# Loading for use with Hugging Face:
+from transformers import PreTrainedTokenizerFast
+
+fast_tokenizer = PreTrainedTokenizerFast(
+    tokenizer_file="my_tokenizer.json",
+    unk_token="[UNK]",
+    pad_token="[PAD]",
+    cls_token="[CLS]",
+    sep_token="[SEP]",
+    mask_token="[MASK]"
+)
+
+# Now use with Hugging Face models:
+encoded = fast_tokenizer(
+    "Example text",
+    padding=True,
+    truncation=True,
+    return_tensors="pt"
+)
+
+# Key parameters to tune:
+# - vocab_size: Larger = more specific tokens, longer training
+# - min_frequency: Higher = fewer rare tokens
+# - special_tokens: Task-dependent</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization training bpe custom EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">What is byte-level BPE (used in GPT-2) and why is it better than character-level BPE?</div>
+        <div class="back">
+            <strong>Byte-level BPE operates on bytes instead of characters:</strong>
+            <pre><code># Character-level BPE problem:
+# Unicode has >140,000 characters!
+# - Need large initial vocabulary
+# - Rare characters cause issues
+# - Language-specific
+
+# Byte-level BPE solution:
+# - Only 256 possible bytes (0-255)
+# - Small initial vocabulary
+# - Can represent ANY text (even invalid UTF-8)
+# - Language-agnostic
+
+# Example: GPT-2 tokenizer
+from transformers import GPT2Tokenizer
+
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+
+# Tokenizing text:
+text = "Hello, world! 你好"
+tokens = tokenizer.tokenize(text)
+print(tokens)
+# ['Hello', ',', 'Ġworld', '!', 'Ġ', '你', '好']
+#                 ↑ Ġ represents space
+
+# See byte-level representation:
+token_ids = tokenizer.encode(text)
+print(f"Token IDs: {token_ids}")
+
+# Each token ID maps to a sequence of bytes
+# Can handle emoji, rare scripts, etc.
+
+# Advantages:
+# ✓ Universal: works for any language/text
+# ✓ No unknown tokens (can always fall back to bytes)
+# ✓ Fixed base vocabulary (256 bytes)
+# ✓ Handles malformed text gracefully
+
+# Example with emoji:
+text_emoji = "Hello 😀 world"
+tokens = tokenizer.tokenize(text_emoji)
+print(tokens)
+# ['Hello', 'Ġ', '😀', 'Ġworld']
+# (emoji encoded as sequence of bytes)
+
+# Comparison:
+# Character-level: "cat" → ['c', 'a', 't'] (3 tokens)
+# Byte-level: "cat" → [99, 97, 116] as bytes, then BPE merges
+#             → ['cat'] (1 token after learning)
+
+# Implementation detail:
+# GPT-2 uses 256 base bytes + learned merges
+# Total vocabulary: ~50,257 tokens
+# First 256 IDs are the base bytes
+# Rest are learned byte sequences
+
+# Reversibility:
+decoded = tokenizer.decode(token_ids)
+assert decoded == text  # Perfect round-trip</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization byte-level bpe gpt2 EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">CLOZE: In GPT-2's byte-level BPE, the vocabulary starts with <span class="cloze">256</span> base tokens representing all possible <span class="cloze">bytes</span>, making it capable of encoding any text.</div>
+        <div class="back">
+            <strong>Answer: 256, bytes</strong>
+
+            <p>GPT-2 vocabulary structure:</p>
+            <pre><code>from transformers import GPT2Tokenizer
+
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+
+# Vocabulary size:
+vocab_size = len(tokenizer)
+print(f"Total vocab size: {vocab_size}")
+# 50257
+
+# First 256 tokens = base bytes:
+for i in range(10):
+    token = tokenizer.decode([i])
+    print(f"ID {i}: {repr(token)}")
+
+# ID 0: '!'
+# ID 1: '"'
+# ID 2: '#'
+# ID 3: '$'
+# ...
+# ID 255: (some byte)
+
+# These 256 bytes can represent ANY possible byte value
+# Including:
+# - ASCII characters (0-127)
+# - Extended ASCII (128-255)
+# - UTF-8 byte sequences
+# - Even invalid UTF-8!
+
+# Example: Chinese character "中" (U+4E2D)
+# UTF-8 bytes: E4 B8 AD (hex) = [228, 184, 173] (decimal)
+
+text = "中"
+token_ids = tokenizer.encode(text)
+print(f"Token IDs for '中': {token_ids}")
+# Might be: [165, 255, 238] (if not merged)
+# Or: [45678] (if learned as single token)
+
+# The key property:
+# EVERY possible text can be encoded
+# (Even if it's just byte-by-byte fallback)
+
+# This is why GPT-2 has no [UNK] token!
+
+# Contrast with character-level:
+# Unicode: 140,000+ characters
+# Would need huge base vocabulary
+# Still can't handle future Unicode additions
+
+# Byte-level: Fixed 256 bytes
+# Future-proof!
+# Works for any encoding scheme</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization byte-level cloze gpt2 vocabulary EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">How do you implement tokenization for code (programming languages)?</div>
+        <div class="back">
+            <strong>Code tokenization requires special handling:</strong>
+            <pre><code>from tokenizers import Tokenizer, models, pre_tokenizers, trainers
+from tokenizers.pre_tokenizers import Whitespace, Punctuation, Sequence
+
+# Code-specific pre-tokenization:
+# 1. Preserve indentation
+# 2. Keep operators together (!=, ==, <=, etc.)
+# 3. Handle strings/comments specially
+
+# Custom pre-tokenizer for code:
+pre_tokenizer = Sequence([
+    Whitespace(),  # Split on whitespace (but preserve it)
+    Punctuation(behavior="isolated")  # Isolate punctuation
+])
+
+# Create tokenizer:
+tokenizer = Tokenizer(models.BPE(unk_token="<unk>"))
+tokenizer.pre_tokenizer = pre_tokenizer
+
+# Train on code corpus:
+trainer = trainers.BpeTrainer(
+    vocab_size=50000,  # Larger for code (many symbols)
+    min_frequency=2,
+    special_tokens=[
+        "<pad>",
+        "<unk>",
+        "<s>",      # Start of sequence
+        "</s>",     # End of sequence
+        "<mask>"    # For masked LM
+    ]
+)
+
+# Code examples:
+code_corpus = [
+    "def hello_world():\n    print('Hello, world!')",
+    "for i in range(10):\n    if i % 2 == 0:\n        print(i)",
+    "class MyClass:\n    def __init__(self, x):\n        self.x = x"
+]
+
+tokenizer.train_from_iterator(code_corpus, trainer)
+
+# Using existing code tokenizers:
+from transformers import AutoTokenizer
+
+# CodeBERT (Microsoft):
+code_tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base")
+
+python_code = """
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+"""
+
+tokens = code_tokenizer.tokenize(python_code)
+print(tokens)
+# ['def', 'Ġfib', 'on', 'acci', '(', 'n', '):', 'Ċ', 'Ġ', 'Ġ', 'Ġ', ...]
+#                                           ↑ Ċ = newline
+
+# Key considerations for code:
+# 1. Indentation is meaningful (Python)
+#    → Preserve exact whitespace
+
+# 2. Operators/symbols are important
+#    → Keep them as units: '!=', '==', '<=', etc.
+
+# 3. Identifiers often use camelCase/snake_case
+#    → BPE learns common patterns: 'get_', 'set_', 'is_'
+
+# 4. Keywords should be single tokens
+#    → Ensure 'def', 'class', 'if', 'for', etc. in vocab
+
+# 5. Comments/docstrings
+#    → May want special handling
+
+# CodeGen tokenizer (Salesforce):
+codegen_tokenizer = AutoTokenizer.from_pretrained("Salesforce/codegen-350M-mono")
+
+# StarCoder tokenizer:
+starcoder_tokenizer = AutoTokenizer.from_pretrained("bigcode/starcoder")</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization code programming codebert EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">How do you handle tokenization for multilingual models?</div>
+        <div class="back">
+            <strong>Multilingual tokenization must balance multiple languages:</strong>
+            <pre><code># Challenge: Different languages have different characteristics
+# - Latin languages: space-separated words
+# - Chinese/Japanese: no spaces
+# - Arabic/Hebrew: right-to-left
+# - Agglutinative languages (Turkish, Finnish): long compound words
+
+# Solution 1: SentencePiece (language-agnostic)
+from transformers import XLMRobertaTokenizer
+
+# XLM-RoBERTa: trained on 100 languages
+tokenizer = XLMRobertaTokenizer.from_pretrained("xlm-roberta-base")
+
+# English:
+english = "Hello, how are you?"
+print(tokenizer.tokenize(english))
+# ['▁Hello', ',', '▁how', '▁are', '▁you', '?']
+
+# Chinese (no spaces):
+chinese = "你好吗？"
+print(tokenizer.tokenize(chinese))
+# ['▁你好', '吗', '？']
+
+# Arabic:
+arabic = "مرحبا، كيف حالك؟"
+print(tokenizer.tokenize(arabic))
+# ['▁مرحبا', ',', '▁كيف', '▁حالك', '؟']
+
+# Japanese (mixed scripts):
+japanese = "こんにちは、元気ですか？"
+print(tokenizer.tokenize(japanese))
+# ['▁', 'こんにち', 'は', '、', '元気', 'です', 'か', '？']
+
+# Key strategies for multilingual:
+
+# 1. Use SentencePiece (not WordPiece/BPE)
+#    - No pre-tokenization (no whitespace assumptions)
+#    - Treats space as normal character (▁)
+
+# 2. Train on balanced multilingual corpus
+#    - Sampling: oversample low-resource languages
+#    - Temperature sampling for corpus mixing
+
+# 3. Larger vocabulary (100K-250K tokens)
+#    - Need to cover multiple scripts/languages
+
+# 4. Script-aware tokenization (optional)
+#    - Keep characters from same script together
+#    - Helps with code-switching
+
+# Example: Training multilingual tokenizer
+from tokenizers import SentencePieceBPETokenizer
+
+tokenizer = SentencePieceBPETokenizer()
+
+# Multilingual corpus:
+files = [
+    "english.txt",
+    "chinese.txt",
+    "arabic.txt",
+    "french.txt",
+    # ... more languages
+]
+
+tokenizer.train(
+    files=files,
+    vocab_size=100_000,  # Larger for multilingual
+    min_frequency=10,
+    special_tokens=["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
+)
+
+# Sampling strategy (in practice):
+# - Don't just concatenate all languages equally
+# - Use temperature sampling: p_i = (f_i)^(1/T) / Σ(f_j)^(1/T)
+#   where f_i = frequency of language i
+#   T > 1: upsamples rare languages</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization multilingual xlm sentencepiece EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">CLOZE: When adding new tokens to a tokenizer, you must also <span class="cloze">resize the model's token embeddings</span> using <span class="cloze">model.resize_token_embeddings(len(tokenizer))</span>.</div>
+        <div class="back">
+            <strong>Answer: resize the model's token embeddings, model.resize_token_embeddings(len(tokenizer))</strong>
+
+            <p>Adding tokens safely:</p>
+            <pre><code>from transformers import AutoTokenizer, AutoModel
+
+# Load tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+model = AutoModel.from_pretrained("bert-base-uncased")
+
+print(f"Original vocab size: {len(tokenizer)}")
+# 30522
+
+print(f"Model embedding size: {model.embeddings.word_embeddings.num_embeddings}")
+# 30522 (matches tokenizer)
+
+# Add new tokens:
+new_tokens = ["[SPECIAL1]", "[SPECIAL2]", "domain_term"]
+
+# Method 1: Add special tokens
+tokenizer.add_special_tokens({
+    'additional_special_tokens': ["[SPECIAL1]", "[SPECIAL2]"]
+})
+
+# Method 2: Add regular tokens
+tokenizer.add_tokens(["domain_term"])
+
+print(f"New vocab size: {len(tokenizer)}")
+# 30525 (added 3 tokens)
+
+# CRITICAL: Resize model embeddings
+model.resize_token_embeddings(len(tokenizer))
+
+print(f"Model embedding size: {model.embeddings.word_embeddings.num_embeddings}")
+# 30525 (now matches!)
+
+# What happens during resize:
+# 1. Old embeddings: preserved
+# 2. New embeddings: initialized randomly (Xavier/normal)
+# 3. Embedding matrix shape: (old_size, d_model) → (new_size, d_model)
+
+# Check new token IDs:
+special1_id = tokenizer.convert_tokens_to_ids("[SPECIAL1]")
+print(f"[SPECIAL1] ID: {special1_id}")
+# 30522 (first new token)
+
+# Initialize new embeddings better (optional):
+with torch.no_grad():
+    # Get embeddings
+    embeddings = model.embeddings.word_embeddings.weight
+
+    # Initialize new tokens as average of existing
+    mean_embedding = embeddings[:-3].mean(dim=0)
+
+    # Set new token embeddings
+    embeddings[-3:] = mean_embedding
+
+# Save updated tokenizer and model:
+tokenizer.save_pretrained("./model_with_new_tokens")
+model.save_pretrained("./model_with_new_tokens")
+
+# What happens if you forget to resize:
+# tokenizer = ... (with new tokens)
+# model = ... (old size)
+# input_ids = tokenizer.encode("Use domain_term")  # IDs: [..., 30524]
+# model(torch.tensor([input_ids]))
+# → IndexError: index out of range in embedding!
+
+# Always resize after adding tokens!</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization cloze add-tokens resize-embeddings EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">How do you measure and optimize tokenizer efficiency (compression rate)?</div>
+        <div class="back">
+            <strong>Tokenizer efficiency metrics:</strong>
+            <pre><code>from transformers import AutoTokenizer
+
+def analyze_tokenizer_efficiency(tokenizer, texts):
+    """
+    Measure tokenizer compression and efficiency.
+    """
+    total_chars = 0
+    total_tokens = 0
+    total_words = 0
+
+    for text in texts:
+        # Character count
+        total_chars += len(text)
+
+        # Word count (simple whitespace split)
+        total_words += len(text.split())
+
+        # Token count
+        tokens = tokenizer.encode(text, add_special_tokens=False)
+        total_tokens += len(tokens)
+
+    # Metrics:
+    chars_per_token = total_chars / total_tokens
+    tokens_per_word = total_tokens / total_words
+
+    print(f"Total characters: {total_chars}")
+    print(f"Total words: {total_words}")
+    print(f"Total tokens: {total_tokens}")
+    print(f"Chars/token: {chars_per_token:.2f}")
+    print(f"Tokens/word: {tokens_per_word:.2f}")
+
+    # Good tokenizer:
+    # - High chars/token (3-4+): efficient compression
+    # - Low tokens/word (~1.3-1.5): not too fragmented
+
+    return {
+        'chars_per_token': chars_per_token,
+        'tokens_per_word': tokens_per_word,
+        'compression_ratio': total_chars / total_tokens
+    }
+
+# Compare tokenizers:
+texts = ["Machine learning is transforming artificial intelligence..."] * 100
+
+# GPT-2 (BPE):
+gpt2_tokenizer = AutoTokenizer.from_pretrained("gpt2")
+gpt2_stats = analyze_tokenizer_efficiency(gpt2_tokenizer, texts)
+# Chars/token: 3.8
+# Tokens/word: 1.3
+
+# BERT (WordPiece):
+bert_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+bert_stats = analyze_tokenizer_efficiency(bert_tokenizer, texts)
+# Chars/token: 3.5
+# Tokens/word: 1.4
+
+# T5 (SentencePiece):
+t5_tokenizer = AutoTokenizer.from_pretrained("t5-small")
+t5_stats = analyze_tokenizer_efficiency(t5_tokenizer, texts)
+# Chars/token: 3.9
+# Tokens/word: 1.3
+
+# Analysis:
+# Better compression → faster inference, less memory
+# But: need to balance with vocabulary size
+
+# Optimization strategies:
+# 1. Increase vocab size (diminishing returns after ~50K)
+# 2. Train on domain-specific data (learns domain terms)
+# 3. Adjust min_frequency (include more rare tokens)
+
+# Example: Domain-specific tokenizer
+# Medical text: "pneumonoultramicroscopicsilicovolcanoconiosis"
+# Generic tokenizer: 15+ tokens
+# Medical tokenizer: 2-3 tokens (learned the term!)
+
+# Practical impact:
+# Model with 1.3 tokens/word:
+# 100-word input → ~130 tokens
+# Model with 1.5 tokens/word:
+# 100-word input → ~150 tokens
+# → 15% more compute, memory, slower!</code></pre>
+        </div>
+        <div class="tags">cs pythonML tokenization efficiency compression optimization EN</div>
+    </div>
+
+</body>
+</html>

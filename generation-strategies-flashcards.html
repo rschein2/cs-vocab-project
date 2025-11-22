@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generation Strategies - CS Vocab Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .front {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .back {
+            line-height: 1.6;
+            color: #34495e;
+        }
+
+        .tags {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .cloze {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generation Strategies Flashcards</h1>
+    <p>Text generation methods and decoding strategies with PyTorch implementations</p>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">How do you implement greedy decoding for text generation?</div>
+        <div class="back">
+            <strong>Greedy decoding always picks the highest probability token:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def greedy_generate(model, input_ids, max_length=50, eos_token_id=None):
+    """
+    Greedy decoding: always select argmax token.
+
+    model: language model
+    input_ids: (batch, seq_len) starting tokens
+    max_length: maximum generation length
+    eos_token_id: token ID that signals end of sequence
+    """
+    for _ in range(max_length):
+        # Get model predictions
+        with torch.no_grad():
+            logits = model(input_ids)  # (batch, seq_len, vocab_size)
+
+        # Get logits for last token
+        next_token_logits = logits[:, -1, :]  # (batch, vocab_size)
+
+        # Greedy: select token with highest probability
+        next_token = torch.argmax(next_token_logits, dim=-1, keepdim=True)
+        # (batch, 1)
+
+        # Append to sequence
+        input_ids = torch.cat([input_ids, next_token], dim=1)
+
+        # Stop if EOS token generated (for all sequences in batch)
+        if eos_token_id is not None and (next_token == eos_token_id).all():
+            break
+
+    return input_ids
+
+# Usage:
+prompt = tokenizer.encode("The quick brown", return_tensors="pt")
+generated = greedy_generate(model, prompt, max_length=20)
+text = tokenizer.decode(generated[0])
+
+# Properties:
+# ✓ Deterministic (same input → same output)
+# ✓ Fast (just argmax)
+# ✗ Can be repetitive
+# ✗ No diversity
+# ✗ May miss better sequences (local optimum)
+
+# Example output:
+# "The quick brown fox jumped over the lazy dog. The dog was very happy."
+# (notice repetition of "dog")</code></pre>
+            <p>Best for: Tasks needing deterministic output (code generation, translation).</p>
+        </div>
+        <div class="tags">cs pythonML generation greedy decoding inference EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">CLOZE: Greedy decoding always selects the token with <span class="cloze">highest probability</span>, making it <span class="cloze">deterministic</span> but potentially <span class="cloze">repetitive</span>.</div>
+        <div class="back">
+            <strong>Answer: highest probability, deterministic, repetitive</strong>
+
+            <p>Why greedy can be repetitive:</p>
+            <pre><code># Consider generating "The cat sat on the mat"
+
+# Step 1: P("The") = 0.9 (selected)
+# Step 2: P("cat" | "The") = 0.8 (selected)
+# Step 3: P("sat" | "The cat") = 0.7 (selected)
+
+# But this sequence might have issues:
+# At step 5: P("the" | context) = 0.6 (selected again!)
+# At step 8: P("the" | context) = 0.5 (selected again!)
+
+# Result: "The cat sat on the the mat the..."
+#                             ↑repeated
+
+# Why this happens:
+# - Greedy only looks at immediate next token
+# - Doesn't consider longer-term coherence
+# - Once in repetitive pattern, hard to escape
+#   (because context now includes repetition!)
+
+# Example with actual model:
+prompt = "The benefits of exercise include"
+
+# Greedy output:
+# "The benefits of exercise include improved health,
+#  improved health, improved health, and improved health."
+# ↑ stuck in loop!
+
+# Better alternatives:
+# - Sampling (introduces randomness)
+# - Beam search (considers multiple paths)
+# - Repetition penalty (explicitly discourages repeats)</code></pre>
+        </div>
+        <div class="tags">cs pythonML greedy cloze repetition generation EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">How do you implement beam search for text generation?</div>
+        <div class="back">
+            <strong>Beam search maintains top-k hypotheses at each step:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def beam_search(model, input_ids, beam_size=5, max_length=50, eos_token_id=None):
+    """
+    Beam search: keep top beam_size hypotheses at each step.
+
+    Returns: (beam_size, seq_len) - top beam_size sequences
+    """
+    batch_size = input_ids.size(0)
+    assert batch_size == 1, "Beam search typically used with batch_size=1"
+
+    # Start with single sequence
+    # beams: (beam_size, seq_len)
+    beams = input_ids.repeat(beam_size, 1)
+
+    # Track scores (log probabilities)
+    beam_scores = torch.zeros(beam_size, device=input_ids.device)
+    beam_scores[1:] = float('-inf')  # Only first beam active initially
+
+    for step in range(max_length):
+        # Get predictions for all beams
+        with torch.no_grad():
+            logits = model(beams)  # (beam_size, seq_len, vocab_size)
+
+        # Get logits for last position
+        next_token_logits = logits[:, -1, :]  # (beam_size, vocab_size)
+
+        # Convert to log probabilities
+        log_probs = F.log_softmax(next_token_logits, dim=-1)
+
+        # Compute scores for all possible next tokens
+        # (beam_size, vocab_size)
+        vocab_size = log_probs.size(-1)
+        next_scores = beam_scores.unsqueeze(1) + log_probs
+
+        # Flatten to get top beam_size across all beams and vocabulary
+        next_scores = next_scores.view(-1)  # (beam_size * vocab_size)
+        top_scores, top_indices = torch.topk(next_scores, beam_size, dim=0)
+
+        # Get beam and token indices
+        beam_indices = top_indices // vocab_size
+        token_indices = top_indices % vocab_size
+
+        # Update beams
+        beams = torch.cat([
+            beams[beam_indices],
+            token_indices.unsqueeze(1)
+        ], dim=1)
+
+        # Update scores
+        beam_scores = top_scores
+
+        # Check for EOS (simplified - in practice, handle per-beam)
+        if eos_token_id is not None:
+            finished = (token_indices == eos_token_id).all()
+            if finished:
+                break
+
+    return beams, beam_scores
+
+# Usage:
+prompt = tokenizer.encode("The", return_tensors="pt")
+beams, scores = beam_search(model, prompt, beam_size=5, max_length=20)
+
+# Get best sequence:
+best_beam = beams[0]
+text = tokenizer.decode(best_beam)
+
+# Properties:
+# ✓ Better than greedy (explores multiple paths)
+# ✓ Still deterministic
+# ✗ Slower than greedy (beam_size * compute)
+# ✗ Can still be generic/boring
+# ✗ Memory: O(beam_size * seq_len)</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation beam-search decoding EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">How do you implement temperature sampling?</div>
+        <div class="back">
+            <strong>Temperature controls randomness by scaling logits before softmax:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def temperature_sampling(logits, temperature=1.0):
+    """
+    Apply temperature and sample.
+
+    logits: (batch, vocab_size) - raw model outputs
+    temperature: float
+      - T < 1: sharpens distribution (more confident, less random)
+      - T = 1: unchanged distribution
+      - T > 1: flattens distribution (less confident, more random)
+    """
+    # Scale logits by temperature
+    scaled_logits = logits / temperature
+
+    # Convert to probabilities
+    probs = F.softmax(scaled_logits, dim=-1)
+
+    # Sample from distribution
+    next_token = torch.multinomial(probs, num_samples=1)
+
+    return next_token
+
+def generate_with_temperature(model, input_ids, max_length=50,
+                              temperature=1.0, eos_token_id=None):
+    """Generate text with temperature sampling."""
+    for _ in range(max_length):
+        with torch.no_grad():
+            logits = model(input_ids)
+
+        next_token_logits = logits[:, -1, :]  # (batch, vocab_size)
+
+        # Sample with temperature
+        next_token = temperature_sampling(next_token_logits, temperature)
+
+        input_ids = torch.cat([input_ids, next_token], dim=1)
+
+        if eos_token_id and (next_token == eos_token_id).all():
+            break
+
+    return input_ids
+
+# Effect of different temperatures:
+logits = torch.tensor([[2.0, 1.0, 0.5, 0.1]])  # Example logits
+
+# T = 0.5 (low temperature - sharp, confident)
+probs_low = F.softmax(logits / 0.5, dim=-1)
+# [[0.73, 0.20, 0.06, 0.01]] - heavily favors top token
+
+# T = 1.0 (default - unchanged)
+probs_med = F.softmax(logits / 1.0, dim=-1)
+# [[0.52, 0.28, 0.15, 0.05]] - balanced
+
+# T = 2.0 (high temperature - flat, diverse)
+probs_high = F.softmax(logits / 2.0, dim=-1)
+# [[0.38, 0.29, 0.22, 0.11]] - more uniform
+
+# Use cases:
+# T ≈ 0.1-0.7: Focused, coherent (code, factual text)
+# T ≈ 0.8-1.0: Balanced (default)
+# T ≈ 1.0-1.5: Creative, diverse (stories, brainstorming)
+# T > 2.0: Random, incoherent (usually not useful)</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation temperature sampling inference EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">CLOZE: Lower temperature (T < 1) makes the probability distribution <span class="cloze">sharper/more peaked</span>, while higher temperature (T > 1) makes it <span class="cloze">flatter/more uniform</span>.</div>
+        <div class="back">
+            <strong>Answer: sharper/more peaked, flatter/more uniform</strong>
+
+            <p>Mathematical effect of temperature:</p>
+            <pre><code>import torch
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+
+# Original logits
+logits = torch.tensor([3.0, 2.0, 1.0, 0.5, 0.1])
+
+temperatures = [0.5, 0.7, 1.0, 1.5, 2.0]
+
+for T in temperatures:
+    probs = F.softmax(logits / T, dim=-1)
+    print(f"T={T}: {probs.numpy()}")
+
+# Output:
+# T=0.5: [0.68 0.23 0.07 0.02 0.00]  ← Sharp!
+# T=0.7: [0.59 0.26 0.11 0.03 0.01]
+# T=1.0: [0.47 0.26 0.16 0.08 0.03]  ← Original
+# T=1.5: [0.38 0.27 0.19 0.11 0.05]
+# T=2.0: [0.33 0.27 0.21 0.13 0.06]  ← Flat!
+
+# Visualization:
+plt.figure(figsize=(10, 5))
+for T in temperatures:
+    probs = F.softmax(logits / T, dim=-1)
+    plt.plot(probs.numpy(), marker='o', label=f'T={T}')
+
+plt.xlabel('Token index')
+plt.ylabel('Probability')
+plt.legend()
+plt.title('Effect of Temperature on Distribution')
+plt.savefig('temperature_effect.png')
+
+# Entropy (measure of randomness):
+for T in temperatures:
+    probs = F.softmax(logits / T, dim=-1)
+    entropy = -(probs * torch.log(probs)).sum()
+    print(f"T={T}: entropy={entropy:.3f}")
+
+# T=0.5: entropy=0.923  ← Low entropy (focused)
+# T=1.0: entropy=1.364
+# T=2.0: entropy=1.537  ← High entropy (diverse)
+
+# Max entropy (uniform distribution): log(5) = 1.609</code></pre>
+        </div>
+        <div class="tags">cs pythonML temperature cloze sampling distribution EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">How do you implement top-k sampling?</div>
+        <div class="back">
+            <strong>Top-k sampling: sample only from k most likely tokens:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def top_k_sampling(logits, k=50, temperature=1.0):
+    """
+    Sample from top-k most likely tokens.
+
+    logits: (batch, vocab_size)
+    k: number of top tokens to consider
+    """
+    # Apply temperature
+    scaled_logits = logits / temperature
+
+    # Get top-k logits and indices
+    top_k_logits, top_k_indices = torch.topk(scaled_logits, k, dim=-1)
+    # top_k_logits: (batch, k)
+    # top_k_indices: (batch, k)
+
+    # Convert to probabilities (only for top-k)
+    top_k_probs = F.softmax(top_k_logits, dim=-1)
+
+    # Sample from top-k
+    sampled_index = torch.multinomial(top_k_probs, num_samples=1)
+    # (batch, 1) - index within top-k
+
+    # Map back to vocabulary index
+    next_token = torch.gather(top_k_indices, 1, sampled_index)
+
+    return next_token
+
+def generate_with_top_k(model, input_ids, max_length=50, k=50,
+                       temperature=1.0, eos_token_id=None):
+    """Generate text with top-k sampling."""
+    for _ in range(max_length):
+        with torch.no_grad():
+            logits = model(input_ids)
+
+        next_token_logits = logits[:, -1, :]
+
+        # Sample with top-k
+        next_token = top_k_sampling(next_token_logits, k=k, temperature=temperature)
+
+        input_ids = torch.cat([input_ids, next_token], dim=1)
+
+        if eos_token_id and (next_token == eos_token_id).all():
+            break
+
+    return input_ids
+
+# Effect of different k values:
+# k=1: Equivalent to greedy (no randomness)
+# k=5-10: Very focused, high quality but less diverse
+# k=50: Good balance (common default)
+# k=100: More diverse
+# k=vocab_size: No filtering (pure temperature sampling)
+
+# Example:
+# Vocab = ["the", "a", "of", "to", "and", "in", "is", "cat", ...]
+# Logits = [5.0, 4.0, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5, ...]
+#
+# k=3: Only consider ["the", "a", "of"]
+# k=5: Consider ["the", "a", "of", "to", "and"]
+
+# Properties:
+# ✓ Prevents sampling very unlikely tokens (avoids nonsense)
+# ✓ More diverse than greedy
+# ✗ Fixed k can be too restrictive or too loose
+#   (top-p adapts dynamically)</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation top-k sampling inference EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">How do you implement top-p (nucleus) sampling?</div>
+        <div class="back">
+            <strong>Top-p samples from smallest set of tokens with cumulative probability > p:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def top_p_sampling(logits, p=0.9, temperature=1.0):
+    """
+    Nucleus sampling: sample from tokens whose cumulative probability >= p.
+
+    logits: (batch, vocab_size)
+    p: cumulative probability threshold (typically 0.9)
+    """
+    # Apply temperature
+    scaled_logits = logits / temperature
+
+    # Convert to probabilities
+    probs = F.softmax(scaled_logits, dim=-1)
+
+    # Sort probabilities in descending order
+    sorted_probs, sorted_indices = torch.sort(probs, descending=True, dim=-1)
+
+    # Compute cumulative probabilities
+    cumsum_probs = torch.cumsum(sorted_probs, dim=-1)
+
+    # Find where cumulative probability exceeds p
+    # Keep tokens until we exceed p
+    sorted_indices_to_remove = cumsum_probs > p
+
+    # Shift right to keep first token that exceeds p
+    sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+    sorted_indices_to_remove[..., 0] = False
+
+    # Create mask for original indices
+    indices_to_remove = sorted_indices_to_remove.scatter(
+        1, sorted_indices, sorted_indices_to_remove
+    )
+
+    # Set removed indices to very low probability
+    filtered_logits = logits.clone()
+    filtered_logits[indices_to_remove] = float('-inf')
+
+    # Sample from filtered distribution
+    filtered_probs = F.softmax(filtered_logits / temperature, dim=-1)
+    next_token = torch.multinomial(filtered_probs, num_samples=1)
+
+    return next_token
+
+# Example:
+# Probs: [0.6, 0.2, 0.1, 0.05, 0.03, 0.02, ...]
+# Cumsum: [0.6, 0.8, 0.9, 0.95, 0.98, 1.0, ...]
+#              ↑              ↑
+#         p=0.8 cutoff   p=0.95 cutoff
+
+# With p=0.9: sample from top 3 tokens (cum prob = 0.9)
+# With p=0.95: sample from top 4 tokens (cum prob = 0.95)
+
+# Adaptive behavior:
+# - When distribution is sharp: selects few tokens
+#   Probs: [0.7, 0.15, 0.1, ...] → selects 3 tokens (cum=0.95)
+# - When distribution is flat: selects many tokens
+#   Probs: [0.2, 0.18, 0.15, ...] → selects 10+ tokens (cum=0.9)
+
+# Properties:
+# ✓ Adapts to distribution shape (unlike fixed top-k)
+# ✓ Good balance of quality and diversity
+# ✓ Works well with p=0.9-0.95
+# ✗ Slightly more complex than top-k</code></pre>
+
+            <p>Top-p is generally preferred over top-k for modern generation.</p>
+        </div>
+        <div class="tags">cs pythonML generation top-p nucleus-sampling inference EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">CLOZE: Top-k sampling uses a <span class="cloze">fixed number</span> of tokens, while top-p (nucleus) sampling uses a <span class="cloze">dynamic number</span> based on cumulative probability.</div>
+        <div class="back">
+            <strong>Answer: fixed number, dynamic number</strong>
+
+            <p>Comparison:</p>
+            <pre><code># Example probability distribution:
+# Token:  A     B     C     D     E     F     G     ...
+# Prob:  0.4   0.3   0.15  0.08  0.04  0.02  0.01  ...
+# Cum:   0.4   0.7   0.85  0.93  0.97  0.99  1.0   ...
+
+# Top-k with k=3:
+# Always selects from top 3 tokens: A, B, C
+# Size: 3 tokens (fixed)
+# Cum probability: 0.85
+
+# Top-p with p=0.9:
+# Selects tokens until cum prob > 0.9
+# → Includes A, B, C, D (cum=0.93)
+# Size: 4 tokens (dynamic)
+
+# Different distribution:
+# Token:  A     B     C     D     E     F     ...
+# Prob:  0.8   0.1   0.05  0.03  0.01  0.01  ...
+# Cum:   0.8   0.9   0.95  0.98  0.99  1.0   ...
+
+# Top-k with k=3:
+# Selects: A, B, C (fixed)
+# Cum probability: 0.95
+
+# Top-p with p=0.9:
+# Selects: A, B only! (cum=0.9)
+# Size: 2 tokens (adaptive)
+
+# Key insight:
+# Top-k: Can include very unlikely tokens if distribution is sharp
+#        Or exclude likely tokens if distribution is flat
+# Top-p: Adapts to distribution shape
+#        Sharp distribution → few tokens
+#        Flat distribution → many tokens
+
+# When to use:
+# Top-k: Simpler, faster, works reasonably well
+# Top-p: Better quality, adapts to context
+#        (preferred for modern LLMs)
+
+# Can combine both:
+# Apply top-k first (e.g., k=100) to reduce vocabulary
+# Then apply top-p (e.g., p=0.95) for final selection</code></pre>
+        </div>
+        <div class="tags">cs pythonML top-k top-p cloze sampling comparison EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">How do you implement repetition penalty to avoid repetitive text?</div>
+        <div class="back">
+            <strong>Repetition penalty reduces probability of already-generated tokens:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def apply_repetition_penalty(logits, input_ids, penalty=1.2):
+    """
+    Apply repetition penalty to logits.
+
+    logits: (batch, vocab_size) - current logits
+    input_ids: (batch, seq_len) - previously generated tokens
+    penalty: float > 1.0 (typical: 1.1-1.5)
+      - Higher penalty → stronger discouragement of repetition
+    """
+    batch_size, vocab_size = logits.shape
+
+    # For each token that has appeared, reduce its logit
+    for batch_idx in range(batch_size):
+        # Get unique tokens that have appeared
+        previous_tokens = input_ids[batch_idx].unique()
+
+        for token_id in previous_tokens:
+            # If current logit is positive, divide by penalty
+            # If negative, multiply by penalty
+            if logits[batch_idx, token_id] > 0:
+                logits[batch_idx, token_id] /= penalty
+            else:
+                logits[batch_idx, token_id] *= penalty
+
+    return logits
+
+def generate_with_repetition_penalty(model, input_ids, max_length=50,
+                                    penalty=1.2, temperature=1.0,
+                                    top_p=0.9, eos_token_id=None):
+    """Generate with repetition penalty."""
+    for _ in range(max_length):
+        with torch.no_grad():
+            logits = model(input_ids)
+
+        next_token_logits = logits[:, -1, :]
+
+        # Apply repetition penalty
+        next_token_logits = apply_repetition_penalty(
+            next_token_logits,
+            input_ids,
+            penalty=penalty
+        )
+
+        # Apply temperature
+        next_token_logits = next_token_logits / temperature
+
+        # Top-p sampling
+        next_token = top_p_sampling(next_token_logits, p=top_p, temperature=1.0)
+
+        input_ids = torch.cat([input_ids, next_token], dim=1)
+
+        if eos_token_id and (next_token == eos_token_id).all():
+            break
+
+    return input_ids
+
+# Example effect:
+# Without penalty:
+# "The cat sat on the mat. The cat was happy. The cat..."
+#  (repeats "The cat")
+
+# With penalty=1.2:
+# "The cat sat on the mat. It was happy and purring..."
+#  (more diverse, uses "It" instead of repeating "The cat")
+
+# Penalty values:
+# 1.0: No penalty (default)
+# 1.1-1.2: Mild penalty (good for most cases)
+# 1.3-1.5: Strong penalty (can make text less natural)
+# > 1.5: Very strong (may produce unnatural alternatives)
+
+# Variants:
+# - Frequency penalty: proportional to count
+# - Presence penalty: binary (appeared or not)
+# - Decaying penalty: stronger for recent tokens</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation repetition-penalty anti-repetition EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">How do you implement length penalty for beam search?</div>
+        <div class="back">
+            <strong>Length penalty normalizes scores to avoid bias toward shorter sequences:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def length_penalty(length, alpha=0.6):
+    """
+    Compute length penalty.
+    Google NMT paper: ((5 + length) / (5 + 1))^alpha
+
+    alpha = 0: no penalty (favors short sequences)
+    alpha = 1: full normalization (divides by length)
+    alpha = 0.6-0.8: typical values
+    """
+    return ((5 + length) / (5 + 1)) ** alpha
+
+def beam_search_with_length_penalty(model, input_ids, beam_size=5,
+                                   max_length=50, alpha=0.6,
+                                   eos_token_id=None):
+    """Beam search with length normalization."""
+    batch_size = input_ids.size(0)
+    assert batch_size == 1
+
+    beams = input_ids.repeat(beam_size, 1)
+    beam_scores = torch.zeros(beam_size, device=input_ids.device)
+    beam_scores[1:] = float('-inf')
+
+    # Track finished beams
+    finished_beams = []
+    finished_scores = []
+
+    for step in range(max_length):
+        with torch.no_grad():
+            logits = model(beams)
+
+        next_token_logits = logits[:, -1, :]
+        log_probs = F.log_softmax(next_token_logits, dim=-1)
+
+        # Add to beam scores
+        vocab_size = log_probs.size(-1)
+        next_scores = beam_scores.unsqueeze(1) + log_probs
+
+        # Apply length penalty to scores
+        # Current length = initial length + step + 1
+        current_length = input_ids.size(1) + step + 1
+        lp = length_penalty(current_length, alpha)
+
+        # Normalize by length penalty
+        next_scores_normalized = next_scores / lp
+
+        # Select top beams
+        next_scores_flat = next_scores_normalized.view(-1)
+        top_scores, top_indices = torch.topk(next_scores_flat, beam_size)
+
+        beam_indices = top_indices // vocab_size
+        token_indices = top_indices % vocab_size
+
+        # Update beams
+        beams = torch.cat([
+            beams[beam_indices],
+            token_indices.unsqueeze(1)
+        ], dim=1)
+
+        # Store actual scores (not normalized) for next iteration
+        beam_scores = (top_scores * lp).flatten()  # Revert normalization
+
+        # Check for finished beams (EOS token)
+        if eos_token_id is not None:
+            for i, token_id in enumerate(token_indices):
+                if token_id == eos_token_id:
+                    # Store finished beam with normalized score
+                    finished_beams.append(beams[i].clone())
+                    finished_scores.append(top_scores[i].item())
+
+    # Add unfinished beams
+    for i in range(beam_size):
+        lp = length_penalty(beams.size(1), alpha)
+        finished_beams.append(beams[i])
+        finished_scores.append(beam_scores[i].item() / lp)
+
+    # Select best by normalized score
+    best_idx = torch.tensor(finished_scores).argmax()
+    return finished_beams[best_idx].unsqueeze(0), finished_scores[best_idx]
+
+# Why length penalty matters:
+# Without penalty: shorter sequences have higher scores
+#   Seq 1: log P("The cat") = -2.5
+#   Seq 2: log P("The cat sat on mat") = -8.5
+#   → Prefers Seq 1 even though Seq 2 is more complete!
+
+# With penalty (alpha=0.6):
+#   Seq 1: -2.5 / ((5+2)/(5+1))^0.6 = -2.29
+#   Seq 2: -8.5 / ((5+6)/(5+1))^0.6 = -5.13
+#   → Better balance</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation beam-search length-penalty EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">CLOZE: In generation, combining <span class="cloze">top-p sampling</span> with <span class="cloze">temperature</span> and <span class="cloze">repetition penalty</span> typically produces the best results for creative text.</div>
+        <div class="back">
+            <strong>Answer: top-p sampling, temperature, repetition penalty</strong>
+
+            <p>Recommended configuration for different use cases:</p>
+            <pre><code># Creative writing (stories, poetry):
+generation_config = {
+    'temperature': 0.9,      # Higher for creativity
+    'top_p': 0.95,           # Allow diverse vocabulary
+    'repetition_penalty': 1.2,  # Avoid repetition
+    'top_k': None,           # Don't use fixed k
+    'do_sample': True        # Enable sampling
+}
+
+# Factual/Informative (QA, summarization):
+generation_config = {
+    'temperature': 0.7,      # Lower for focus
+    'top_p': 0.9,            # Moderate diversity
+    'repetition_penalty': 1.1,  # Mild penalty
+    'top_k': 50,             # Optional: limit extremes
+    'do_sample': True
+}
+
+# Code generation:
+generation_config = {
+    'temperature': 0.2,      # Very focused
+    'top_p': 0.95,           # Allow some flexibility
+    'repetition_penalty': 1.0,  # No penalty (code repeats!)
+    'top_k': None,
+    'do_sample': True        # Slight randomness good
+}
+
+# Deterministic (translation, formal):
+generation_config = {
+    'temperature': 1.0,      # Unused (no sampling)
+    'do_sample': False,      # Greedy or beam search
+    'num_beams': 4,          # Use beam search
+    'length_penalty': 0.6,   # For beam search
+    'repetition_penalty': 1.2
+}
+
+# Using with Hugging Face:
+from transformers import GenerationConfig
+
+config = GenerationConfig(
+    temperature=0.9,
+    top_p=0.95,
+    repetition_penalty=1.2,
+    max_new_tokens=100
+)
+
+outputs = model.generate(input_ids, generation_config=config)</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation sampling cloze configuration EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">How do you implement efficient batched generation with different stopping criteria?</div>
+        <div class="back">
+            <strong>Batched generation must handle sequences finishing at different times:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def batched_generate(model, input_ids, max_length=50,
+                    temperature=1.0, top_p=0.9,
+                    eos_token_id=None, pad_token_id=None):
+    """
+    Generate for batch, handling sequences that finish early.
+
+    input_ids: (batch_size, initial_seq_len)
+    Returns: (batch_size, final_seq_len) with padding
+    """
+    batch_size = input_ids.size(0)
+    device = input_ids.device
+
+    # Track which sequences are still generating
+    unfinished = torch.ones(batch_size, dtype=torch.bool, device=device)
+
+    # Track maximum length reached
+    max_reached_length = input_ids.size(1)
+
+    for step in range(max_length):
+        # Only generate for unfinished sequences
+        if not unfinished.any():
+            break  # All sequences finished
+
+        with torch.no_grad():
+            logits = model(input_ids)
+
+        # Get next token logits
+        next_token_logits = logits[:, -1, :]  # (batch, vocab_size)
+
+        # Apply temperature and top-p
+        next_token_logits = next_token_logits / temperature
+        next_tokens = top_p_sampling(next_token_logits, p=top_p, temperature=1.0)
+
+        # For finished sequences, use pad token
+        if pad_token_id is not None:
+            next_tokens = next_tokens * unfinished.unsqueeze(1) + \
+                         pad_token_id * (~unfinished).unsqueeze(1)
+
+        # Append to sequences
+        input_ids = torch.cat([input_ids, next_tokens], dim=1)
+        max_reached_length += 1
+
+        # Update unfinished mask
+        if eos_token_id is not None:
+            newly_finished = (next_tokens.squeeze(-1) == eos_token_id)
+            unfinished = unfinished & ~newly_finished
+
+    return input_ids
+
+# More efficient: update only unfinished sequences
+def batched_generate_efficient(model, input_ids, max_length=50,
+                               temperature=1.0, top_p=0.9,
+                               eos_token_id=None, pad_token_id=None):
+    """
+    Only compute forward pass for unfinished sequences.
+    More complex but faster for large batches.
+    """
+    batch_size = input_ids.size(0)
+    device = input_ids.device
+
+    # Track finished sequences
+    finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
+    generated = input_ids.clone()
+
+    for step in range(max_length):
+        # Get indices of unfinished sequences
+        unfinished_idx = (~finished).nonzero(as_tuple=True)[0]
+
+        if len(unfinished_idx) == 0:
+            break
+
+        # Only process unfinished sequences
+        current_input = generated[unfinished_idx]
+
+        with torch.no_grad():
+            logits = model(current_input)
+
+        next_token_logits = logits[:, -1, :]
+        next_tokens = top_p_sampling(
+            next_token_logits / temperature,
+            p=top_p,
+            temperature=1.0
+        )
+
+        # Update only unfinished sequences
+        for i, idx in enumerate(unfinished_idx):
+            generated[idx] = torch.cat([
+                generated[idx],
+                next_tokens[i]
+            ])
+
+            # Check if finished
+            if eos_token_id and next_tokens[i].item() == eos_token_id:
+                finished[idx] = True
+
+    # Pad to same length
+    max_len = max(seq.size(0) for seq in generated)
+    padded = torch.full(
+        (batch_size, max_len),
+        pad_token_id if pad_token_id is not None else 0,
+        device=device
+    )
+
+    for i, seq in enumerate(generated):
+        padded[i, :seq.size(0)] = seq
+
+    return padded</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation batching efficiency stopping-criteria EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">How do you combine generation strategies (e.g., beam search + top-p)?</div>
+        <div class="back">
+            <strong>Hybrid strategies can balance exploration and quality:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def beam_sample(model, input_ids, num_beams=4, num_return_sequences=1,
+               temperature=1.0, top_p=0.9, max_length=50):
+    """
+    Beam search + sampling hybrid:
+    - Maintain num_beams candidates
+    - At each step, sample (don't take top-k deterministically)
+    - Provides diversity while maintaining quality
+
+    Also called "diverse beam search" or "sampling with beams"
+    """
+    batch_size = input_ids.size(0)
+    assert batch_size == 1
+
+    # Initialize beams
+    beams = input_ids.repeat(num_beams, 1)
+    beam_scores = torch.zeros(num_beams, device=input_ids.device)
+    beam_scores[1:] = float('-inf')
+
+    for step in range(max_length):
+        with torch.no_grad():
+            logits = model(beams)
+
+        next_token_logits = logits[:, -1, :]
+
+        # Apply temperature
+        next_token_logits = next_token_logits / temperature
+
+        # Convert to probabilities
+        probs = F.softmax(next_token_logits, dim=-1)
+
+        # For each beam, apply top-p and sample
+        next_tokens = []
+        next_log_probs = []
+
+        for beam_idx in range(num_beams):
+            # Top-p filtering for this beam
+            beam_probs = probs[beam_idx]
+
+            # Apply top-p
+            sorted_probs, sorted_indices = torch.sort(beam_probs, descending=True)
+            cumsum_probs = torch.cumsum(sorted_probs, dim=0)
+
+            # Remove tokens with cumsum > p
+            sorted_indices_to_remove = cumsum_probs > top_p
+            sorted_indices_to_remove[1:] = sorted_indices_to_remove[:-1].clone()
+            sorted_indices_to_remove[0] = False
+
+            # Keep only nucleus
+            nucleus_probs = beam_probs.clone()
+            nucleus_probs[sorted_indices[sorted_indices_to_remove]] = 0
+            nucleus_probs = nucleus_probs / nucleus_probs.sum()
+
+            # Sample from nucleus
+            token = torch.multinomial(nucleus_probs, num_samples=1)
+            log_prob = torch.log(nucleus_probs[token] + 1e-10)
+
+            next_tokens.append(token)
+            next_log_probs.append(log_prob)
+
+        next_tokens = torch.stack(next_tokens).squeeze(-1)
+        next_log_probs = torch.stack(next_log_probs).squeeze(-1)
+
+        # Update beam scores
+        beam_scores = beam_scores + next_log_probs
+
+        # Update beams
+        beams = torch.cat([beams, next_tokens.unsqueeze(-1)], dim=1)
+
+    # Return top beams by score
+    top_indices = beam_scores.argsort(descending=True)[:num_return_sequences]
+    return beams[top_indices]
+
+# Another hybrid: Greedy until confident, then sample
+def confidence_adaptive_sampling(model, input_ids, max_length=50,
+                                confidence_threshold=0.9,
+                                temperature=1.0, top_p=0.9):
+    """
+    Use greedy when confident, sample when uncertain.
+    """
+    for _ in range(max_length):
+        with torch.no_grad():
+            logits = model(input_ids)
+
+        next_token_logits = logits[:, -1, :]
+        probs = F.softmax(next_token_logits, dim=-1)
+
+        # Check confidence (max probability)
+        max_prob = probs.max(dim=-1)[0]
+
+        if max_prob > confidence_threshold:
+            # High confidence: use greedy
+            next_token = probs.argmax(dim=-1, keepdim=True)
+        else:
+            # Low confidence: sample with top-p
+            next_token = top_p_sampling(next_token_logits, p=top_p, temperature=temperature)
+
+        input_ids = torch.cat([input_ids, next_token], dim=1)
+
+    return input_ids</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation hybrid-strategies beam-sampling EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">How do you implement contrastive search (SimCTG) decoding?</div>
+        <div class="back">
+            <strong>Contrastive search balances fluency and diversity using degeneration penalty:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def contrastive_search(model, input_ids, max_length=50, k=5, alpha=0.6):
+    """
+    Contrastive search (SimCTG): balance model confidence and anti-repetition.
+
+    k: size of candidate set
+    alpha: weight between fluency and diversity (0-1)
+      - alpha=0: pure fluency (like greedy)
+      - alpha=1: pure diversity
+      - alpha=0.6: typical balanced value
+
+    Score = (1 - alpha) * p(w|context) - alpha * max_cosine_sim(h_w, h_prev)
+    """
+    # Get hidden states during generation
+    def get_hidden_states(model, input_ids):
+        with torch.no_grad():
+            outputs = model(input_ids, output_hidden_states=True)
+        # Get last layer hidden states
+        hidden = outputs.hidden_states[-1]  # (batch, seq_len, d_model)
+        return hidden
+
+    for step in range(max_length):
+        with torch.no_grad():
+            outputs = model(input_ids, output_hidden_states=True)
+            logits = outputs.logits
+            hidden_states = outputs.hidden_states[-1]
+
+        # Get logits for next token
+        next_token_logits = logits[:, -1, :]  # (batch, vocab_size)
+
+        # Get top-k candidates
+        top_k_probs, top_k_ids = torch.topk(
+            F.softmax(next_token_logits, dim=-1),
+            k=k,
+            dim=-1
+        )
+        # top_k_probs: (batch, k)
+        # top_k_ids: (batch, k)
+
+        # Get hidden state for current position
+        current_hidden = hidden_states[:, -1, :]  # (batch, d_model)
+
+        # For each candidate, compute its hidden state
+        # and measure similarity to previous tokens
+        best_scores = []
+        for batch_idx in range(input_ids.size(0)):
+            candidate_scores = []
+
+            for cand_idx in range(k):
+                token_id = top_k_ids[batch_idx, cand_idx]
+                prob = top_k_probs[batch_idx, cand_idx]
+
+                # Simulate adding this token and get its hidden state
+                # (In practice, we'd need to run forward pass for each)
+                # Simplified: use token embedding as proxy
+                token_embedding = model.get_input_embeddings()(token_id.unsqueeze(0))
+
+                # Compute cosine similarity with previous hidden states
+                prev_hidden = hidden_states[batch_idx, :-1, :]  # All previous positions
+                token_hidden = token_embedding.squeeze(0)
+
+                # Cosine similarity
+                cos_sim = F.cosine_similarity(
+                    token_hidden.unsqueeze(0),
+                    prev_hidden,
+                    dim=-1
+                )
+
+                # Maximum similarity (degeneration penalty)
+                max_cos_sim = cos_sim.max()
+
+                # Contrastive score
+                score = (1 - alpha) * prob - alpha * max_cos_sim
+
+                candidate_scores.append(score.item())
+
+            # Select candidate with highest contrastive score
+            best_idx = torch.tensor(candidate_scores).argmax()
+            best_token = top_k_ids[batch_idx, best_idx]
+            best_scores.append(best_token.unsqueeze(0))
+
+        next_token = torch.cat(best_scores, dim=0).unsqueeze(-1)
+        input_ids = torch.cat([input_ids, next_token], dim=1)
+
+    return input_ids
+
+# Properties:
+# ✓ Reduces repetition (via cosine similarity penalty)
+# ✓ Maintains coherence (via model probability)
+# ✓ No need for explicit repetition penalty
+# ✗ Slower (needs hidden states)
+# ✗ More complex than standard sampling
+
+# Used in: SimCTG paper, some research systems</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation contrastive-search simctg diversity EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">CLOZE: When generating with KV cache, we only need to compute attention for the <span class="cloze">new token</span>, reducing complexity from <span class="cloze">O(n²)</span> to <span class="cloze">O(n)</span> for generating n tokens.</div>
+        <div class="back">
+            <strong>Answer: new token, O(n²), O(n)</strong>
+
+            <p>Generation with KV caching:</p>
+            <pre><code>def generate_with_kv_cache(model, input_ids, max_length=50):
+    """
+    Efficient generation using KV cache.
+    Only compute attention for new token.
+    """
+    past_key_values = None  # KV cache
+
+    for step in range(max_length):
+        if past_key_values is None:
+            # First step: process all input tokens
+            current_input = input_ids
+        else:
+            # Subsequent steps: only process new token
+            current_input = input_ids[:, -1:]  # Just last token!
+
+        # Forward pass with cache
+        with torch.no_grad():
+            outputs = model(
+                current_input,
+                past_key_values=past_key_values,
+                use_cache=True  # Enable caching
+            )
+
+        logits = outputs.logits
+        past_key_values = outputs.past_key_values  # Store cache for next step
+
+        # Sample next token
+        next_token_logits = logits[:, -1, :]
+        next_token = torch.argmax(next_token_logits, dim=-1, keepdim=True)
+
+        # Append to sequence
+        input_ids = torch.cat([input_ids, next_token], dim=1)
+
+    return input_ids
+
+# Complexity analysis:
+# Without cache:
+# Step 1: Attend over 1 token → 1 operation
+# Step 2: Attend over 2 tokens → 2 operations
+# Step 3: Attend over 3 tokens → 3 operations
+# ...
+# Step n: Attend over n tokens → n operations
+# Total: 1 + 2 + 3 + ... + n = n(n+1)/2 = O(n²)
+
+# With cache:
+# Step 1: Attend over 1 token, cache K,V → 1 operation
+# Step 2: New token attends to cached K,V → 1 operation
+# Step 3: New token attends to cached K,V → 1 operation
+# ...
+# Step n: New token attends to cached K,V → 1 operation
+# Total: n × 1 = O(n)
+
+# Speedup: O(n²) / O(n) = O(n)
+# For n=100 tokens: ~100x faster!
+
+# Memory trade-off:
+# Cache stores: K and V for all layers and tokens
+# Size: 2 × num_layers × num_heads × seq_len × head_dim
+# For Llama 2 7B with 4096 tokens: ~1-2 GB</code></pre>
+        </div>
+        <div class="tags">cs pythonML generation kv-cache cloze efficiency complexity EN</div>
+    </div>
+
+</body>
+</html>

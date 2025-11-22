@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Parameter-Efficient Fine-Tuning (PEFT) - CS Vocab</title>
+    <style>
+        .card {
+            font-family: Arial, sans-serif;
+            font-size: 0.75em;
+            text-align: left;
+        }
+        .cloze {
+            font-weight: bold;
+            color: blue;
+        }
+        pre, code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        pre {
+            padding: 10px;
+            border-left: 3px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1: LoRA Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement LoRA (Low-Rank Adaptation) from scratch in PyTorch. Explain how it reduces trainable parameters while maintaining performance.</p>
+    <h4>Answer:</h4>
+    <p><strong>LoRA implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+
+class LoRALayer(nn.Module):
+    def __init__(self, in_features, out_features, rank=4, alpha=16):
+        """
+        LoRA decomposes weight update ΔW = B @ A
+        where A: (in_features, rank), B: (rank, out_features)
+
+        Args:
+            in_features: Input dimension
+            out_features: Output dimension
+            rank: Bottleneck dimension (typically 4-64)
+            alpha: Scaling factor (typically 16-32)
+        """
+        super().__init__()
+        self.rank = rank
+        self.alpha = alpha
+
+        # Original pretrained weight (frozen)
+        self.weight = nn.Parameter(torch.randn(out_features, in_features))
+        self.weight.requires_grad = False
+
+        # LoRA decomposition
+        self.lora_A = nn.Parameter(torch.randn(in_features, rank))
+        self.lora_B = nn.Parameter(torch.zeros(rank, out_features))
+
+        # Initialize A with Kaiming, B with zeros
+        nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))
+
+        self.scaling = alpha / rank
+
+    def forward(self, x):
+        # Original output: x @ W^T
+        pretrained_out = F.linear(x, self.weight)
+
+        # LoRA output: x @ A @ B^T
+        lora_out = (x @ self.lora_A @ self.lora_B.T) * self.scaling
+
+        return pretrained_out + lora_out
+
+# Apply LoRA to existing model
+class LoRALinear(nn.Module):
+    def __init__(self, linear_layer, rank=4, alpha=16):
+        super().__init__()
+        self.linear = linear_layer
+        self.linear.weight.requires_grad = False  # Freeze original
+
+        in_features = linear_layer.in_features
+        out_features = linear_layer.out_features
+
+        self.lora_A = nn.Parameter(torch.randn(in_features, rank))
+        self.lora_B = nn.Parameter(torch.zeros(rank, out_features))
+        nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))
+
+        self.scaling = alpha / rank
+
+    def forward(self, x):
+        original = self.linear(x)
+        lora = (x @ self.lora_A @ self.lora_B.T) * self.scaling
+        return original + lora</pre>
+
+    <p><strong>How LoRA reduces parameters:</strong></p>
+    <pre>Full fine-tuning:
+- Train all W: d_in × d_out parameters
+- For 7B model: ~7 billion parameters
+
+LoRA fine-tuning:
+- Train A (d_in × r) + B (r × d_out)
+- Total: r × (d_in + d_out) parameters
+
+Example: 4096 → 4096 linear layer
+- Full: 4096 × 4096 = 16.7M parameters
+- LoRA (r=8): 8 × (4096 + 4096) = 65K parameters
+- Reduction: 256x fewer trainable parameters!
+
+Typical settings:
+- rank r = 4-64 (lower for smaller tasks)
+- alpha = 16-32 (controls learning rate scaling)
+- Apply to query/value or all attention weights
+
+Performance:
+- Usually 95-100% of full fine-tuning performance
+- Much lower memory (only train 0.1-1% of parameters)
+- Faster training, easier to store/share adapters</pre>
+</div>
+
+<!-- Card 2: LoRA (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>LoRA approximates weight updates as {{c1::low-rank matrices ΔW = BA}}, where rank {{c2::r << min(d_in, d_out)}}. Typical rank values are {{c3::4-64}}, reducing parameters by {{c4::100-1000x}}. The scaling factor {{c5::α/r}} is applied to LoRA outputs, with α typically {{c6::16-32}}. LoRA is most commonly applied to {{c7::attention query and value matrices}}.</p>
+</div>
+
+<!-- Card 3: QLoRA Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement QLoRA (Quantized LoRA) using bitsandbytes. What are the key differences from standard LoRA?</p>
+    <h4>Answer:</h4>
+    <p><strong>QLoRA implementation:</strong></p>
+    <pre>import torch
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+# 1. Load model in 4-bit
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",  # NormalFloat4
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=True,  # Nested quantization
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-2-7b-hf",
+    quantization_config=bnb_config,
+    device_map="auto",
+)
+
+# 2. Prepare for k-bit training
+model = prepare_model_for_kbit_training(model)
+
+# 3. Add LoRA adapters
+lora_config = LoraConfig(
+    r=16,  # Rank
+    lora_alpha=32,
+    target_modules=["q_proj", "v_proj"],  # Which layers to adapt
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()
+# Output: trainable params: 4.2M || all params: 6.7B || trainable%: 0.063%
+
+# 4. Train normally
+from transformers import Trainer
+
+trainer = Trainer(
+    model=model,
+    train_dataset=train_dataset,
+    # ... other args
+)
+trainer.train()</pre>
+
+    <p><strong>QLoRA key innovations:</strong></p>
+    <pre>1. 4-bit NormalFloat (NF4) quantization
+   - Information-theoretically optimal for normal distributions
+   - Better than standard INT4 for model weights
+
+2. Double quantization
+   - Quantize the quantization constants themselves
+   - Saves additional ~0.4 bits per parameter
+
+3. Paged optimizers
+   - Use CPU RAM when GPU memory is full
+   - Enables training larger models
+
+Memory comparison (7B model):
+- Full fine-tuning fp16: ~28 GB
+- LoRA fp16: ~24 GB (still loads full model)
+- QLoRA 4-bit: ~9 GB
+- Enables 65B model on single 48GB GPU!
+
+Performance:
+- Minimal degradation vs LoRA (~1-2%)
+- Democratizes LLM fine-tuning
+- Can fine-tune on consumer GPUs (RTX 4090, etc.)</pre>
+</div>
+
+<!-- Card 4: Adapter Layers -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement Adapter layers for parameter-efficient fine-tuning. How do they compare to LoRA?</p>
+    <h4>Answer:</h4>
+    <p><strong>Adapter implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+
+class AdapterLayer(nn.Module):
+    def __init__(self, hidden_size, adapter_size=64):
+        """
+        Bottleneck adapter: hidden -> down -> up -> hidden
+
+        Args:
+            hidden_size: Model dimension (e.g., 768, 4096)
+            adapter_size: Bottleneck dimension (typically 64-256)
+        """
+        super().__init__()
+
+        # Down-project
+        self.down_proj = nn.Linear(hidden_size, adapter_size)
+
+        # Non-linearity
+        self.activation = nn.ReLU()
+
+        # Up-project back to hidden_size
+        self.up_proj = nn.Linear(adapter_size, hidden_size)
+
+        # Initialize near-identity (small random init)
+        nn.init.normal_(self.down_proj.weight, std=1e-3)
+        nn.init.zeros_(self.up_proj.weight)
+        nn.init.zeros_(self.down_proj.bias)
+        nn.init.zeros_(self.up_proj.bias)
+
+    def forward(self, x):
+        # Residual connection
+        adapter_output = self.up_proj(self.activation(self.down_proj(x)))
+        return x + adapter_output
+
+# Insert adapters into transformer
+class TransformerBlockWithAdapter(nn.Module):
+    def __init__(self, original_block, adapter_size=64):
+        super().__init__()
+        self.original_block = original_block
+        self.adapter = AdapterLayer(original_block.hidden_size, adapter_size)
+
+        # Freeze original block
+        for param in self.original_block.parameters():
+            param.requires_grad = False
+
+    def forward(self, x):
+        # Original transformer block
+        x = self.original_block(x)
+        # Add adapter
+        x = self.adapter(x)
+        return x</pre>
+
+    <p><strong>Adapters vs LoRA:</strong></p>
+    <pre><strong>Adapters:</strong>
+Architecture:
+- Sequential bottleneck layers: down → nonlinear → up
+- Added after attention/FFN in each layer
+- Residual connection: output = input + adapter(input)
+
+Parameters (per layer):
+- 2 × hidden_size × adapter_size
+- Example: 4096 hidden, 64 adapter = 524K params
+
+Pros:
++ Modular: easy to add/remove
++ Can stack multiple adapters
++ Clear architectural separation
+
+Cons:
+- Adds sequential operations (latency)
+- More parameters than LoRA for same capacity
+
+<strong>LoRA:</strong>
+Architecture:
+- Parallel low-rank updates: output = Wx + BAx
+- Applied to specific weight matrices
+- No extra sequential operations
+
+Parameters (per layer):
+- rank × (d_in + d_out)
+- Example: 4096→4096, rank 8 = 65K params
+
+Pros:
++ Fewer parameters (10x less than adapters)
++ No inference latency (can merge BA into W)
++ More efficient
+
+Cons:
+- Less modular
+- Can't easily stack multiple LoRAs
+
+<strong>When to use:</strong>
+- LoRA: Default choice (efficiency, performance)
+- Adapters: Need to compose multiple adaptations
+- QLoRA: Limited GPU memory</pre>
+</div>
+
+<!-- Card 5: Prefix Tuning (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Prefix tuning prepends {{c1::trainable continuous vectors}} to each layer's key and value, while keeping the model {{c2::frozen}}. It requires {{c3::0.1-3% of total parameters}}, typically {{c4::10-200 prefix tokens}} per layer. Unlike prompt tuning which only adds to {{c5::input embeddings}}, prefix tuning adds to {{c6::every transformer layer}}.</p>
+</div>
+
+<!-- Card 6: Prefix Tuning Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement prefix tuning for a transformer model. How does it differ from prompt tuning?</p>
+    <h4>Answer:</h4>
+    <p><strong>Prefix tuning implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+
+class PrefixTuning(nn.Module):
+    def __init__(self, num_layers, num_heads, head_dim, prefix_length=20):
+        """
+        Args:
+            num_layers: Number of transformer layers
+            num_heads: Number of attention heads
+            head_dim: Dimension per head
+            prefix_length: Number of prefix tokens (virtual)
+        """
+        super().__init__()
+        self.prefix_length = prefix_length
+        self.num_layers = num_layers
+
+        hidden_size = num_heads * head_dim
+
+        # Trainable prefix parameters for each layer
+        # Shape: (num_layers, 2, prefix_length, hidden_size)
+        # 2 for key and value
+        self.prefix_params = nn.Parameter(
+            torch.randn(num_layers, 2, prefix_length, hidden_size)
+        )
+
+        # Optional: use MLP reparameterization (more stable)
+        self.prefix_mlp = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size * 4),
+            nn.Tanh(),
+            nn.Linear(hidden_size * 4, 2 * hidden_size)  # For K and V
+        )
+
+    def get_prefix(self, layer_idx, batch_size):
+        """Get prefix key and value for a specific layer"""
+        # Get prefix params for this layer
+        prefix = self.prefix_params[layer_idx]  # (2, prefix_len, hidden)
+
+        # Expand for batch
+        prefix_k = prefix[0].unsqueeze(0).expand(batch_size, -1, -1)
+        prefix_v = prefix[1].unsqueeze(0).expand(batch_size, -1, -1)
+
+        return prefix_k, prefix_v
+
+    def forward(self, layer_idx, key, value):
+        """
+        Prepend prefix to keys and values
+
+        Args:
+            layer_idx: Which transformer layer
+            key: (batch, seq_len, hidden)
+            value: (batch, seq_len, hidden)
+        """
+        batch_size = key.size(0)
+        prefix_k, prefix_v = self.get_prefix(layer_idx, batch_size)
+
+        # Concatenate prefix with actual key/value
+        key = torch.cat([prefix_k, key], dim=1)
+        value = torch.cat([prefix_v, value], dim=1)
+
+        return key, value
+
+# Usage in transformer
+class TransformerWithPrefix(nn.Module):
+    def __init__(self, base_model, prefix_length=20):
+        super().__init__()
+        self.base_model = base_model
+        self.prefix_tuning = PrefixTuning(
+            num_layers=base_model.num_layers,
+            num_heads=base_model.num_heads,
+            head_dim=base_model.head_dim,
+            prefix_length=prefix_length
+        )
+
+        # Freeze base model
+        for param in self.base_model.parameters():
+            param.requires_grad = False
+
+    def forward(self, input_ids):
+        # In each attention layer, prepend prefix to K, V
+        # (Implementation depends on model architecture)
+        pass</pre>
+
+    <p><strong>Prefix vs Prompt Tuning:</strong></p>
+    <pre><strong>Prompt Tuning:</strong>
+- Add trainable tokens ONLY to input embeddings
+- Shape: (prefix_len, embedding_dim)
+- Parameters: ~0.01-0.1% of model
+- Simpler, fewer parameters
+- Works well for large models (10B+)
+
+Example:
+[VIRTUAL_1] [VIRTUAL_2] ... [VIRTUAL_20] The movie was [MASK]
+
+<strong>Prefix Tuning:</strong>
+- Add trainable K/V to EVERY layer
+- Shape: (num_layers, 2, prefix_len, hidden_dim)
+- Parameters: ~0.1-3% of model
+- More expressive, better for smaller models
+- Each layer gets task-specific context
+
+Parameters comparison (GPT-2 large: 774M params):
+- Prompt tuning (20 tokens): 20 × 1280 = 25K (0.003%)
+- Prefix tuning (20 prefix): 36 layers × 2 × 20 × 1280 = 1.8M (0.24%)
+
+Performance:
+- Prefix tuning typically better for <1B models
+- Prompt tuning catches up at 10B+ scale
+- Both much worse than LoRA in low-data regime</pre>
+</div>
+
+<!-- Card 7: IA3 (Infused Adapter) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement IA3 (Infused Adapter by Inhibiting and Amplifying Inner Activations). How does it achieve even fewer parameters than LoRA?</p>
+    <h4>Answer:</h4>
+    <p><strong>IA3 implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+
+class IA3Linear(nn.Module):
+    def __init__(self, linear_layer):
+        """
+        IA3: Scale activations with learned vectors
+
+        Instead of ΔW = BA (LoRA), use element-wise scaling:
+        output = (W @ x) ⊙ l_v  (for values in attention)
+        output = W @ (x ⊙ l_k)  (for keys in attention)
+        """
+        super().__init__()
+        self.linear = linear_layer
+        self.linear.weight.requires_grad = False
+
+        # Learned scaling vector (one per output dimension)
+        self.scaling = nn.Parameter(torch.ones(linear_layer.out_features))
+
+    def forward(self, x):
+        output = self.linear(x)
+        # Element-wise multiplication with learned scaling
+        return output * self.scaling
+
+class IA3Attention(nn.Module):
+    def __init__(self, attention_module):
+        super().__init__()
+        self.attn = attention_module
+
+        # Freeze original weights
+        for param in self.attn.parameters():
+            param.requires_grad = False
+
+        hidden_size = self.attn.hidden_size
+
+        # Learned scaling vectors
+        self.l_k = nn.Parameter(torch.ones(hidden_size))  # For keys
+        self.l_v = nn.Parameter(torch.ones(hidden_size))  # For values
+        # Note: Query is not scaled
+
+    def forward(self, hidden_states):
+        # Compute Q, K, V
+        query = self.attn.q_proj(hidden_states)
+        key = self.attn.k_proj(hidden_states)
+        value = self.attn.v_proj(hidden_states)
+
+        # Apply IA3 scaling
+        key = key * self.l_k
+        value = value * self.l_v
+
+        # Standard attention with scaled K, V
+        attention_output = self.attn.attention(query, key, value)
+        return attention_output</pre>
+
+    <p><strong>IA3 vs LoRA parameter count:</strong></p>
+    <pre>For 4096-dimensional layer:
+
+LoRA (rank 8):
+- A: 4096 × 8 = 32K
+- B: 8 × 4096 = 32K
+- Total: 64K parameters
+
+IA3:
+- Scaling vector: 4096
+- Total: 4K parameters
+- 16x fewer than LoRA!
+
+Full model (LLaMA-7B):
+- LoRA (r=8): ~4.2M trainable params (0.06%)
+- IA3: ~0.3M trainable params (0.004%)
+
+Performance:
+- IA3 surprisingly competitive with LoRA
+- Works best on T5-family models
+- Slightly worse on autoregressive models (GPT)
+- Best when compute/memory is extremely limited</pre>
+
+    <p><strong>When to use IA3:</strong></p>
+    <pre>Use IA3 when:
+1. Extreme parameter efficiency needed
+2. Fine-tuning T5/encoder-decoder models
+3. Many adapters to store/deploy
+
+Use LoRA when:
+4. Fine-tuning autoregressive models (GPT, LLaMA)
+5. Need best performance
+6. Parameters not the main constraint (memory/compute is)
+
+Key insight:
+- IA3: Rescale activations (multiplicative)
+- LoRA: Add low-rank updates (additive)
+- IA3 has strong inductive bias (scaling only)
+  → Works when this bias matches the task
+  → May underfit complex adaptations</pre>
+</div>
+
+<!-- Card 8: PEFT Comparison (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>PEFT methods ranked by parameters (7B model): {{c1::IA3 (0.004%)}} < {{c2::LoRA (0.01-0.1%)}} < {{c3::Prefix Tuning (0.1-1%)}} < {{c4::Adapters (0.5-5%)}}. For performance: {{c5::LoRA ≈ Full FT}} > {{c6::QLoRA}} ≈ {{c7::Adapters}} > {{c8::Prefix/Prompt Tuning}} > {{c9::IA3}}. Memory efficiency winner: {{c10::QLoRA (4-bit base model)}}.</p>
+</div>
+
+<!-- Card 9: HuggingFace PEFT Library -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Use the HuggingFace PEFT library to apply LoRA to a pretrained model. Show how to save, load, and merge adapters.</p>
+    <h4>Answer:</h4>
+    <p><strong>Using HuggingFace PEFT:</strong></p>
+    <pre>from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import get_peft_model, LoraConfig, TaskType, PeftModel
+
+# 1. Load base model
+model_id = "meta-llama/Llama-2-7b-hf"
+model = AutoModelForCausalLM.from_pretrained(model_id)
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+# 2. Configure LoRA
+peft_config = LoraConfig(
+    task_type=TaskType.CAUSAL_LM,
+    inference_mode=False,
+    r=8,  # Rank
+    lora_alpha=32,
+    lora_dropout=0.1,
+    target_modules=["q_proj", "v_proj"],  # Which layers
+    # Can also use: ["q_proj", "k_proj", "v_proj", "o_proj"] for all attn
+)
+
+# 3. Wrap model with PEFT
+model = get_peft_model(model, peft_config)
+model.print_trainable_parameters()
+# trainable params: 4,194,304 || all params: 6,742,609,920 || trainable%: 0.062%
+
+# 4. Train normally
+from transformers import Trainer, TrainingArguments
+
+training_args = TrainingArguments(
+    output_dir="./lora-llama2",
+    per_device_train_batch_size=4,
+    num_train_epochs=3,
+    learning_rate=3e-4,  # Higher LR for LoRA
+    # ...
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+)
+trainer.train()
+
+# 5. Save adapter (only ~16MB for rank 8!)
+model.save_pretrained("./lora-llama2-adapter")
+
+# 6. Load adapter later
+base_model = AutoModelForCausalLM.from_pretrained(model_id)
+model = PeftModel.from_pretrained(base_model, "./lora-llama2-adapter")
+
+# 7. Merge adapter into base model (for deployment)
+model = model.merge_and_unload()
+model.save_pretrained("./llama2-finetuned-merged")
+
+# 8. Load multiple adapters dynamically
+model.load_adapter("./adapter-task1", adapter_name="task1")
+model.load_adapter("./adapter-task2", adapter_name="task2")
+model.set_adapter("task1")  # Switch between adapters
+output = model.generate(...)
+model.set_adapter("task2")
+output = model.generate(...)</pre>
+
+    <p><strong>PEFT advantages:</strong></p>
+    <pre>1. Disk space: Store 100 adapters for &lt; 2GB
+   - Base model: 13GB (shared)
+   - Each LoRA adapter: ~16MB
+
+2. Memory efficient training
+   - Only compute gradients for 0.1% of params
+   - Can fit larger batch sizes
+
+3. Fast experimentation
+   - Train multiple adapters for different tasks
+   - Switch between them at runtime
+
+4. Easy deployment
+   - Serve one base model + swap adapters per request
+   - User-specific personalization
+
+Limitations:
+- Slightly worse than full fine-tuning (1-5%)
+- Not all tasks benefit equally (better for similar domains)</pre>
+</div>
+
+<!-- Card 10: DoRA (Weight-Decomposed LoRA) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Explain DoRA (Weight-Decomposed Low-Rank Adaptation). How does it improve upon standard LoRA?</p>
+    <h4>Answer:</h4>
+    <p><strong>DoRA motivation:</strong></p>
+    <pre>Standard LoRA:
+W' = W + BA
+
+Problem: Updates magnitude and direction simultaneously
+- Hard to disentangle what LoRA is learning
+
+DoRA decomposition:
+W' = m * (W + BA) / ||W + BA||
+
+Where:
+- m: Learned magnitude (vector)
+- (W + BA) / ||W + BA||: Direction
+
+Separates:
+1. Magnitude adaptation (scalar per column)
+2. Directional adaptation (low-rank BA)</pre>
+
+    <p><strong>DoRA implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class DoRALayer(nn.Module):
+    def __init__(self, in_features, out_features, rank=8, alpha=16):
+        super().__init__()
+        self.rank = rank
+        self.alpha = alpha
+
+        # Frozen pretrained weight
+        self.weight = nn.Parameter(torch.randn(out_features, in_features))
+        self.weight.requires_grad = False
+
+        # LoRA matrices
+        self.lora_A = nn.Parameter(torch.randn(in_features, rank))
+        self.lora_B = nn.Parameter(torch.zeros(rank, out_features))
+        nn.init.kaiming_uniform_(self.lora_A)
+
+        # Magnitude vector (one per output dimension)
+        self.magnitude = nn.Parameter(torch.ones(out_features))
+
+        self.scaling = alpha / rank
+
+    def forward(self, x):
+        # Compute adapted weight: W + BA
+        adapted_weight = self.weight + (self.lora_A @ self.lora_B).T * self.scaling
+
+        # Normalize direction
+        weight_norm = adapted_weight.norm(p=2, dim=1, keepdim=True)
+        directional_weight = adapted_weight / weight_norm
+
+        # Apply learned magnitude
+        final_weight = self.magnitude.unsqueeze(1) * directional_weight
+
+        return F.linear(x, final_weight)</pre>
+
+    <p><strong>DoRA benefits:</strong></p>
+    <pre>Performance:
+- Consistently outperforms LoRA by 1-2%
+- Especially good for tasks requiring magnitude changes
+  (e.g., style transfer, domain adaptation)
+
+Parameters:
+- Slightly more than LoRA (adds magnitude vector)
+- For 4096 dim: +4096 params (negligible)
+
+When to use:
+- Use DoRA when: performance matters, have GPU memory
+- Use LoRA when: maximum parameter efficiency needed
+- Use QLoRA when: memory constrained
+
+Empirical results (LLaMA-7B on downstream tasks):
+- Full fine-tuning: 100% (baseline)
+- LoRA: 97-98%
+- DoRA: 98-99%
+- Prefix tuning: 90-95%</pre>
+</div>
+
+<!-- Card 11: LoRA Rank Selection (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Selecting LoRA rank: Higher rank ({{c1::16-64}}) gives {{c2::better performance}} but {{c3::more parameters}}. Lower rank ({{c4::4-8}}) is more {{c5::parameter-efficient}} but may {{c6::underfit}}. Rule of thumb: rank should be {{c7::proportional to intrinsic dimension of task}}. For most tasks, rank {{c8::8-16}} is optimal. Can use {{c9::adaptive rank selection}} or {{c10::rank search}} to find optimal value.</p>
+</div>
+
+<!-- Card 12: Combining Multiple PEFT Methods -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Can you combine multiple PEFT methods (e.g., LoRA + Prefix Tuning)? What are the trade-offs?</p>
+    <h4>Answer:</h4>
+    <p><strong>Combining PEFT methods:</strong></p>
+    <pre>from peft import get_peft_model, LoraConfig, PrefixTuningConfig
+
+# Method 1: LoRA + Prefix Tuning
+lora_config = LoraConfig(
+    r=8,
+    target_modules=["q_proj", "v_proj"],
+)
+prefix_config = PrefixTuningConfig(
+    num_virtual_tokens=20,
+)
+
+# Apply both (if library supports)
+# Note: Standard PEFT doesn't support this directly
+# Need custom implementation
+
+# Method 2: LoRA on different modules
+lora_config_attention = LoraConfig(
+    r=16,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+)
+
+lora_config_ffn = LoraConfig(
+    r=8,
+    target_modules=["gate_proj", "up_proj", "down_proj"],
+)
+
+# Apply with different ranks to different modules</pre>
+
+    <p><strong>Practical combinations:</strong></p>
+    <pre>1. LoRA (different ranks for different layers)
+   - Higher rank for early layers (more task-specific)
+   - Lower rank for later layers
+   - Implementation: layer-wise configs
+
+2. QLoRA + LoRA
+   - 4-bit quantized base model
+   - LoRA adapters in higher precision
+   - Best memory efficiency + performance
+
+3. LoRA + Adapter (NOT recommended)
+   - Redundant: both achieve similar goals
+   - No clear benefit, doubles parameters
+
+4. Prompt/Prefix + LoRA
+   - Prefix provides task context
+   - LoRA adapts model weights
+   - Can help for multi-task scenarios
+
+Trade-offs:
+Pros:
++ Can combine strengths of each method
++ Fine-grained control over adaptation
+
+Cons:
+- More hyperparameters to tune
+- Diminishing returns (LoRA alone usually sufficient)
+- Increased complexity
+
+Recommendation:
+- Start with LoRA alone (rank 8-16)
+- Only add complexity if clear benefit on validation set
+- For most tasks, simple LoRA is best</pre>
+</div>
+
+<!-- Card 13: PEFT for Multi-Task Learning -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>How do you use PEFT for multi-task learning? Implement a system that can switch between task-specific adapters.</p>
+    <h4>Answer:</h4>
+    <p><strong>Multi-task PEFT implementation:</strong></p>
+    <pre>from peft import PeftModel, LoraConfig
+from transformers import AutoModelForSeq2SeqLM
+
+# 1. Train separate adapters for each task
+base_model = AutoModelForSeq2SeqLM.from_pretrained("t5-base")
+
+tasks = ["summarization", "translation", "question_answering"]
+
+for task in tasks:
+    # Configure LoRA for this task
+    lora_config = LoraConfig(
+        r=8,
+        lora_alpha=32,
+        target_modules=["q", "v"],
+        task_type="SEQ_2_SEQ_LM"
+    )
+
+    model = get_peft_model(base_model, lora_config)
+
+    # Train on task-specific data
+    train_task(model, task_dataset)
+
+    # Save adapter
+    model.save_pretrained(f"./adapters/{task}")
+
+# 2. Serve model with dynamic adapter loading
+class MultiTaskModel:
+    def __init__(self, base_model_id):
+        self.base_model = AutoModelForSeq2SeqLM.from_pretrained(base_model_id)
+        self.adapters = {}
+        self.current_task = None
+
+    def load_adapter(self, task_name, adapter_path):
+        """Load an adapter for a specific task"""
+        if task_name not in self.adapters:
+            # Load adapter weights (lightweight)
+            adapter_model = PeftModel.from_pretrained(
+                self.base_model,
+                adapter_path,
+                adapter_name=task_name
+            )
+            self.adapters[task_name] = adapter_model
+
+    def set_task(self, task_name):
+        """Switch to a specific task adapter"""
+        if task_name not in self.adapters:
+            raise ValueError(f"Adapter for {task_name} not loaded")
+        self.current_task = task_name
+        self.adapters[task_name].set_adapter(task_name)
+
+    def predict(self, input_text, task_name):
+        """Run inference with task-specific adapter"""
+        self.set_task(task_name)
+        model = self.adapters[task_name]
+
+        inputs = tokenizer(input_text, return_tensors="pt")
+        outputs = model.generate(**inputs)
+        return tokenizer.decode(outputs[0])
+
+# Usage
+mtl_model = MultiTaskModel("t5-base")
+
+# Load all task adapters (each ~16MB)
+mtl_model.load_adapter("summarization", "./adapters/summarization")
+mtl_model.load_adapter("translation", "./adapters/translation")
+mtl_model.load_adapter("qa", "./adapters/question_answering")
+
+# Switch between tasks instantly
+summary = mtl_model.predict(doc, task_name="summarization")
+translation = mtl_model.predict(text, task_name="translation")
+answer = mtl_model.predict(question, task_name="qa")</pre>
+
+    <p><strong>Multi-task PEFT benefits:</strong></p>
+    <pre>Memory efficiency:
+- Share base model (13GB for T5-base)
+- Each adapter: 16MB
+- 10 tasks: 13GB + 160MB vs 130GB for 10 full models
+
+Latency:
+- Adapter switching: ~0ms (just pointer change)
+- No model reloading required
+- Can keep multiple adapters in memory
+
+Training efficiency:
+- Train tasks independently (parallelizable)
+- No catastrophic forgetting
+- Easy to add new tasks
+
+Deployment:
+- Single base model + task routing
+- Update individual tasks without affecting others
+- A/B testing different adapters
+
+Use cases:
+1. Customer-specific adaptations (personalization)
+2. Multi-domain models (legal, medical, code)
+3. Multi-lingual models (language-specific adapters)
+4. Continual learning (add tasks over time)</pre>
+</div>
+
+<!-- Card 14: LoRA Learning Rate (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>LoRA typically uses learning rates {{c1::10-100x higher}} than full fine-tuning. For full FT at {{c2::1e-5 to 5e-5}}, use LoRA at {{c3::1e-4 to 3e-4}}. This is because {{c4::only 0.1% of parameters}} are being trained, and they start from {{c5::random initialization (matrix B) or near-zero}}. The {{c6::α/r scaling factor}} also affects effective learning rate.</p>
+</div>
+
+<!-- Card 15: PEFT Memory Breakdown -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Break down the memory requirements for training a 7B parameter model with different PEFT methods. Include model weights, gradients, and optimizer states.</p>
+    <h4>Answer:</h4>
+    <p><strong>Memory breakdown (7B model, mixed precision training):</strong></p>
+    <pre><strong>Full Fine-Tuning (fp16):</strong>
+- Model weights (fp16): 7B × 2 bytes = 14 GB
+- Gradients (fp16): 7B × 2 bytes = 14 GB
+- Optimizer states (Adam fp32):
+  - First moment: 7B × 4 bytes = 28 GB
+  - Second moment: 7B × 4 bytes = 28 GB
+- Total: ~84 GB
+
+<strong>LoRA (rank 8, fp16):</strong>
+- Model weights (fp16, frozen): 14 GB
+- LoRA params (0.1%): 7M × 2 bytes = 14 MB
+- LoRA gradients: 14 MB
+- LoRA optimizer states: 7M × 8 bytes = 56 MB
+- Total: ~14.1 GB (6x reduction!)
+
+<strong>QLoRA (4-bit + fp16 adapters):</strong>
+- Model weights (4-bit): 7B × 0.5 bytes = 3.5 GB
+- Quantization overhead: ~0.5 GB
+- LoRA params (fp16): 14 MB
+- LoRA gradients: 14 MB
+- LoRA optimizer states: 56 MB
+- Total: ~4.1 GB (20x reduction!)
+
+<strong>Prefix Tuning (20 tokens, fp16):</strong>
+- Model weights (frozen): 14 GB
+- Prefix params: 0.5-1% → ~35-70 MB
+- Gradients: 35-70 MB
+- Optimizer states: 140-280 MB
+- Total: ~14.3 GB
+
+<strong>Gradient Checkpointing (any method):</strong>
+Trades compute for memory:
+- Saves activations only at checkpoints
+- Recomputes activations during backward pass
+- Reduces activation memory by ~70%
+- Increases training time by ~30%
+
+Combined: QLoRA + Gradient Checkpointing
+- Can train 7B model on 6 GB VRAM!
+- Can train 65B model on 48 GB VRAM!</pre>
+
+    <p><strong>Practical recommendations:</strong></p>
+    <pre>GPU Memory available → Recommended method:
+
+8 GB (RTX 3070):
+- QLoRA with gradient checkpointing
+- 7B model, batch size 1
+
+16 GB (RTX 4080):
+- QLoRA, batch size 4
+- Or LoRA for &lt;3B models
+
+24 GB (RTX 4090):
+- LoRA for 7B models, batch size 8
+- QLoRA for 13B models
+
+40-48 GB (A100):
+- LoRA for 13B models
+- QLoRA for 65B models
+- Full FT for &lt;3B models
+
+Multiple GPUs:
+- Use DeepSpeed ZeRO-3 with LoRA
+- Can train 175B with 8×A100</pre>
+</div>
+
+</body>
+</html>

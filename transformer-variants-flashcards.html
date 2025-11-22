@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Transformer Variants - CS Vocab</title>
+    <style>
+        .card {
+            font-family: Arial, sans-serif;
+            font-size: 0.75em;
+            text-align: left;
+        }
+        .cloze {
+            font-weight: bold;
+            color: blue;
+        }
+        pre, code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        pre {
+            padding: 10px;
+            border-left: 3px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Card 1: GPT vs BERT vs T5 Architecture -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Compare GPT, BERT, and T5 architectures. When would you use each?</p>
+    <h4>Answer:</h4>
+    <p><strong>Architecture comparison:</strong></p>
+    <pre><strong>GPT (Decoder-only):</strong>
+Architecture:
+- Stack of transformer decoder blocks
+- Causal self-attention (can only attend to past)
+- No encoder, no cross-attention
+
+Attention mask:
+[[1, 0, 0, 0],    ← token 1 sees only itself
+ [1, 1, 0, 0],    ← token 2 sees tokens 1-2
+ [1, 1, 1, 0],    ← token 3 sees tokens 1-3
+ [1, 1, 1, 1]]    ← token 4 sees all
+
+Objective: Next token prediction
+- P(x_t | x_1, ..., x_{t-1})
+
+Use for: Text generation, chat, code completion
+
+<strong>BERT (Encoder-only):</strong>
+Architecture:
+- Stack of transformer encoder blocks
+- Bidirectional self-attention (sees past and future)
+- No decoder
+
+Attention mask:
+[[1, 1, 1, 1],    ← all tokens see all tokens
+ [1, 1, 1, 1],
+ [1, 1, 1, 1],
+ [1, 1, 1, 1]]
+
+Objective: Masked language modeling (MLM)
+- Predict [MASK] tokens: P(x_t | context)
+- Next sentence prediction (NSP)
+
+Use for: Classification, NER, Q&A, embeddings
+
+<strong>T5 (Encoder-Decoder):</strong>
+Architecture:
+- Encoder: bidirectional self-attention
+- Decoder: causal self-attention + cross-attention to encoder
+
+Objective: Span corruption (text-to-text)
+- Input: "The [X] sat on the [Y]"
+- Output: "[X] cat [Y] mat"
+
+Use for: Translation, summarization, any seq2seq task</pre>
+
+    <p><strong>When to use each:</strong></p>
+    <pre>GPT (Decoder-only):
+✓ Open-ended generation
+✓ Few-shot learning (ICL)
+✓ Chat, creative writing
+✗ Poor at understanding (no bidirectional context)
+
+BERT (Encoder-only):
+✓ Understanding tasks (classification, NER)
+✓ Embeddings, similarity
+✓ When you have full input upfront
+✗ Cannot generate text naturally
+
+T5 (Encoder-Decoder):
+✓ Seq2seq tasks (translation, summarization)
+✓ Conditional generation
+✓ Balanced understanding + generation
+✗ More parameters (encoder + decoder)
+✗ Slower than decoder-only for generation
+
+Modern trend: Decoder-only (GPT-style) winning
+- Scales better with data
+- Simpler architecture
+- Can do BERT tasks via prompting</pre>
+</div>
+
+<!-- Card 2: Causal Attention Mask (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Causal attention masks ensure {{c1::autoregressive generation}} by preventing tokens from attending to {{c2::future positions}}. Implemented as {{c3::lower triangular matrix}} or by adding {{c4::-inf to future positions before softmax}}. In PyTorch, use {{c5::is_causal=True}} in scaled_dot_product_attention. Required for {{c6::decoder-only models like GPT}}.</p>
+</div>
+
+<!-- Card 3: Implementing Causal Attention -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement causal self-attention from scratch in PyTorch. Show both the mask-based and is_causal approaches.</p>
+    <h4>Answer:</h4>
+    <p><strong>Causal attention implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class CausalSelfAttention(nn.Module):
+    def __init__(self, embed_dim, num_heads):
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.head_dim = embed_dim // num_heads
+
+        self.qkv_proj = nn.Linear(embed_dim, 3 * embed_dim)
+        self.out_proj = nn.Linear(embed_dim, embed_dim)
+
+    def forward(self, x, use_flash=False):
+        """
+        Args:
+            x: (batch, seq_len, embed_dim)
+            use_flash: Use PyTorch 2.0 Flash Attention
+        """
+        batch_size, seq_len, _ = x.size()
+
+        # Project to Q, K, V
+        qkv = self.qkv_proj(x)
+        qkv = qkv.reshape(batch_size, seq_len, 3, self.num_heads, self.head_dim)
+        qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, batch, heads, seq, head_dim)
+        q, k, v = qkv[0], qkv[1], qkv[2]
+
+        if use_flash:
+            # PyTorch 2.0+ Flash Attention (recommended)
+            out = F.scaled_dot_product_attention(
+                q, k, v,
+                is_causal=True,  # Automatically applies causal mask
+                dropout_p=0.0
+            )
+        else:
+            # Manual causal masking
+            # Compute attention scores
+            scores = (q @ k.transpose(-2, -1)) / (self.head_dim ** 0.5)
+            # scores: (batch, heads, seq, seq)
+
+            # Create causal mask
+            causal_mask = torch.tril(
+                torch.ones(seq_len, seq_len, device=x.device)
+            ).bool()
+
+            # Apply mask: -inf for future positions
+            scores = scores.masked_fill(~causal_mask, float('-inf'))
+
+            # Softmax + weighted sum
+            attn_weights = F.softmax(scores, dim=-1)
+            out = attn_weights @ v
+
+        # Reshape and project
+        out = out.transpose(1, 2).contiguous()
+        out = out.reshape(batch_size, seq_len, self.embed_dim)
+        out = self.out_proj(out)
+
+        return out
+
+# Alternative: create reusable mask
+def create_causal_mask(seq_len, device):
+    """
+    Creates causal mask that can be added to attention scores
+
+    Returns:
+        mask: (seq_len, seq_len) with 0 for valid, -inf for masked
+    """
+    mask = torch.triu(
+        torch.full((seq_len, seq_len), float('-inf'), device=device),
+        diagonal=1  # Keep diagonal and below
+    )
+    return mask
+
+# Usage
+x = torch.randn(2, 10, 512)  # batch=2, seq=10, dim=512
+attn = CausalSelfAttention(embed_dim=512, num_heads=8)
+output = attn(x, use_flash=True)</pre>
+
+    <p><strong>Causal mask visualization:</strong></p>
+    <pre>Sequence: "The cat sat on"
+
+Causal mask (0 = can attend, 1 = masked):
+     The cat sat on
+The  [0,  1,  1,  1]  ← "The" can only see itself
+cat  [0,  0,  1,  1]  ← "cat" sees "The" and "cat"
+sat  [0,  0,  0,  1]  ← "sat" sees "The", "cat", "sat"
+on   [0,  0,  0,  0]  ← "on" sees all previous tokens
+
+After softmax, masked positions have probability 0:
+     The   cat   sat   on
+The  [1.0, 0.0, 0.0, 0.0]
+cat  [0.3, 0.7, 0.0, 0.0]
+sat  [0.2, 0.3, 0.5, 0.0]
+on   [0.1, 0.2, 0.3, 0.4]</pre>
+</div>
+
+<!-- Card 4: RoPE (Rotary Position Embeddings) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement RoPE (Rotary Position Embeddings) used in LLaMA and many modern LLMs. Why is it better than absolute positional embeddings?</p>
+    <h4>Answer:</h4>
+    <p><strong>RoPE implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+
+def precompute_freqs_cis(dim, max_seq_len, theta=10000.0):
+    """
+    Precompute rotation frequencies for RoPE
+
+    Args:
+        dim: Embedding dimension per head
+        max_seq_len: Maximum sequence length
+        theta: Base for frequency computation
+    """
+    # Compute frequencies
+    freqs = 1.0 / (theta ** (torch.arange(0, dim, 2).float() / dim))
+
+    # Create position indices
+    t = torch.arange(max_seq_len)
+
+    # Outer product: (max_seq_len, dim/2)
+    freqs = torch.outer(t, freqs)
+
+    # Convert to complex numbers for rotation
+    freqs_cis = torch.polar(torch.ones_like(freqs), freqs)  # e^(i*θ)
+
+    return freqs_cis
+
+def apply_rotary_emb(x, freqs_cis):
+    """
+    Apply rotary embeddings to query or key
+
+    Args:
+        x: (batch, seq_len, num_heads, head_dim)
+        freqs_cis: (seq_len, head_dim/2) complex numbers
+    """
+    # Convert to complex (pair adjacent dims)
+    x_complex = torch.view_as_complex(
+        x.float().reshape(*x.shape[:-1], -1, 2)
+    )
+    # x_complex: (batch, seq_len, num_heads, head_dim/2)
+
+    # Expand freqs_cis to match shape
+    freqs_cis = freqs_cis.unsqueeze(0).unsqueeze(2)
+    # freqs_cis: (1, seq_len, 1, head_dim/2)
+
+    # Rotate by element-wise complex multiplication
+    x_rotated = x_complex * freqs_cis
+
+    # Convert back to real
+    x_out = torch.view_as_real(x_rotated)
+    x_out = x_out.reshape(*x.shape)
+
+    return x_out.type_as(x)
+
+class RotaryAttention(nn.Module):
+    def __init__(self, embed_dim, num_heads, max_seq_len=2048):
+        super().__init__()
+        self.num_heads = num_heads
+        self.head_dim = embed_dim // num_heads
+
+        self.q_proj = nn.Linear(embed_dim, embed_dim)
+        self.k_proj = nn.Linear(embed_dim, embed_dim)
+        self.v_proj = nn.Linear(embed_dim, embed_dim)
+        self.o_proj = nn.Linear(embed_dim, embed_dim)
+
+        # Precompute RoPE frequencies
+        self.register_buffer(
+            "freqs_cis",
+            precompute_freqs_cis(self.head_dim, max_seq_len)
+        )
+
+    def forward(self, x):
+        batch_size, seq_len, _ = x.size()
+
+        # Project and reshape
+        q = self.q_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim)
+        k = self.k_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim)
+        v = self.v_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim)
+
+        # Apply RoPE to queries and keys
+        freqs_cis = self.freqs_cis[:seq_len]
+        q = apply_rotary_emb(q, freqs_cis)
+        k = apply_rotary_emb(k, freqs_cis)
+
+        # Rest of attention (standard)
+        q = q.transpose(1, 2)  # (batch, heads, seq, head_dim)
+        k = k.transpose(1, 2)
+        v = v.transpose(1, 2)
+
+        out = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+        out = out.transpose(1, 2).contiguous().view(batch_size, seq_len, -1)
+        return self.o_proj(out)</pre>
+
+    <p><strong>Why RoPE is better:</strong></p>
+    <pre>Absolute positional embeddings (BERT, GPT-2):
+- Add position vector to token embeddings
+- Fixed maximum length
+- No extrapolation to longer sequences
+- Position info separate from content
+
+RoPE (Rotary Position Embeddings):
+✓ Encodes relative positions naturally
+  - Attention score depends on distance |i-j|
+  - Rotation angle = position * frequency
+
+✓ Extrapolates to longer sequences
+  - Trained on 2048 tokens → works on 4096+
+  - Linear interpolation for longer contexts
+
+✓ No extra parameters
+  - Computed from position index
+  - No learned position embeddings
+
+✓ Works better empirically
+  - Used in: LLaMA, GPT-NeoX, PaLM, etc.
+
+Math intuition:
+- Rotate Q and K by position-dependent angles
+- Dot product of rotated vectors encodes relative position
+- q_m^T k_n = f(q, k, m-n)  ← depends only on distance!</pre>
+</div>
+
+<!-- Card 5: ALiBi (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>ALiBi (Attention with Linear Biases) adds {{c1::linearly decreasing biases}} to attention scores based on {{c2::key-query distance}}. Instead of positional embeddings, it uses {{c3::bias = -m × |i - j|}} added to attention logits. This allows {{c4::extrapolation to longer sequences}} without retraining. Used in {{c5::MPT and BLOOM}} models. No {{c6::learned parameters}} for positions.</p>
+</div>
+
+<!-- Card 6: Vision Transformer (ViT) Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement Vision Transformer (ViT) patch embedding and explain how images are converted to sequences.</p>
+    <h4>Answer:</h4>
+    <p><strong>ViT patch embedding:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+
+class PatchEmbedding(nn.Module):
+    def __init__(self, img_size=224, patch_size=16, in_channels=3, embed_dim=768):
+        """
+        Convert image to sequence of patch embeddings
+
+        Args:
+            img_size: Input image size (assumes square)
+            patch_size: Size of each patch
+            in_channels: Number of input channels (3 for RGB)
+            embed_dim: Embedding dimension
+        """
+        super().__init__()
+        self.img_size = img_size
+        self.patch_size = patch_size
+        self.num_patches = (img_size // patch_size) ** 2
+
+        # Conv2d projects patches to embeddings
+        # Equivalent to: flatten patch → linear projection
+        self.projection = nn.Conv2d(
+            in_channels,
+            embed_dim,
+            kernel_size=patch_size,
+            stride=patch_size
+        )
+
+    def forward(self, x):
+        """
+        Args:
+            x: (batch, 3, 224, 224) image
+
+        Returns:
+            (batch, num_patches, embed_dim) patch embeddings
+        """
+        # x: (B, 3, 224, 224)
+        x = self.projection(x)
+        # x: (B, 768, 14, 14)  ← 224/16 = 14 patches per side
+
+        # Flatten spatial dimensions
+        x = x.flatten(2)
+        # x: (B, 768, 196)  ← 14*14 = 196 patches
+
+        # Transpose to (B, num_patches, embed_dim)
+        x = x.transpose(1, 2)
+        # x: (B, 196, 768)
+
+        return x
+
+class VisionTransformer(nn.Module):
+    def __init__(self, img_size=224, patch_size=16, num_classes=1000,
+                 embed_dim=768, depth=12, num_heads=12):
+        super().__init__()
+
+        # Patch embedding
+        self.patch_embed = PatchEmbedding(img_size, patch_size, 3, embed_dim)
+        num_patches = self.patch_embed.num_patches
+
+        # CLS token (for classification)
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+
+        # Position embeddings (learnable)
+        # +1 for CLS token
+        self.pos_embed = nn.Parameter(
+            torch.zeros(1, num_patches + 1, embed_dim)
+        )
+
+        # Transformer encoder blocks
+        self.blocks = nn.ModuleList([
+            TransformerEncoderBlock(embed_dim, num_heads)
+            for _ in range(depth)
+        ])
+
+        self.norm = nn.LayerNorm(embed_dim)
+
+        # Classification head
+        self.head = nn.Linear(embed_dim, num_classes)
+
+    def forward(self, x):
+        """
+        Args:
+            x: (batch, 3, 224, 224)
+
+        Returns:
+            (batch, num_classes) logits
+        """
+        batch_size = x.size(0)
+
+        # Patch embedding
+        x = self.patch_embed(x)  # (B, 196, 768)
+
+        # Prepend CLS token
+        cls_tokens = self.cls_token.expand(batch_size, -1, -1)
+        x = torch.cat([cls_tokens, x], dim=1)  # (B, 197, 768)
+
+        # Add positional embeddings
+        x = x + self.pos_embed
+
+        # Transformer blocks
+        for block in self.blocks:
+            x = block(x)
+
+        x = self.norm(x)
+
+        # Classification: use CLS token output
+        cls_output = x[:, 0]  # (B, 768)
+
+        logits = self.head(cls_output)  # (B, num_classes)
+
+        return logits</pre>
+
+    <p><strong>ViT key concepts:</strong></p>
+    <pre>1. Patch embedding:
+   - Split 224×224 image into 14×14 grid of 16×16 patches
+   - Total: 196 patches
+   - Each patch → 768-dim vector via Conv2d
+
+2. CLS token:
+   - Special learnable token prepended to sequence
+   - Like [CLS] in BERT
+   - Used for image-level classification
+
+3. Position embeddings:
+   - Learnable absolute positions (not RoPE)
+   - Can interpolate for different image sizes
+
+4. No inductive bias:
+   - Unlike CNNs, no built-in translation invariance
+   - Learns spatial relationships from data
+   - Requires more data than CNNs (pre-train on ImageNet-21k)
+
+ViT variants:
+- ViT-B/16: Base model, 16×16 patches (86M params)
+- ViT-L/16: Large model (307M params)
+- ViT-H/14: Huge model, 14×14 patches (632M params)</pre>
+</div>
+
+<!-- Card 7: Cross-Attention vs Self-Attention (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Self-attention uses {{c1::same sequence}} for Q, K, V. Cross-attention uses {{c2::decoder state for Q}}, {{c3::encoder outputs for K and V}}. In T5, decoder has {{c4::self-attention (causal)}} followed by {{c5::cross-attention to encoder}}. Cross-attention allows {{c6::attending to source sequence}} while generating target. Used in {{c7::encoder-decoder models like T5, BART}}.</p>
+</div>
+
+<!-- Card 8: Sparse Attention Patterns -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Compare different sparse attention patterns: local, strided, and block-sparse attention. Why use sparse attention?</p>
+    <h4>Answer:</h4>
+    <p><strong>Sparse attention motivation:</strong></p>
+    <pre>Full attention: O(n²) complexity
+- For n=2048: 4M attention computations
+- For n=8192: 67M computations (16x more!)
+- Memory: stores full n×n attention matrix
+
+Sparse attention: O(n√n) or O(n log n)
+- Reduce computations by limiting attention to subset
+- Trade expressiveness for efficiency</pre>
+
+    <p><strong>Sparse attention patterns:</strong></p>
+    <pre><strong>1. Local (Sliding Window) Attention:</strong>
+Each token attends to k nearest neighbors
+
+Window size k=3:
+     0  1  2  3  4  5
+0   [1, 1, 1, 0, 0, 0]  ← attend to positions 0-2
+1   [1, 1, 1, 1, 0, 0]  ← attend to positions 0-3
+2   [1, 1, 1, 1, 1, 0]
+3   [0, 1, 1, 1, 1, 1]
+4   [0, 0, 1, 1, 1, 1]
+5   [0, 0, 0, 1, 1, 1]  ← attend to positions 3-5
+
+Complexity: O(n × k)
+Used in: Longformer (local attention)
+
+<strong>2. Strided (Dilated) Attention:</strong>
+Attend to every k-th token
+
+Stride k=2:
+     0  1  2  3  4  5
+0   [1, 0, 1, 0, 1, 0]  ← attend to even positions
+1   [0, 1, 0, 1, 0, 1]  ← attend to odd positions
+2   [1, 0, 1, 0, 1, 0]
+...
+
+Complexity: O(n × n/k)
+Captures long-range dependencies with gaps
+
+<strong>3. Block Sparse Attention:</strong>
+Divide sequence into blocks, attend within + global
+
+Block size=2, with global attention:
+     0  1  2  3  4  5
+0   [1, 1, 1, 0, 0, 0]  ← block + global
+1   [1, 1, 1, 0, 0, 0]
+2   [1, 0, 1, 1, 0, 0]
+3   [0, 0, 1, 1, 0, 0]
+4   [1, 0, 0, 0, 1, 1]
+5   [0, 0, 0, 0, 1, 1]
+
+Complexity: O(n × block_size)
+Used in: BigBird, Sparse Transformer
+
+<strong>4. Longformer (Combined):</strong>
+Local + global attention on special tokens
+
+Global attention on [CLS]:
+- [CLS] token attends to all
+- All tokens attend to [CLS]
+- Other tokens have local window
+
+Complexity: O(n × (k + g))
+where k=window, g=global tokens</pre>
+
+    <p><strong>Implementation example (local attention):</strong></p>
+    <pre>def create_local_attention_mask(seq_len, window_size):
+    """Create sliding window attention mask"""
+    mask = torch.zeros(seq_len, seq_len)
+
+    for i in range(seq_len):
+        # Attend to [i-window, i+window]
+        start = max(0, i - window_size)
+        end = min(seq_len, i + window_size + 1)
+        mask[i, start:end] = 1
+
+    return mask.bool()
+
+# Usage
+seq_len = 1024
+window = 256
+mask = create_local_attention_mask(seq_len, window)
+# Now only ~25% of attention matrix is computed!</pre>
+</div>
+
+<!-- Card 9: Flash Attention Mechanism (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Flash Attention achieves {{c1::2-4x speedup}} by {{c2::fusing attention operations}} and using {{c3::tiling to fit in SRAM}}. It computes attention in {{c4::blocks}} without materializing the full {{c5::N×N attention matrix}} in HBM. This reduces memory from {{c6::O(N²)}} to {{c7::O(N)}}. Backward pass also uses {{c8::recomputation}} instead of storing attention matrix.</p>
+</div>
+
+<!-- Card 10: Encoder-Decoder Implementation -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement a basic encoder-decoder transformer for translation. Show how cross-attention connects encoder and decoder.</p>
+    <h4>Answer:</h4>
+    <p><strong>Encoder-decoder implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+
+class EncoderBlock(nn.Module):
+    def __init__(self, embed_dim, num_heads):
+        super().__init__()
+        # Bidirectional self-attention
+        self.self_attn = nn.MultiheadAttention(embed_dim, num_heads)
+        self.ffn = nn.Sequential(
+            nn.Linear(embed_dim, 4 * embed_dim),
+            nn.GELU(),
+            nn.Linear(4 * embed_dim, embed_dim)
+        )
+        self.norm1 = nn.LayerNorm(embed_dim)
+        self.norm2 = nn.LayerNorm(embed_dim)
+
+    def forward(self, x):
+        # Self-attention with residual
+        attn_out, _ = self.self_attn(x, x, x, need_weights=False)
+        x = self.norm1(x + attn_out)
+
+        # FFN with residual
+        ffn_out = self.ffn(x)
+        x = self.norm2(x + ffn_out)
+
+        return x
+
+class DecoderBlock(nn.Module):
+    def __init__(self, embed_dim, num_heads):
+        super().__init__()
+        # 1. Causal self-attention
+        self.self_attn = nn.MultiheadAttention(embed_dim, num_heads)
+
+        # 2. Cross-attention to encoder
+        self.cross_attn = nn.MultiheadAttention(embed_dim, num_heads)
+
+        # 3. FFN
+        self.ffn = nn.Sequential(
+            nn.Linear(embed_dim, 4 * embed_dim),
+            nn.GELU(),
+            nn.Linear(4 * embed_dim, embed_dim)
+        )
+
+        self.norm1 = nn.LayerNorm(embed_dim)
+        self.norm2 = nn.LayerNorm(embed_dim)
+        self.norm3 = nn.LayerNorm(embed_dim)
+
+    def forward(self, x, encoder_output, tgt_mask=None):
+        """
+        Args:
+            x: Decoder input (target sequence)
+            encoder_output: Encoder output (source sequence)
+            tgt_mask: Causal mask for decoder self-attention
+        """
+        # 1. Causal self-attention
+        self_attn_out, _ = self.self_attn(
+            x, x, x,
+            attn_mask=tgt_mask,
+            need_weights=False
+        )
+        x = self.norm1(x + self_attn_out)
+
+        # 2. Cross-attention
+        # Q from decoder, K and V from encoder
+        cross_attn_out, _ = self.cross_attn(
+            x,  # query: decoder state
+            encoder_output,  # key: encoder output
+            encoder_output,  # value: encoder output
+            need_weights=False
+        )
+        x = self.norm2(x + cross_attn_out)
+
+        # 3. FFN
+        ffn_out = self.ffn(x)
+        x = self.norm3(x + ffn_out)
+
+        return x
+
+class EncoderDecoder(nn.Module):
+    def __init__(self, vocab_size, embed_dim=512, num_heads=8,
+                 num_encoder_layers=6, num_decoder_layers=6):
+        super().__init__()
+
+        # Embeddings
+        self.src_embed = nn.Embedding(vocab_size, embed_dim)
+        self.tgt_embed = nn.Embedding(vocab_size, embed_dim)
+        self.pos_embed = nn.Embedding(5000, embed_dim)
+
+        # Encoder
+        self.encoder_layers = nn.ModuleList([
+            EncoderBlock(embed_dim, num_heads)
+            for _ in range(num_encoder_layers)
+        ])
+
+        # Decoder
+        self.decoder_layers = nn.ModuleList([
+            DecoderBlock(embed_dim, num_heads)
+            for _ in range(num_decoder_layers)
+        ])
+
+        # Output projection
+        self.output_proj = nn.Linear(embed_dim, vocab_size)
+
+    def encode(self, src):
+        """Encode source sequence"""
+        # Embed + position
+        positions = torch.arange(src.size(1), device=src.device)
+        x = self.src_embed(src) + self.pos_embed(positions)
+
+        # Encoder layers
+        for layer in self.encoder_layers:
+            x = layer(x)
+
+        return x
+
+    def decode(self, tgt, encoder_output):
+        """Decode target sequence"""
+        # Embed + position
+        positions = torch.arange(tgt.size(1), device=tgt.device)
+        x = self.tgt_embed(tgt) + self.pos_embed(positions)
+
+        # Create causal mask
+        seq_len = tgt.size(1)
+        causal_mask = torch.triu(
+            torch.ones(seq_len, seq_len, device=tgt.device),
+            diagonal=1
+        ).bool()
+
+        # Decoder layers
+        for layer in self.decoder_layers:
+            x = layer(x, encoder_output, causal_mask)
+
+        # Project to vocabulary
+        logits = self.output_proj(x)
+
+        return logits
+
+    def forward(self, src, tgt):
+        """
+        Args:
+            src: (batch, src_len) source sequence
+            tgt: (batch, tgt_len) target sequence
+
+        Returns:
+            (batch, tgt_len, vocab_size) logits
+        """
+        encoder_output = self.encode(src)
+        logits = self.decode(tgt, encoder_output)
+        return logits</pre>
+
+    <p><strong>Key differences from decoder-only:</strong></p>
+    <pre>Decoder-only (GPT):
+- Single sequence input
+- Causal self-attention only
+- Generate one token at a time
+
+Encoder-decoder (T5):
+- Two sequences: source and target
+- Encoder: bidirectional (sees full input)
+- Decoder: causal + cross-attention
+- Better for conditional generation (translation, summarization)
+
+Cross-attention details:
+- Q: "What from the source is relevant?" (from decoder)
+- K, V: Source information (from encoder)
+- Allows decoder to "look at" source at each step
+
+Example (translation):
+Source (encoder): "Hello world"
+Target (decoder): "&lt;start&gt; Bonjour"
+- Decoder attends to "Hello" when generating "Bonjour"
+- Decoder attends to "world" when generating "monde"</pre>
+</div>
+
+<!-- Card 11: Mixture of Experts (MoE) Transformers (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>MoE transformers replace dense FFN with {{c1::sparse expert selection}}, using a {{c2::gating network}} to route tokens to {{c3::top-k experts}} out of {{c4::N total experts}}. This increases {{c5::model parameters}} while keeping {{c6::FLOPs per token constant}}. Examples include {{c7::Switch Transformer (Google)}} and {{c8::Mixtral (Mistral)}}. Typical config: {{c9::8 experts, top-2 routing}}.</p>
+</div>
+
+<!-- Card 12: Relative vs Absolute Positional Encodings -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Compare absolute, relative, and rotary positional encodings. When would you use each?</p>
+    <h4>Answer:</h4>
+    <p><strong>Positional encoding comparison:</strong></p>
+    <pre><strong>1. Absolute (Sinusoidal) - Original Transformer:</strong>
+PE(pos, 2i) = sin(pos / 10000^(2i/d))
+PE(pos, 2i+1) = cos(pos / 10000^(2i/d))
+
+Characteristics:
++ Fixed (no parameters)
++ Can extrapolate to longer sequences
+- No explicit relative position info
+- Position separate from content
+
+Used in: Original Transformer, early models
+
+<strong>2. Absolute (Learned) - BERT, GPT-2:</strong>
+PE = Embedding(max_positions, embed_dim)
+
+Characteristics:
++ Flexible, learned from data
++ Can encode arbitrary position patterns
+- Fixed maximum length
+- Cannot extrapolate
+- Extra parameters (~0.1-0.5%)
+
+Used in: BERT, GPT-2, GPT-3, ViT
+
+<strong>3. Relative (T5-style):</strong>
+Add learned bias to attention scores based on distance
+
+bias[i,j] = learned_bias[bucket(i-j)]
+
+Buckets: [0], [1], [2], ..., [8], [9-16], [17-32], ...
+
+Characteristics:
++ Captures relative distances
++ Can generalize to longer sequences
++ Shared across all positions (translation invariant)
+- Extra parameters (bias matrix)
+- More complex attention computation
+
+Used in: T5, DeBERTa
+
+<strong>4. Rotary (RoPE) - LLaMA:</strong>
+Rotate Q and K by position-dependent angles
+
+Characteristics:
++ Naturally encodes relative positions
++ No learned parameters
++ Excellent extrapolation
++ Mathematically elegant
+- Slightly more complex implementation
+
+Used in: LLaMA, GPT-NeoX, PaLM, Falcon
+
+<strong>5. ALiBi - MPT, BLOOM:</strong>
+Add linear bias: score[i,j] -= m * |i-j|
+
+Characteristics:
++ Simplest implementation
++ Perfect extrapolation
++ No parameters
+- Less expressive than RoPE
+
+Used in: BLOOM, MPT, Falcon (variant)</pre>
+
+    <p><strong>Recommendations:</strong></p>
+    <pre>Use RoPE if:
+- Building new decoder-only model (current best practice)
+- Need good extrapolation to longer contexts
+- Following LLaMA/Mistral architecture
+
+Use Learned Absolute if:
+- Fine-tuning existing model (BERT/GPT-2)
+- Fixed known sequence length
+- Vision tasks (ViT)
+
+Use ALiBi if:
+- Extreme extrapolation needed
+- Simple implementation priority
+- Training on short, deploying on long sequences
+
+Use Relative (T5-style) if:
+- Encoder-decoder architecture
+- Need translation invariance
+- Following T5/mT5 architecture
+
+Modern trend: RoPE winning for decoder-only models
+- Used in LLaMA, Mistral, Qwen, Gemma, etc.
+- Best balance of performance and extrapolation</pre>
+</div>
+
+<!-- Card 13: Multi-Query Attention (MQA) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Implement Multi-Query Attention (MQA) and Grouped-Query Attention (GQA). How do they reduce KV cache size during inference?</p>
+    <h4>Answer:</h4>
+    <p><strong>Multi-Query Attention implementation:</strong></p>
+    <pre>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class MultiQueryAttention(nn.Module):
+    def __init__(self, embed_dim, num_heads):
+        """
+        MQA: Multiple query heads, single key/value head
+
+        Args:
+            embed_dim: Model dimension
+            num_heads: Number of query heads
+        """
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.head_dim = embed_dim // num_heads
+
+        # Multiple query heads
+        self.q_proj = nn.Linear(embed_dim, embed_dim)
+
+        # Single key and value (shared across heads)
+        self.k_proj = nn.Linear(embed_dim, self.head_dim)
+        self.v_proj = nn.Linear(embed_dim, self.head_dim)
+
+        self.o_proj = nn.Linear(embed_dim, embed_dim)
+
+    def forward(self, x):
+        batch_size, seq_len, _ = x.size()
+
+        # Query: (batch, seq, num_heads, head_dim)
+        q = self.q_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim)
+        q = q.transpose(1, 2)  # (batch, num_heads, seq, head_dim)
+
+        # Key and Value: (batch, seq, head_dim) - single head!
+        k = self.k_proj(x)  # (batch, seq, head_dim)
+        v = self.v_proj(x)  # (batch, seq, head_dim)
+
+        # Expand K, V to match Q's num_heads
+        k = k.unsqueeze(1).expand(-1, self.num_heads, -1, -1)
+        v = v.unsqueeze(1).expand(-1, self.num_heads, -1, -1)
+
+        # Standard attention
+        scores = (q @ k.transpose(-2, -1)) / (self.head_dim ** 0.5)
+        attn = F.softmax(scores, dim=-1)
+        out = attn @ v
+
+        # Reshape and project
+        out = out.transpose(1, 2).contiguous()
+        out = out.view(batch_size, seq_len, self.embed_dim)
+        return self.o_proj(out)
+
+class GroupedQueryAttention(nn.Module):
+    def __init__(self, embed_dim, num_heads, num_kv_heads):
+        """
+        GQA: Grouped queries sharing key/value heads
+
+        Args:
+            embed_dim: Model dimension
+            num_heads: Number of query heads
+            num_kv_heads: Number of key/value heads (< num_heads)
+
+        Example: 32 Q heads, 8 KV heads → 4 Q heads per KV head
+        """
+        super().__init__()
+        assert num_heads % num_kv_heads == 0
+        self.num_heads = num_heads
+        self.num_kv_heads = num_kv_heads
+        self.head_dim = embed_dim // num_heads
+
+        # num_heads query heads
+        self.q_proj = nn.Linear(embed_dim, embed_dim)
+
+        # num_kv_heads key/value heads
+        kv_dim = self.head_dim * num_kv_heads
+        self.k_proj = nn.Linear(embed_dim, kv_dim)
+        self.v_proj = nn.Linear(embed_dim, kv_dim)
+
+        self.o_proj = nn.Linear(embed_dim, embed_dim)
+
+    def forward(self, x):
+        batch_size, seq_len, embed_dim = x.size()
+
+        # Query: (batch, num_heads, seq, head_dim)
+        q = self.q_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim)
+        q = q.transpose(1, 2)
+
+        # Key, Value: (batch, num_kv_heads, seq, head_dim)
+        k = self.k_proj(x).view(batch_size, seq_len, self.num_kv_heads, self.head_dim)
+        v = self.v_proj(x).view(batch_size, seq_len, self.num_kv_heads, self.head_dim)
+        k = k.transpose(1, 2)
+        v = v.transpose(1, 2)
+
+        # Repeat K, V to match Q heads
+        num_groups = self.num_heads // self.num_kv_heads
+        k = k.repeat_interleave(num_groups, dim=1)
+        v = v.repeat_interleave(num_groups, dim=1)
+
+        # Standard attention
+        scores = (q @ k.transpose(-2, -1)) / (self.head_dim ** 0.5)
+        attn = F.softmax(scores, dim=-1)
+        out = attn @ v
+
+        out = out.transpose(1, 2).contiguous()
+        out = out.view(batch_size, seq_len, embed_dim)
+        return self.o_proj(out)</pre>
+
+    <p><strong>KV cache memory savings:</strong></p>
+    <pre>Standard Multi-Head Attention (MHA):
+- Q, K, V: each has num_heads heads
+- KV cache: 2 × num_heads × seq_len × head_dim
+
+Multi-Query Attention (MQA):
+- Q: num_heads heads
+- K, V: 1 head (shared)
+- KV cache: 2 × 1 × seq_len × head_dim
+- Savings: num_heads × smaller!
+
+Grouped-Query Attention (GQA):
+- Q: num_heads heads
+- K, V: num_kv_heads heads
+- KV cache: 2 × num_kv_heads × seq_len × head_dim
+- Savings: (num_heads / num_kv_heads) × smaller
+
+Example (LLaMA-2 70B):
+- num_heads = 64
+- head_dim = 128
+- seq_len = 4096 (during generation)
+
+MHA KV cache per layer:
+2 × 64 × 4096 × 128 × 2 bytes = 128 MB
+
+GQA KV cache (8 KV heads):
+2 × 8 × 4096 × 128 × 2 bytes = 16 MB
+→ 8× reduction!
+
+For 80 layers: 10 GB → 1.25 GB KV cache
+
+Performance:
+- MQA: Fastest, but 1-2% quality loss
+- GQA: 95-99% of MHA quality, 2-8× faster
+- Used in: LLaMA-2, Mistral, Mixtral</pre>
+</div>
+
+<!-- Card 14: Transformer Normalization (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Modern transformers use {{c1::Pre-LN (Pre-LayerNorm)}} instead of {{c2::Post-LN}}. Pre-LN applies normalization {{c3::before}} the sublayer, enabling {{c4::training without warmup}} and {{c5::better gradient flow}}. {{c6::RMSNorm}} is faster than LayerNorm by skipping {{c7::mean centering}}, used in {{c8::LLaMA}}. Formula: RMSNorm(x) = {{c9::x / RMS(x) * γ}} where RMS = {{c10::sqrt(mean(x²))}}.</p>
+</div>
+
+<!-- Card 15: Transformer Scaling Laws (CLOZE) -->
+<div class="card">
+    <h3>CS Vocab::pythonML</h3>
+    <h4>Question:</h4>
+    <p>Chinchilla scaling laws suggest optimal compute allocation is {{c1::equal tokens and parameters}}. For compute budget C, use {{c2::~C^0.5 parameters}} and {{c3::~C^0.5 tokens}}. Most models were {{c4::undertrained}} and {{c5::oversized}}. GPT-3 (175B, 300B tokens) should have been {{c6::70B trained on 1.4T tokens}} for same compute. This led to {{c7::LLaMA (6-65B, 1.4T tokens)}} outperforming larger models.</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layer Normalization - CS Vocab Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .front {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .back {
+            line-height: 1.6;
+            color: #34495e;
+        }
+
+        .tags {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .cloze {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>Layer Normalization Flashcards</h1>
+    <p>Normalization techniques in transformers with PyTorch implementations</p>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">How do you implement Layer Normalization from scratch?</div>
+        <div class="back">
+            <strong>LayerNorm normalizes across the feature dimension:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+class LayerNorm(nn.Module):
+    def __init__(self, d_model, eps=1e-5):
+        """
+        d_model: feature dimension
+        eps: small constant for numerical stability
+        """
+        super().__init__()
+        self.eps = eps
+
+        # Learnable affine parameters
+        self.weight = nn.Parameter(torch.ones(d_model))   # gamma
+        self.bias = nn.Parameter(torch.zeros(d_model))    # beta
+
+    def forward(self, x):
+        """
+        x: (batch, seq_len, d_model) or any shape ending in d_model
+        """
+        # Compute mean and variance across last dimension
+        mean = x.mean(dim=-1, keepdim=True)  # (batch, seq_len, 1)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)  # (batch, seq_len, 1)
+
+        # Normalize
+        x_norm = (x - mean) / torch.sqrt(var + self.eps)
+
+        # Apply learned affine transformation
+        return self.weight * x_norm + self.bias
+
+# Usage:
+layer_norm = LayerNorm(d_model=768)
+x = torch.randn(32, 100, 768)  # (batch, seq_len, d_model)
+output = layer_norm(x)
+
+# Properties after LayerNorm:
+# mean ≈ 0, std ≈ 1 (before affine transform)
+# After affine: mean ≈ bias, std ≈ weight
+
+# PyTorch built-in (use this):
+layer_norm = nn.LayerNorm(768, eps=1e-5)</code></pre>
+            <p>Key: Normalizes each sample independently across features, not across batch.</p>
+        </div>
+        <div class="tags">cs pythonML layer-norm normalization transformers EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">CLOZE: LayerNorm normalizes across the <span class="cloze">feature/channel dimension</span> for each sample independently, while BatchNorm normalizes across the <span class="cloze">batch dimension</span> for each feature.</div>
+        <div class="back">
+            <strong>Answer: feature/channel dimension, batch dimension</strong>
+
+            <p>Visual comparison:</p>
+            <pre><code># Input: (batch, seq_len, d_model)
+x = torch.randn(32, 100, 768)
+
+# LayerNorm: normalize over d_model (last dim)
+# For each (batch_i, seq_j), compute mean/std over 768 features
+layer_norm = nn.LayerNorm(768)
+ln_out = layer_norm(x)
+
+# Each sample normalized independently:
+assert ln_out[0, 0, :].mean().abs() < 0.1  # mean ≈ 0
+assert (ln_out[0, 0, :].std() - 1).abs() < 0.1  # std ≈ 1
+
+# BatchNorm: normalize over batch dim (not typically used in transformers)
+# For each feature_k, compute mean/std over 32 × 100 positions
+batch_norm = nn.BatchNorm1d(768)
+bn_out = batch_norm(x.transpose(1, 2)).transpose(1, 2)
+
+# Feature-wise normalization across batch:
+all_positions = x[:, :, 0].flatten()  # All batch samples for feature 0
+assert all_positions.mean().abs() < 0.1
+
+# Why LayerNorm for transformers?
+# ✓ Works with variable sequence lengths
+# ✓ No dependence on batch statistics
+# ✓ Works at inference with batch_size=1
+# ✓ Better gradient flow in transformers
+
+# Why BatchNorm for CNNs?
+# ✓ Leverages batch statistics
+# ✓ Acts as regularization
+# ✗ Requires batch_size > 1
+# ✗ Different behavior train vs eval</code></pre>
+        </div>
+        <div class="tags">cs pythonML layer-norm batch-norm cloze normalization EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">What is the difference between pre-norm and post-norm in transformers, and which is better?</div>
+        <div class="back">
+            <strong>Pre-norm vs Post-norm placement:</strong>
+
+            <p><strong>Post-Norm (Original Transformer):</strong></p>
+            <pre><code>class PostNormBlock(nn.Module):
+    def forward(self, x):
+        # Residual THEN norm
+        x = self.norm1(x + self.attention(x))
+        x = self.norm2(x + self.ffn(x))
+        return x
+
+# Gradient flow: direct path through residuals
+# More stable gradients at initialization</code></pre>
+
+            <p><strong>Pre-Norm (Modern Standard):</strong></p>
+            <pre><code>class PreNormBlock(nn.Module):
+    def forward(self, x):
+        # Norm THEN residual
+        x = x + self.attention(self.norm1(x))
+        x = x + self.ffn(self.norm2(x))
+        return x
+
+# Gradient flow: normalized before each operation
+# Easier to train deep networks</code></pre>
+
+            <p><strong>Comparison:</strong></p>
+            <pre><code># Post-Norm:
+# ✓ Better for shallow networks (6-12 layers)
+# ✓ Original Transformer used this
+# ✗ Can have gradient issues in deep networks
+# ✗ Requires learning rate warmup
+
+# Pre-Norm:
+# ✓ Trains more stably for deep networks (>20 layers)
+# ✓ Can use higher learning rates
+# ✓ Less sensitive to initialization
+# ✓ Standard in modern LLMs (GPT-3, Llama, etc.)
+# ✗ Slightly worse performance on some tasks
+
+# Empirical findings:
+# - Pre-norm: easier training, scales to 100+ layers
+# - Post-norm: slightly better final performance (if you can train it)
+# - Pre-norm is now standard for LLMs
+
+# Example: GPT-2 uses Pre-Norm
+# Example: Original BERT uses Post-Norm
+# Example: Llama uses Pre-Norm (with RMSNorm)</code></pre>
+
+            <p><strong>Recommendation:</strong> Use pre-norm for new projects, especially deep networks.</p>
+        </div>
+        <div class="tags">cs pythonML layer-norm pre-norm post-norm transformers EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">How do you implement RMSNorm (Root Mean Square Normalization) used in Llama?</div>
+        <div class="back">
+            <strong>RMSNorm is a simpler, faster variant of LayerNorm:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+class RMSNorm(nn.Module):
+    def __init__(self, d_model, eps=1e-6):
+        """
+        RMSNorm: simpler than LayerNorm, no mean subtraction or bias.
+        """
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(d_model))
+
+    def forward(self, x):
+        """
+        x: (batch, seq_len, d_model)
+        """
+        # Compute RMS (root mean square)
+        # RMS = sqrt(mean(x²))
+        rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
+
+        # Normalize by RMS
+        x_norm = x / rms
+
+        # Apply learned scale (no bias)
+        return self.weight * x_norm
+
+# Comparison with LayerNorm:
+x = torch.randn(32, 100, 768)
+
+# LayerNorm: normalize to mean=0, std=1
+ln = nn.LayerNorm(768)
+ln_out = ln(x)
+print(f"LayerNorm mean: {ln_out[0, 0].mean():.4f}")  # ~0
+print(f"LayerNorm std: {ln_out[0, 0].std():.4f}")    # ~1
+
+# RMSNorm: normalize to RMS=1 (no mean centering)
+rms_norm = RMSNorm(768)
+rms_out = rms_norm(x)
+print(f"RMSNorm mean: {rms_out[0, 0].mean():.4f}")  # not 0!
+print(f"RMSNorm RMS: {torch.sqrt((rms_out[0, 0]**2).mean()):.4f}")  # ~1
+
+# Benefits of RMSNorm:
+# ✓ 10-20% faster (no mean computation)
+# ✓ Fewer parameters (no bias)
+# ✓ Simpler implementation
+# ✓ Works just as well empirically
+# ✓ Used in: Llama, Llama 2, Mistral, Falcon
+
+# When to use:
+# - RMSNorm: Modern LLMs, when speed matters
+# - LayerNorm: General purpose, established codebases</code></pre>
+        </div>
+        <div class="tags">cs pythonML rms-norm layer-norm llama optimization EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">CLOZE: RMSNorm is faster than LayerNorm because it skips the <span class="cloze">mean computation/subtraction</span> and has <span class="cloze">no bias parameter</span>.</div>
+        <div class="back">
+            <strong>Answer: mean computation/subtraction, no bias parameter</strong>
+
+            <p>Computational difference:</p>
+            <pre><code># LayerNorm operations:
+# 1. Compute mean: sum(x) / n
+# 2. Subtract mean: x - mean
+# 3. Compute variance: sum((x - mean)²) / n
+# 4. Normalize: (x - mean) / sqrt(var + eps)
+# 5. Affine: weight * x_norm + bias
+
+mean = x.mean(dim=-1, keepdim=True)
+var = x.var(dim=-1, keepdim=True, unbiased=False)
+x_norm = (x - mean) / torch.sqrt(var + eps)
+output = weight * x_norm + bias
+
+# RMSNorm operations:
+# 1. Compute mean of squares: sum(x²) / n
+# 2. Take square root: sqrt(mean(x²))
+# 3. Normalize: x / rms
+# 4. Affine: weight * x_norm (no bias!)
+
+rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + eps)
+x_norm = x / rms
+output = weight * x_norm
+
+# Speed comparison (d_model=4096):
+import time
+
+x = torch.randn(32, 1024, 4096, device='cuda')
+
+# LayerNorm
+ln = nn.LayerNorm(4096).cuda()
+start = time.time()
+for _ in range(100):
+    _ = ln(x)
+ln_time = time.time() - start
+
+# RMSNorm
+rms = RMSNorm(4096).cuda()
+start = time.time()
+for _ in range(100):
+    _ = rms(x)
+rms_time = time.time() - start
+
+print(f"LayerNorm: {ln_time:.3f}s")
+print(f"RMSNorm: {rms_time:.3f}s")
+print(f"Speedup: {ln_time / rms_time:.2f}x")
+# Typical: 1.15-1.25x speedup</code></pre>
+        </div>
+        <div class="tags">cs pythonML rms-norm cloze optimization performance EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">Why does Layer Normalization help with training stability and gradient flow?</div>
+        <div class="back">
+            <strong>LayerNorm provides multiple training benefits:</strong>
+
+            <p><strong>1. Reduces internal covariate shift:</strong></p>
+            <pre><code># Without normalization:
+# Activation distributions shift during training
+# Each layer has to adapt to changing inputs
+
+# With normalization:
+# Inputs to each layer stay in similar range
+# Faster, more stable training</code></pre>
+
+            <p><strong>2. Controls gradient magnitudes:</strong></p>
+            <pre><code>def analyze_gradients(model, x, with_norm=True):
+    """Check gradient magnitudes with/without normalization."""
+    x.requires_grad = True
+
+    if with_norm:
+        x_normalized = nn.LayerNorm(x.size(-1))(x)
+        loss = (model(x_normalized) ** 2).sum()
+    else:
+        loss = (model(x) ** 2).sum()
+
+    loss.backward()
+
+    grad_norm = x.grad.norm()
+    return grad_norm
+
+# Without norm: gradients can explode or vanish
+# With norm: gradients stay in reasonable range</code></pre>
+
+            <p><strong>3. Enables higher learning rates:</strong></p>
+            <pre><code># Without LayerNorm:
+# Must use small LR (1e-4) and warmup
+# Training is slow and fragile
+
+# With LayerNorm:
+# Can use larger LR (1e-3 or higher)
+# Less sensitive to initialization
+# Faster convergence</code></pre>
+
+            <p><strong>4. Re-centering and re-scaling:</strong></p>
+            <pre><code># Example: activation ranges growing
+layer1_out = torch.randn(32, 100, 768) * 10  # Large values
+print(f"Before norm: mean={layer1_out.mean():.2f}, std={layer1_out.std():.2f}")
+# mean=0.05, std=10.01
+
+# After LayerNorm
+ln = nn.LayerNorm(768)
+normalized = ln(layer1_out)
+print(f"After norm: mean={normalized.mean():.2f}, std={normalized.std():.2f}")
+# mean≈0, std≈1
+
+# Keeps activations in good range for next layer!</code></pre>
+
+            <p><strong>Key insight:</strong> LayerNorm provides a clean, normalized input to each layer, making the optimization landscape smoother.</p>
+        </div>
+        <div class="tags">cs pythonML layer-norm training gradient-flow stability EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">How do you implement complete pre-norm and post-norm transformer blocks?</div>
+        <div class="back">
+            <strong>Full implementations showing the architectural difference:</strong>
+
+            <p><strong>Pre-Norm (modern standard):</strong></p>
+            <pre><code>class PreNormTransformerBlock(nn.Module):
+    def __init__(self, d_model, num_heads, d_ff, dropout=0.1):
+        super().__init__()
+        self.attention = MultiHeadAttention(d_model, num_heads)
+        self.ffn = FeedForward(d_model, d_ff)
+
+        # Normalization BEFORE each sublayer
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x, mask=None):
+        # Attention block: x + sublayer(norm(x))
+        normed = self.norm1(x)
+        attn_out = self.attention(normed, normed, normed, mask)
+        x = x + self.dropout(attn_out)
+
+        # FFN block: x + sublayer(norm(x))
+        normed = self.norm2(x)
+        ffn_out = self.ffn(normed)
+        x = x + self.dropout(ffn_out)
+
+        return x</code></pre>
+
+            <p><strong>Post-Norm (original Transformer):</strong></p>
+            <pre><code>class PostNormTransformerBlock(nn.Module):
+    def __init__(self, d_model, num_heads, d_ff, dropout=0.1):
+        super().__init__()
+        self.attention = MultiHeadAttention(d_model, num_heads)
+        self.ffn = FeedForward(d_model, d_ff)
+
+        # Normalization AFTER each sublayer
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x, mask=None):
+        # Attention block: norm(x + sublayer(x))
+        attn_out = self.attention(x, x, x, mask)
+        x = self.norm1(x + self.dropout(attn_out))
+
+        # FFN block: norm(x + sublayer(x))
+        ffn_out = self.ffn(x)
+        x = self.norm2(x + self.dropout(ffn_out))
+
+        return x</code></pre>
+
+            <p><strong>Complete model structure:</strong></p>
+            <pre><code># Pre-Norm Model (e.g., GPT-2):
+# Input → Embedding
+# → Block1: Norm→Attn→Add, Norm→FFN→Add
+# → Block2: Norm→Attn→Add, Norm→FFN→Add
+# → ...
+# → Final LayerNorm ← IMPORTANT! Need final norm
+# → Output
+
+# Post-Norm Model (e.g., Original Transformer):
+# Input → Embedding
+# → Block1: Attn→Add→Norm, FFN→Add→Norm
+# → Block2: Attn→Add→Norm, FFN→Add→Norm
+# → ...
+# → Output (no final norm needed)</code></pre>
+
+            <p>Note: Pre-norm models need a final LayerNorm before the output head!</p>
+        </div>
+        <div class="tags">cs pythonML pre-norm post-norm transformer implementation EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">CLOZE: In pre-norm architecture, you need a <span class="cloze">final LayerNorm</span> before the output layer, but post-norm doesn't need this because <span class="cloze">the last block already normalizes its output</span>.</div>
+        <div class="back">
+            <strong>Answer: final LayerNorm, the last block already normalizes its output</strong>
+
+            <pre><code># Pre-Norm - WITHOUT final norm (WRONG):
+class PreNormModelWrong(nn.Module):
+    def __init__(self, num_layers, d_model, vocab_size):
+        super().__init__()
+        self.embed = nn.Embedding(vocab_size, d_model)
+        self.blocks = nn.ModuleList([
+            PreNormBlock(d_model) for _ in range(num_layers)
+        ])
+        self.output = nn.Linear(d_model, vocab_size)
+        # ❌ Missing final norm!
+
+    def forward(self, x):
+        x = self.embed(x)
+        for block in self.blocks:
+            x = block(x)
+        return self.output(x)  # Unnormalized!
+
+# Pre-Norm - WITH final norm (CORRECT):
+class PreNormModelCorrect(nn.Module):
+    def __init__(self, num_layers, d_model, vocab_size):
+        super().__init__()
+        self.embed = nn.Embedding(vocab_size, d_model)
+        self.blocks = nn.ModuleList([
+            PreNormBlock(d_model) for _ in range(num_layers)
+        ])
+        self.final_norm = nn.LayerNorm(d_model)  # ✓ Final norm
+        self.output = nn.Linear(d_model, vocab_size)
+
+    def forward(self, x):
+        x = self.embed(x)
+        for block in self.blocks:
+            x = block(x)
+        x = self.final_norm(x)  # Normalize before output
+        return self.output(x)
+
+# Post-Norm - No final norm needed:
+class PostNormModel(nn.Module):
+    def __init__(self, num_layers, d_model, vocab_size):
+        super().__init__()
+        self.embed = nn.Embedding(vocab_size, d_model)
+        self.blocks = nn.ModuleList([
+            PostNormBlock(d_model) for _ in range(num_layers)
+        ])
+        self.output = nn.Linear(d_model, vocab_size)
+        # No final norm needed - already normalized by last block
+
+    def forward(self, x):
+        x = self.embed(x)
+        for block in self.blocks:
+            x = block(x)  # Last block ends with LayerNorm
+        return self.output(x)
+
+# Why this matters:
+# - Without final norm in pre-norm: outputs can have large magnitude
+# - This can cause numerical instability in loss computation
+# - Always add final norm for pre-norm models!</code></pre>
+        </div>
+        <div class="tags">cs pythonML pre-norm post-norm cloze final-norm EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">What is the epsilon parameter in LayerNorm and why is it important?</div>
+        <div class="back">
+            <strong>Epsilon prevents division by zero and ensures numerical stability:</strong>
+            <pre><code>class LayerNorm(nn.Module):
+    def __init__(self, d_model, eps=1e-5):  # or 1e-6
+        super().__init__()
+        self.eps = eps  # Small constant
+        self.weight = nn.Parameter(torch.ones(d_model))
+        self.bias = nn.Parameter(torch.zeros(d_model))
+
+    def forward(self, x):
+        mean = x.mean(dim=-1, keepdim=True)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)
+
+        # Without eps: division by zero if var=0!
+        # x_norm = (x - mean) / torch.sqrt(var)  # ❌ BAD
+
+        # With eps: always safe
+        x_norm = (x - mean) / torch.sqrt(var + self.eps)  # ✓ GOOD
+
+        return self.weight * x_norm + self.bias
+
+# When variance is zero (or very small):
+x_constant = torch.ones(32, 100, 768) * 5.0  # All same value
+var = x_constant.var(dim=-1)
+print(f"Variance: {var.max():.10f}")  # ~0.0
+
+# Without eps:
+# sqrt(0) = 0, then divide by 0 → NaN or Inf!
+
+# With eps=1e-5:
+# sqrt(0 + 1e-5) = 0.00316..., safe division
+
+# Choosing eps:
+# - Too large (1e-2): Changes normalization behavior
+# - Too small (1e-10): Can still have numerical issues in fp16
+# - Common values:
+#   - PyTorch default: 1e-5
+#   - Llama (RMSNorm): 1e-6 (can be smaller since no variance computation)
+#   - BERT: 1e-12 (but this is too small for fp16!)
+
+# For mixed precision (fp16):
+# Use larger eps: 1e-5 or 1e-6
+# fp16 has ~3 decimal digits precision
+
+# Rule of thumb: Use 1e-5 for LayerNorm, 1e-6 for RMSNorm</code></pre>
+        </div>
+        <div class="tags">cs pythonML layer-norm epsilon numerical-stability EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">How do you implement LayerNorm without learnable affine parameters?</div>
+        <div class="back">
+            <strong>LayerNorm can optionally disable the affine transformation:</strong>
+            <pre><code>import torch.nn as nn
+
+# Standard LayerNorm (with affine):
+ln_affine = nn.LayerNorm(768, elementwise_affine=True)  # default
+# Has weight (gamma) and bias (beta) parameters
+# Parameters: 768 + 768 = 1536
+
+# LayerNorm without affine:
+ln_no_affine = nn.LayerNorm(768, elementwise_affine=False)
+# No learnable parameters!
+# Parameters: 0
+
+# Manual implementation without affine:
+class LayerNormNoAffine(nn.Module):
+    def __init__(self, d_model, eps=1e-5):
+        super().__init__()
+        self.eps = eps
+        # No weight or bias parameters!
+
+    def forward(self, x):
+        mean = x.mean(dim=-1, keepdim=True)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)
+        return (x - mean) / torch.sqrt(var + self.eps)
+
+# Comparison:
+x = torch.randn(32, 100, 768)
+
+# With affine:
+ln_out = ln_affine(x)
+# Output: weight * x_norm + bias
+# Can shift mean and scale std
+
+# Without affine:
+ln_no_affine_out = ln_no_affine(x)
+# Output: just x_norm
+# Always mean≈0, std≈1
+
+print(f"With affine - mean: {ln_out.mean():.4f}, std: {ln_out.std():.4f}")
+# Could be anything (learned)
+
+print(f"Without affine - mean: {ln_no_affine_out.mean():.4f}, std: {ln_no_affine_out.std():.4f}")
+# Always: mean≈0, std≈1
+
+# When to use:
+# ✓ With affine (default): General purpose, gives model flexibility
+# ✗ Without affine: Rarely used, maybe for analysis or specific architectures
+# ✓ With affine: Standard in all transformers (BERT, GPT, Llama)</code></pre>
+        </div>
+        <div class="tags">cs pythonML layer-norm affine parameters EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">CLOZE: LayerNorm computes statistics over the <span class="cloze">last dimension (features)</span>, which means it works independently for each <span class="cloze">token and batch element</span>, making it suitable for variable-length sequences.</div>
+        <div class="back">
+            <strong>Answer: last dimension (features), token and batch element</strong>
+
+            <p>Dimension analysis:</p>
+            <pre><code># Input shape: (batch, seq_len, d_model)
+x = torch.randn(8, 100, 768)
+#              |   |    |
+#           batch seq  features
+
+# LayerNorm: normalize over last dim (768 features)
+ln = nn.LayerNorm(768)
+output = ln(x)
+
+# For EACH (batch_i, token_j) position:
+# Compute mean and std over 768 features
+# Normalize those 768 values
+
+# Total normalizations: batch × seq_len = 8 × 100 = 800
+# Each normalization uses 768 values
+
+# Example for one position:
+single_token = x[0, 0, :]  # Shape: (768,)
+mean = single_token.mean()  # Scalar
+std = single_token.std()    # Scalar
+normalized = (single_token - mean) / std
+
+# This works for ANY sequence length:
+x_short = torch.randn(8, 10, 768)   # seq_len=10
+x_long = torch.randn(8, 5000, 768)  # seq_len=5000
+
+ln_short = ln(x_short)  # Works!
+ln_long = ln(x_long)    # Works!
+
+# Each token normalized independently
+# → No dependence on sequence length
+# → Can handle variable lengths in same batch
+
+# Contrast with BatchNorm (not used in transformers):
+# Would normalize over (batch, seq_len) for each feature
+# Requires fixed seq_len or padding to same length
+# Different train/eval behavior
+
+# LayerNorm advantages:
+# ✓ Variable sequence lengths
+# ✓ Works with batch_size=1 (inference)
+# ✓ Same behavior train and eval
+# ✓ No running statistics needed</code></pre>
+        </div>
+        <div class="tags">cs pythonML layer-norm cloze dimensions variable-length EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">How do you implement QKNorm (normalizing queries and keys in attention)?</div>
+        <div class="back">
+            <strong>QKNorm applies LayerNorm to Q and K to stabilize attention:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class MultiHeadAttentionWithQKNorm(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads
+
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+
+        # QK normalization layers
+        self.q_norm = nn.LayerNorm(self.d_k)
+        self.k_norm = nn.LayerNorm(self.d_k)
+
+    def forward(self, query, key, value, mask=None):
+        batch_size = query.size(0)
+
+        # Project and split into heads
+        Q = self.W_q(query).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(key).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(value).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+
+        # Normalize Q and K
+        Q = self.q_norm(Q)  # Normalize over d_k dimension
+        K = self.k_norm(K)
+
+        # Standard attention (already normalized, so maybe skip scaling)
+        scores = torch.matmul(Q, K.transpose(-2, -1))
+        # Note: Can skip / sqrt(d_k) since Q and K are normalized
+
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+
+        attn = F.softmax(scores, dim=-1)
+        output = torch.matmul(attn, V)
+
+        # Reshape and project
+        output = output.transpose(1, 2).contiguous().view(batch_size, -1, self.d_model)
+        return self.W_o(output)
+
+# Benefits of QKNorm:
+# ✓ More stable training (attention scores don't explode)
+# ✓ Can train without warmup
+# ✓ Better performance in some settings
+# ✓ Used in: ViT variants, some modern transformers
+
+# Trade-offs:
+# ✗ Extra LayerNorm cost (small)
+# ✗ Changes attention semantics slightly
+
+# When to use:
+# - Vision Transformers (ViT)
+# - Very deep transformers
+# - When you have attention instability</code></pre>
+        </div>
+        <div class="tags">cs pythonML qk-norm layer-norm attention stability EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">What happens to gradients in LayerNorm and why does it help training?</div>
+        <div class="back">
+            <strong>LayerNorm's gradient properties improve optimization:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+# Example: Gradient flow with/without LayerNorm
+def compare_gradients():
+    d_model = 768
+    seq_len = 100
+
+    # Without LayerNorm
+    x = torch.randn(1, seq_len, d_model, requires_grad=True)
+    linear = nn.Linear(d_model, d_model)
+
+    out = linear(x)
+    loss = (out ** 2).sum()
+    loss.backward()
+
+    grad_no_norm = x.grad.norm().item()
+
+    # With LayerNorm
+    x2 = torch.randn(1, seq_len, d_model, requires_grad=True)
+    x2.data = x.data.clone()  # Same input
+
+    ln = nn.LayerNorm(d_model)
+    out2 = linear(ln(x2))
+    loss2 = (out2 ** 2).sum()
+    loss2.backward()
+
+    grad_with_norm = x2.grad.norm().item()
+
+    print(f"Gradient norm without LayerNorm: {grad_no_norm:.4f}")
+    print(f"Gradient norm with LayerNorm: {grad_with_norm:.4f}")
+
+# LayerNorm gradient properties:
+# 1. Bounded gradient magnitude
+#    - Prevents gradient explosion
+#    - More stable updates
+
+# 2. Gradient decoupling
+#    - Gradients for different features are more independent
+#    - Reduces internal covariate shift
+
+# 3. Implicit learning rate scaling
+#    - Effective learning rate adapts based on activation scale
+#    - Similar to adaptive optimizers (Adam)
+
+# Mathematical insight:
+# ∂L/∂x = ∂L/∂x_norm × ∂x_norm/∂x
+#
+# ∂x_norm/∂x has special structure:
+# - Gradients perpendicular to mean direction vanish
+# - Gradients along std direction are scaled
+# - Results in more stable, predictable updates
+
+# Empirical benefits:
+# ✓ Can use learning rate 5-10x larger
+# ✓ Less sensitive to initialization
+# ✓ Faster convergence (fewer steps to same loss)
+# ✓ Better generalization in some cases</code></pre>
+
+            <p>Key: LayerNorm implicitly performs a form of gradient scaling that stabilizes training.</p>
+        </div>
+        <div class="tags">cs pythonML layer-norm gradients training optimization EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">How do you implement conditional LayerNorm (e.g., for adaptive normalization)?</div>
+        <div class="back">
+            <strong>Adaptive LayerNorm conditions the normalization on external information:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+class AdaptiveLayerNorm(nn.Module):
+    """
+    LayerNorm where scale and shift are conditioned on external input.
+    Used in: StyleGAN, adaptive models, conditional generation
+    """
+    def __init__(self, d_model, condition_dim, eps=1e-5):
+        super().__init__()
+        self.eps = eps
+
+        # Conditioning network: maps condition → (scale, shift)
+        self.condition_mlp = nn.Sequential(
+            nn.Linear(condition_dim, d_model * 2),
+            nn.ReLU(),
+            nn.Linear(d_model * 2, d_model * 2)
+        )
+
+    def forward(self, x, condition):
+        """
+        x: (batch, seq_len, d_model) - input to normalize
+        condition: (batch, condition_dim) - conditioning information
+        """
+        # Standard LayerNorm
+        mean = x.mean(dim=-1, keepdim=True)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)
+        x_norm = (x - mean) / torch.sqrt(var + self.eps)
+
+        # Compute adaptive scale and shift from condition
+        condition_out = self.condition_mlp(condition)  # (batch, d_model * 2)
+        scale, shift = condition_out.chunk(2, dim=-1)  # Each: (batch, d_model)
+
+        # Apply adaptive affine transformation
+        # Need to broadcast: (batch, 1, d_model) to match (batch, seq_len, d_model)
+        scale = scale.unsqueeze(1)  # (batch, 1, d_model)
+        shift = shift.unsqueeze(1)
+
+        return scale * x_norm + shift
+
+# Usage example:
+adaptive_ln = AdaptiveLayerNorm(d_model=768, condition_dim=128)
+
+x = torch.randn(32, 100, 768)  # Input sequence
+condition = torch.randn(32, 128)  # E.g., style vector, timestep embedding
+
+output = adaptive_ln(x, condition)
+
+# Use cases:
+# 1. Diffusion models: condition on timestep
+# 2. Style transfer: condition on style embedding
+# 3. Multi-task learning: condition on task ID
+# 4. Conditional generation: condition on class or prompt
+
+# Similar concepts:
+# - AdaIN (Adaptive Instance Normalization) in style transfer
+# - FiLM (Feature-wise Linear Modulation) in VQA
+# - Conditional BatchNorm in GANs</code></pre>
+        </div>
+        <div class="tags">cs pythonML adaptive-norm conditional layer-norm EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">CLOZE: In transformers, pre-norm places LayerNorm <span class="cloze">before</span> the attention/FFN sublayer, while post-norm places it <span class="cloze">after the residual connection</span>.</div>
+        <div class="back">
+            <strong>Answer: before, after the residual connection</strong>
+
+            <p>Order of operations:</p>
+            <pre><code># Pre-Norm order:
+# 1. x_norm = LayerNorm(x)
+# 2. attn_out = Attention(x_norm)
+# 3. x = x + attn_out
+
+def pre_norm_forward(x):
+    x_norm = layer_norm(x)      # Step 1: Normalize first
+    attn_out = attention(x_norm)  # Step 2: Apply attention to normalized
+    return x + attn_out            # Step 3: Add to original (unnormalized!)
+
+# Residual path: x flows directly, unnormalized
+# Sublayer path: x → norm → attention
+
+# Post-Norm order:
+# 1. attn_out = Attention(x)
+# 2. x = x + attn_out
+# 3. x_norm = LayerNorm(x)
+
+def post_norm_forward(x):
+    attn_out = attention(x)          # Step 1: Attention on unnormalized
+    x = x + attn_out                  # Step 2: Add residual
+    return layer_norm(x)               # Step 3: Normalize the sum
+
+# Residual path: x + attn_out, then normalized
+# Both paths go through normalization
+
+# Visual comparison:
+# Pre-Norm:
+#     x ──────────────────────(+)──> output
+#     │                        │
+#     └─> Norm -> Attn ────────┘
+
+# Post-Norm:
+#     x ────────────(+)───> Norm ──> output
+#     │             │
+#     └─> Attn ─────┘
+
+# Key difference:
+# Pre-norm: Residual skips normalization
+# Post-norm: Everything gets normalized</code></pre>
+
+            <p>This difference affects gradient flow and training dynamics significantly.</p>
+        </div>
+        <div class="tags">cs pythonML layer-norm pre-norm post-norm cloze EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">How do you implement LayerNorm efficiently for mixed precision training (fp16/bf16)?</div>
+        <div class="back">
+            <strong>Mixed precision LayerNorm requires careful handling:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+class MixedPrecisionLayerNorm(nn.Module):
+    def __init__(self, d_model, eps=1e-5):
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(d_model))
+        self.bias = nn.Parameter(torch.zeros(d_model))
+
+    def forward(self, x):
+        """
+        x can be fp16 or bf16.
+        Compute statistics in fp32 for numerical stability.
+        """
+        # Store original dtype
+        orig_dtype = x.dtype
+
+        # Upcast to fp32 for statistics
+        x_fp32 = x.float()
+
+        # Compute mean and variance in fp32
+        mean = x_fp32.mean(dim=-1, keepdim=True)
+        var = x_fp32.var(dim=-1, keepdim=True, unbiased=False)
+
+        # Normalize in fp32
+        x_norm = (x_fp32 - mean) / torch.sqrt(var + self.eps)
+
+        # Apply affine in fp32
+        output = self.weight * x_norm + self.bias
+
+        # Cast back to original dtype
+        return output.to(orig_dtype)
+
+# PyTorch's built-in LayerNorm handles this automatically:
+ln = nn.LayerNorm(768, eps=1e-5)
+
+# With automatic mixed precision:
+from torch.cuda.amp import autocast
+
+x = torch.randn(32, 100, 768, device='cuda')
+
+with autocast():
+    # LayerNorm runs in fp32 internally even if inputs are fp16
+    output = ln(x)
+
+# Why fp32 for statistics?
+# - fp16 has limited precision (~3 decimal digits)
+# - Mean/variance can lose precision
+# - Division by small std can cause inf/nan
+
+# Example of fp16 issues:
+x_fp16 = torch.randn(32, 100, 768, dtype=torch.float16)
+
+# Small variance in fp16:
+var_fp16 = x_fp16.var(dim=-1)
+print(f"Min variance (fp16): {var_fp16.min()}")  # Could be 0!
+
+# In fp32:
+var_fp32 = x_fp16.float().var(dim=-1)
+print(f"Min variance (fp32): {var_fp32.min()}")  # More accurate
+
+# Best practices:
+# ✓ Use eps=1e-5 (not 1e-12) for fp16
+# ✓ Let PyTorch handle precision (it upcasts automatically)
+# ✓ Use bf16 if available (better range than fp16)</code></pre>
+        </div>
+        <div class="tags">cs pythonML layer-norm mixed-precision fp16 numerical-stability EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">What is the computational cost of LayerNorm compared to other operations in transformers?</div>
+        <div class="back">
+            <strong>LayerNorm is relatively cheap compared to attention and FFN:</strong>
+            <pre><code>def compute_layer_norm_cost(batch_size, seq_len, d_model):
+    """Compute FLOPs for LayerNorm."""
+
+    # Operations per token:
+    # 1. Compute mean: sum d_model elements, divide by d_model
+    mean_ops = d_model + 1
+
+    # 2. Compute variance: d_model subtractions, d_model squares,
+    #    sum, divide
+    var_ops = d_model * 3 + 1
+
+    # 3. Normalize: d_model subtractions, d_model divisions
+    norm_ops = d_model * 2
+
+    # 4. Affine: d_model multiplications, d_model additions
+    affine_ops = d_model * 2
+
+    # Total per token
+    ops_per_token = mean_ops + var_ops + norm_ops + affine_ops
+    ops_per_token = 8 * d_model + 2  # Simplified
+
+    # Total for all tokens
+    total_ops = batch_size * seq_len * ops_per_token
+    return total_ops
+
+# Compare to other operations:
+batch_size = 8
+seq_len = 1024
+d_model = 768
+d_ff = 3072
+num_heads = 12
+
+# LayerNorm
+ln_ops = compute_layer_norm_cost(batch_size, seq_len, d_model)
+
+# Attention (QKV + scores + output)
+attn_ops = batch_size * (
+    4 * seq_len * d_model * d_model +  # QKV projections + output
+    2 * seq_len * seq_len * d_model     # Attention computation
+)
+
+# FFN
+ffn_ops = batch_size * seq_len * (
+    2 * d_model * d_ff  # Two linear layers
+)
+
+print(f"LayerNorm: {ln_ops / 1e9:.3f} GFLOPs")
+print(f"Attention: {attn_ops / 1e9:.3f} GFLOPs")
+print(f"FFN: {ffn_ops / 1e9:.3f} GFLOPs")
+
+# Example output:
+# LayerNorm: 0.050 GFLOPs (0.5% of total)
+# Attention: 9.664 GFLOPs (96%)
+# FFN: 38.655 GFLOPs (385%)
+
+# Takeaway: LayerNorm is negligible (<1% of compute)
+# Focus optimization efforts on attention and FFN
+
+# Memory (activations):
+# LayerNorm stores: input + output = 2 × batch × seq × d_model
+# Attention stores: O(batch × seq² × heads) for attention matrix
+# FFN stores: batch × seq × d_ff (d_ff >> d_model)
+
+# LayerNorm is NOT the bottleneck for compute or memory!</code></pre>
+        </div>
+        <div class="tags">cs pythonML layer-norm performance flops cost EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">CLOZE: RMSNorm is approximately <span class="cloze">10-20%</span> faster than LayerNorm and achieves similar performance while using <span class="cloze">no bias parameter</span>.</div>
+        <div class="back">
+            <strong>Answer: 10-20%, no bias parameter</strong>
+
+            <p>Detailed comparison:</p>
+            <pre><code># Parameter count:
+d_model = 4096
+
+# LayerNorm parameters:
+ln_weight = d_model      # 4096
+ln_bias = d_model        # 4096
+ln_total = 8192          # Total
+
+# RMSNorm parameters:
+rms_weight = d_model     # 4096
+rms_bias = 0             # No bias!
+rms_total = 4096         # Total (50% fewer)
+
+# Operations:
+# LayerNorm:
+# - Compute mean: O(d)
+# - Subtract mean: O(d)
+# - Compute variance: O(d)
+# - Normalize: O(d)
+# - Affine (scale + shift): O(d)
+# Total: ~5d operations
+
+# RMSNorm:
+# - Compute mean of squares: O(d)
+# - RMS (sqrt): O(1)
+# - Normalize: O(d)
+# - Affine (scale only): O(d)
+# Total: ~3d operations (40% fewer)
+
+# Benchmark:
+import time
+import torch
+
+x = torch.randn(32, 1024, 4096, device='cuda')
+
+# LayerNorm
+ln = nn.LayerNorm(4096).cuda()
+torch.cuda.synchronize()
+start = time.time()
+for _ in range(1000):
+    _ = ln(x)
+torch.cuda.synchronize()
+ln_time = time.time() - start
+
+# RMSNorm
+rms = RMSNorm(4096).cuda()
+torch.cuda.synchronize()
+start = time.time()
+for _ in range(1000):
+    _ = rms(x)
+torch.cuda.synchronize()
+rms_time = time.time() - start
+
+speedup = ln_time / rms_time
+print(f"RMSNorm is {speedup:.2f}x faster")
+# Typical result: 1.15-1.25x speedup
+
+# Performance (perplexity) comparison:
+# Llama team found: RMSNorm ≈ LayerNorm in final quality
+# No significant degradation despite simpler normalization</code></pre>
+        </div>
+        <div class="tags">cs pythonML rms-norm layer-norm cloze performance comparison EN</div>
+    </div>
+
+    <!-- Card 19 -->
+    <div class="card">
+        <div class="front">How do you implement GroupNorm and when would you use it instead of LayerNorm?</div>
+        <div class="back">
+            <strong>GroupNorm normalizes within groups of channels:</strong>
+            <pre><code>import torch.nn as nn
+
+# GroupNorm: intermediate between LayerNorm and InstanceNorm
+group_norm = nn.GroupNorm(num_groups=32, num_channels=768)
+
+# For input (batch, channels, height, width) in CNNs:
+x_2d = torch.randn(16, 768, 14, 14)
+out_2d = group_norm(x_2d)
+
+# For transformers (batch, seq_len, d_model), need to transpose:
+x_1d = torch.randn(16, 100, 768)
+x_transposed = x_1d.transpose(1, 2)  # (batch, d_model, seq_len)
+out_transposed = group_norm(x_transposed)
+out_1d = out_transposed.transpose(1, 2)  # Back to (batch, seq_len, d_model)
+
+# How GroupNorm works:
+# 1. Split channels into groups
+# 2. Normalize within each group independently
+
+# Example: 768 channels, 32 groups
+# Each group has 768/32 = 24 channels
+# For each group: compute mean/std over those 24 channels (+ spatial dims)
+
+# Comparison:
+# LayerNorm: normalize over all 768 features
+# GroupNorm: normalize over 24 features at a time (32 groups)
+# InstanceNorm: normalize over each feature independently (768 groups)
+
+# When to use:
+# LayerNorm: Transformers (standard choice)
+#   - Normalizes all features together
+#   - Works with any sequence length
+#   - Best for NLP, most vision transformers
+
+# GroupNorm: Vision models (CNNs, Vision Transformers)
+#   - Better than BatchNorm for small batches
+#   - Works at batch_size=1
+#   - Popular in: ResNets, detection models
+
+# InstanceNorm: Style transfer, GANs
+#   - Normalizes each channel independently
+#   - Used in image generation
+
+# For transformers: Stick with LayerNorm or RMSNorm
+# GroupNorm rarely used in pure transformers</code></pre>
+        </div>
+        <div class="tags">cs pythonML group-norm layer-norm normalization EN</div>
+    </div>
+
+    <!-- Card 20 -->
+    <div class="card">
+        <div class="front">How do you initialize LayerNorm parameters and why does it matter?</div>
+        <div class="back">
+            <strong>LayerNorm initialization affects early training dynamics:</strong>
+            <pre><code>import torch.nn as nn
+
+class LayerNormWithInit(nn.Module):
+    def __init__(self, d_model, eps=1e-5, init_method='ones_zeros'):
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.empty(d_model))
+        self.bias = nn.Parameter(torch.empty(d_model))
+
+        # Initialize based on method
+        self._init_parameters(init_method)
+
+    def _init_parameters(self, method):
+        if method == 'ones_zeros':
+            # Standard initialization (PyTorch default)
+            nn.init.ones_(self.weight)   # γ = 1
+            nn.init.zeros_(self.bias)    # β = 0
+            # Output = 1 * x_norm + 0 = x_norm (mean 0, std 1)
+
+        elif method == 'small_weight':
+            # Start with smaller scale
+            nn.init.constant_(self.weight, 0.1)  # γ = 0.1
+            nn.init.zeros_(self.bias)            # β = 0
+            # Output = 0.1 * x_norm (mean 0, std 0.1)
+            # More conservative, smaller initial activations
+
+        elif method == 'learnable_centered':
+            # Allow learning the centering
+            nn.init.ones_(self.weight)
+            nn.init.uniform_(self.bias, -0.1, 0.1)  # Small random bias
+            # Allows model to learn preferred mean
+
+        elif method == 'identity':
+            # Start as identity (no normalization effect)
+            # This is tricky - need high weight, adjust bias
+            # Not recommended, shown for completeness
+            nn.init.constant_(self.weight, 1.0)
+            nn.init.zeros_(self.bias)
+
+# Standard practice (use this):
+layer_norm = nn.LayerNorm(768)  # Automatically uses ones_zeros
+
+# Why ones_zeros is standard:
+# 1. Starts with "neutral" transformation
+#    output = x_norm (normalized but not scaled/shifted)
+
+# 2. Model learns appropriate scale/shift during training
+#    If model wants larger std: increases weight
+#    If model wants shifted mean: adjusts bias
+
+# 3. Well-studied and empirically works
+
+# Effect on training:
+# - Ones_zeros: Standard, reliable convergence
+# - Small weight: More conservative, slower initial learning
+# - Random bias: Can help in some cases, but less stable
+
+# Rule of thumb: Use default (ones_zeros) unless you have specific reason
+
+# Check initialization:
+ln = nn.LayerNorm(768)
+print(f"Weight init: {ln.weight[0]:.4f}")  # 1.0
+print(f"Bias init: {ln.bias[0]:.4f}")      # 0.0</code></pre>
+        </div>
+        <div class="tags">cs pythonML layer-norm initialization parameters training EN</div>
+    </div>
+
+</body>
+</html>

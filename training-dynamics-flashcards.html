@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Dynamics - CS Vocab Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .front {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .back {
+            line-height: 1.6;
+            color: #34495e;
+        }
+
+        .tags {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .cloze {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>Training Dynamics Flashcards</h1>
+    <p>Learning rates, optimization, and training techniques with PyTorch implementations</p>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">How do you implement learning rate warmup and why is it important?</div>
+        <div class="back">
+            <strong>Warmup gradually increases learning rate from 0 to target value:</strong>
+            <pre><code>import torch
+from torch.optim.lr_scheduler import LambdaLR
+
+def get_linear_warmup_scheduler(optimizer, num_warmup_steps, num_training_steps):
+    """
+    Linear warmup then constant learning rate.
+    """
+    def lr_lambda(current_step):
+        if current_step < num_warmup_steps:
+            # Linear warmup: 0 → 1
+            return float(current_step) / float(max(1, num_warmup_steps))
+        # Constant after warmup
+        return 1.0
+
+    return LambdaLR(optimizer, lr_lambda)
+
+def get_warmup_cosine_scheduler(optimizer, num_warmup_steps, num_training_steps):
+    """
+    Linear warmup then cosine decay (common in transformers).
+    """
+    def lr_lambda(current_step):
+        if current_step < num_warmup_steps:
+            # Linear warmup
+            return float(current_step) / float(max(1, num_warmup_steps))
+
+        # Cosine decay after warmup
+        progress = float(current_step - num_warmup_steps) / \
+                  float(max(1, num_training_steps - num_warmup_steps))
+        return max(0.0, 0.5 * (1.0 + math.cos(math.pi * progress)))
+
+    return LambdaLR(optimizer, lr_lambda)
+
+# Usage:
+model = ...
+optimizer = torch.optim.AdamW(model.parameters(), lr=5e-4)
+
+num_training_steps = 10000
+num_warmup_steps = 1000  # 10% warmup is typical
+
+scheduler = get_warmup_cosine_scheduler(
+    optimizer,
+    num_warmup_steps=num_warmup_steps,
+    num_training_steps=num_training_steps
+)
+
+# Training loop:
+for epoch in range(num_epochs):
+    for batch in dataloader:
+        loss = train_step(model, batch)
+        loss.backward()
+        optimizer.step()
+        scheduler.step()  # Update LR after each step
+        optimizer.zero_grad()
+
+# Why warmup?
+# 1. Prevents instability early in training
+#    - Large gradients at initialization
+#    - Large LR + large gradients = divergence
+
+# 2. Allows larger peak learning rate
+#    - Without warmup: must use small LR (slow)
+#    - With warmup: can use larger peak LR (fast convergence)
+
+# 3. Helps with batch norm/layer norm
+#    - Statistics not yet stabilized early on
+
+# Typical warmup schedules:
+# - BERT: Linear warmup + linear decay
+# - GPT: Linear warmup + cosine decay
+# - T5: Inverse sqrt warmup + decay</code></pre>
+        </div>
+        <div class="tags">cs pythonML training learning-rate warmup scheduler EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">CLOZE: AdamW differs from Adam by applying weight decay <span class="cloze">directly to the weights</span> (decoupled) rather than <span class="cloze">adding it to the gradient</span>.</div>
+        <div class="back">
+            <strong>Answer: directly to the weights, adding it to the gradient</strong>
+
+            <p>AdamW vs Adam weight decay:</p>
+            <pre><code>import torch.optim as optim
+
+# Adam (incorrect weight decay):
+# grad = grad + weight_decay * param
+# Then apply Adam update on modified gradient
+adam = optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.01)
+
+# AdamW (correct weight decay):
+# Apply Adam update, then separately decay weights:
+# param = param - lr * weight_decay * param
+adamw = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.01)
+
+# Mathematical difference:
+# Adam with weight decay:
+#   m_t = β₁ * m_{t-1} + (1-β₁) * (g_t + λ*θ_t)  ← gradient includes decay
+#   v_t = β₂ * v_{t-1} + (1-β₂) * (g_t + λ*θ_t)²
+#   θ_t = θ_{t-1} - α * m_t / (√v_t + ε)
+
+# AdamW:
+#   m_t = β₁ * m_{t-1} + (1-β₁) * g_t
+#   v_t = β₂ * v_{t-1} + (1-β₂) * g_t²
+#   θ_t = θ_{t-1} - α * m_t / (√v_t + ε) - α*λ*θ_t  ← separate decay
+#                                            ↑ decoupled
+
+# Why AdamW is better:
+# 1. Weight decay actually decays weights (not gradient)
+# 2. λ (weight decay) and α (LR) are independent
+# 3. Better generalization empirically
+
+# Example impact:
+# With Adam: effective weight decay depends on gradient magnitude
+#   - Large gradients → WD has less effect (gets normalized by Adam)
+#   - Small gradients → WD has more effect
+
+# With AdamW: weight decay is consistent regardless of gradients
+
+# Used in:
+# ✓ All modern transformers (BERT, GPT, Llama)
+# ✓ Replace Adam with AdamW in your code!
+
+# Configuration:
+optimizer = optim.AdamW(
+    model.parameters(),
+    lr=5e-4,
+    weight_decay=0.01,  # Typical: 0.01-0.1
+    betas=(0.9, 0.999),
+    eps=1e-8
+)</code></pre>
+        </div>
+        <div class="tags">cs pythonML training adamw optimizer cloze weight-decay EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">How do you implement gradient clipping and when should you use it?</div>
+        <div class="back">
+            <strong>Gradient clipping prevents exploding gradients:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+# Method 1: Clip gradient norm (most common)
+def train_step_with_grad_clip(model, batch, optimizer, max_norm=1.0):
+    """
+    Clip gradients by global norm.
+    """
+    loss = compute_loss(model, batch)
+    loss.backward()
+
+    # Clip gradients
+    torch.nn.utils.clip_grad_norm_(
+        model.parameters(),
+        max_norm=max_norm  # Typical: 1.0 or 5.0
+    )
+
+    optimizer.step()
+    optimizer.zero_grad()
+
+    return loss.item()
+
+# Method 2: Clip gradient value (less common)
+def clip_grad_value(model, clip_value=1.0):
+    """
+    Clip individual gradient values.
+    """
+    torch.nn.utils.clip_grad_value_(
+        model.parameters(),
+        clip_value=clip_value
+    )
+
+# How gradient norm clipping works:
+# 1. Compute total gradient norm: g_norm = √(Σ g_i²)
+# 2. If g_norm > max_norm:
+#      scale = max_norm / g_norm
+#      g_i = g_i * scale
+# 3. This scales ALL gradients proportionally
+
+# Example:
+# Gradients: [10, 5, 3]
+# Norm: √(100 + 25 + 9) = √134 ≈ 11.6
+# If max_norm=1.0:
+#   scale = 1.0 / 11.6 ≈ 0.086
+#   Clipped: [0.86, 0.43, 0.26]
+
+# When to use:
+# ✓ Training RNNs/LSTMs (notorious for exploding gradients)
+# ✓ Training very deep networks
+# ✓ Large learning rates
+# ✓ When loss spikes occur
+
+# When NOT to use:
+# ✗ Well-behaved networks with proper initialization
+# ✗ Can mask underlying issues (better to fix architecture)
+
+# Monitoring gradients:
+def monitor_gradients(model):
+    """Check gradient statistics."""
+    total_norm = 0.0
+    for p in model.parameters():
+        if p.grad is not None:
+            param_norm = p.grad.data.norm(2)
+            total_norm += param_norm.item() ** 2
+    total_norm = total_norm ** 0.5
+
+    print(f"Gradient norm: {total_norm:.4f}")
+
+    # Warning signs:
+    # - Norm > 100: Likely exploding gradients
+    # - Norm < 0.001: Vanishing gradients
+    # - Norm = NaN: Training diverged
+
+# Transformer best practices:
+# - max_norm=1.0 for BERT-style models
+# - max_norm=1.0-5.0 for GPT-style models
+# - Combine with gradient accumulation
+
+optimizer = torch.optim.AdamW(model.parameters(), lr=5e-4)
+
+for batch in dataloader:
+    loss = compute_loss(model, batch)
+    loss.backward()
+
+    # Clip before optimizer step
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+    optimizer.step()
+    optimizer.zero_grad()</code></pre>
+        </div>
+        <div class="tags">cs pythonML training gradient-clipping stability EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">How do you implement gradient accumulation for large batch training?</div>
+        <div class="back">
+            <strong>Gradient accumulation simulates larger batch sizes:</strong>
+            <pre><code>import torch
+
+def train_with_gradient_accumulation(model, dataloader, optimizer,
+                                     accumulation_steps=4):
+    """
+    Accumulate gradients over multiple steps before updating.
+
+    Effective batch size = batch_size * accumulation_steps
+    """
+    model.train()
+    optimizer.zero_grad()
+
+    for i, batch in enumerate(dataloader):
+        # Forward pass
+        loss = compute_loss(model, batch)
+
+        # Scale loss by accumulation steps
+        loss = loss / accumulation_steps
+
+        # Backward pass (accumulates gradients)
+        loss.backward()
+
+        # Update weights every accumulation_steps
+        if (i + 1) % accumulation_steps == 0:
+            # Optional: clip gradients
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+            # Optimizer step
+            optimizer.step()
+            optimizer.zero_grad()
+
+            # LR scheduler step (if using)
+            if scheduler is not None:
+                scheduler.step()
+
+    # Handle remaining batches
+    if (i + 1) % accumulation_steps != 0:
+        optimizer.step()
+        optimizer.zero_grad()
+
+# Why gradient accumulation?
+# Problem: Limited GPU memory
+# Example:
+# - Want batch_size=64
+# - GPU can only fit batch_size=16
+# - Solution: Accumulate 4 batches
+
+# batch_size=16, accumulation_steps=4
+# → Effective batch_size=64
+
+# Benefits:
+# ✓ Trains models that don't fit in memory
+# ✓ Matches results of larger batch training
+# ✓ No additional memory cost (except gradients)
+
+# Considerations:
+# 1. Must scale loss by accumulation_steps
+#    (Otherwise gradients are accumulation_steps × too large)
+
+# 2. Batch norm behaves differently
+#    - BN statistics computed per mini-batch
+#    - Not equivalent to true large batch
+#    - Use LayerNorm or Group Norm instead
+
+# 3. LR scheduler timing
+#    - Call scheduler.step() after accumulation, not every batch
+
+# 4. Logging
+#    - Log every accumulation cycle, not every batch
+
+# Example with PyTorch Lightning (handles automatically):
+import pytorch_lightning as pl
+
+class MyModel(pl.LightningModule):
+    def training_step(self, batch, batch_idx):
+        loss = self.compute_loss(batch)
+        return loss
+
+# When creating trainer:
+trainer = pl.Trainer(
+    accumulate_grad_batches=4  # Automatic gradient accumulation
+)
+
+# Mixed precision + gradient accumulation:
+from torch.cuda.amp import autocast, GradScaler
+
+scaler = GradScaler()
+optimizer.zero_grad()
+
+for i, batch in enumerate(dataloader):
+    with autocast():
+        loss = compute_loss(model, batch) / accumulation_steps
+
+    scaler.scale(loss).backward()
+
+    if (i + 1) % accumulation_steps == 0:
+        scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        scaler.step(optimizer)
+        scaler.update()
+        optimizer.zero_grad()</code></pre>
+        </div>
+        <div class="tags">cs pythonML training gradient-accumulation batch-size memory EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">CLOZE: With gradient accumulation over <span class="cloze">N steps</span>, you must divide the loss by <span class="cloze">N</span> to maintain correct gradient magnitudes, making it equivalent to a batch size <span class="cloze">N times larger</span>.</div>
+        <div class="back">
+            <strong>Answer: N steps, N, N times larger</strong>
+
+            <p>Why scale loss by N:</p>
+            <pre><code># Without gradient accumulation:
+# Batch size = 64
+# Loss = mean(loss_per_sample)  # Average over 64 samples
+# loss.backward() → gradients = dL/dθ
+
+# With gradient accumulation (N=4 steps):
+# Step 1: batch_size=16, loss_1 = mean over 16 samples
+# Step 2: batch_size=16, loss_2 = mean over 16 samples
+# Step 3: batch_size=16, loss_3 = mean over 16 samples
+# Step 4: batch_size=16, loss_4 = mean over 16 samples
+
+# Problem: If we just accumulate:
+# grad = grad_1 + grad_2 + grad_3 + grad_4
+# This is 4× too large! (4 means instead of 1 mean)
+
+# Solution: Scale each loss by 1/N:
+loss = loss / N
+loss.backward()  # Accumulates gradients
+
+# Now after N steps:
+# total_grad = grad_1/N + grad_2/N + grad_3/N + grad_4/N
+#            = (grad_1 + grad_2 + grad_3 + grad_4) / N
+#            = mean gradient over all 64 samples ✓
+
+# Practical example:
+N = 4
+effective_batch_size = 16 * 4  # 64
+
+for i, batch in enumerate(dataloader):
+    # batch has 16 samples
+    loss = model(batch)  # Mean loss over 16 samples
+
+    # DON'T DO THIS:
+    # loss.backward()  # ❌ Would accumulate 4× too much
+
+    # DO THIS:
+    (loss / N).backward()  # ✓ Correct scaling
+
+    if (i + 1) % N == 0:
+        optimizer.step()
+        optimizer.zero_grad()
+
+# Verification:
+# After 4 steps:
+# gradient ≈ gradient with batch_size=64 ✓
+
+# Alternative (equivalent):
+# Don't scale loss, but scale gradients before optimizer.step():
+for i, batch in enumerate(dataloader):
+    loss = model(batch)
+    loss.backward()  # Accumulate
+
+    if (i + 1) % N == 0:
+        # Scale gradients
+        for p in model.parameters():
+            if p.grad is not None:
+                p.grad /= N
+
+        optimizer.step()
+        optimizer.zero_grad()</code></pre>
+        </div>
+        <div class="tags">cs pythonML gradient-accumulation cloze scaling training EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">How do you implement mixed precision training with automatic mixed precision (AMP)?</div>
+        <div class="back">
+            <strong>AMP uses fp16 for speed while maintaining fp32 precision where needed:</strong>
+            <pre><code>import torch
+from torch.cuda.amp import autocast, GradScaler
+
+# Method 1: Manual AMP
+def train_step_amp(model, batch, optimizer, scaler):
+    """
+    Training step with automatic mixed precision.
+    """
+    # autocast enables automatic casting to fp16
+    with autocast():
+        # Forward pass in fp16 (automatic)
+        loss = compute_loss(model, batch)
+
+    # Backward pass with gradient scaling
+    scaler.scale(loss).backward()
+
+    # Gradient clipping (must unscale first!)
+    scaler.unscale_(optimizer)
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+    # Optimizer step
+    scaler.step(optimizer)
+    scaler.update()  # Update scale factor
+
+    optimizer.zero_grad()
+
+    return loss.item()
+
+# Full training loop with AMP:
+model = Model().cuda()
+optimizer = torch.optim.AdamW(model.parameters(), lr=5e-4)
+scaler = GradScaler()  # Manages loss scaling
+
+for epoch in range(num_epochs):
+    for batch in dataloader:
+        batch = batch.cuda()
+
+        with autocast():
+            # Model runs in fp16 where safe
+            outputs = model(batch)
+            loss = criterion(outputs, labels)
+
+        # Scale loss to prevent underflow
+        scaler.scale(loss).backward()
+
+        # Unscale before clipping
+        scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+
+        # Step with scaled gradients
+        scaler.step(optimizer)
+        scaler.update()
+
+        optimizer.zero_grad()
+
+# What AMP does automatically:
+# 1. Casts operations to fp16 where safe:
+#    - Matrix multiplications → fp16 (faster)
+#    - Element-wise ops → fp16
+#    - Reductions → fp32 (for accuracy)
+
+# 2. Keeps master copy in fp32:
+#    - Model parameters stored in fp32
+#    - Only cast to fp16 during forward pass
+
+# 3. Gradient scaling:
+#    - fp16 range: ±65,504
+#    - Gradients can underflow (become 0)
+#    - Solution: multiply loss by large factor (scale)
+#    - Gradients: loss_scale * gradient
+#    - Unscale before optimizer.step()
+
+# Benefits:
+# ✓ 2-3x faster training (on Volta/Turing/Ampere GPUs)
+# ✓ 2x less memory (can use larger batches)
+# ✓ No accuracy loss (if done correctly)
+
+# Method 2: PyTorch 2.0+ with compile
+# Even simpler:
+model = torch.compile(model)  # Automatically uses mixed precision
+
+# Method 3: Hugging Face Trainer (handles automatically)
+from transformers import Trainer, TrainingArguments
+
+training_args = TrainingArguments(
+    fp16=True,  # Enable mixed precision
+    # ...
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    # ...
+)
+trainer.train()  # Automatic AMP!</code></pre>
+        </div>
+        <div class="tags">cs pythonML training mixed-precision amp fp16 optimization EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">What are the key differences between Adam, AdamW, and Lion optimizers?</div>
+        <div class="back">
+            <strong>Modern optimizer comparison:</strong>
+
+            <p><strong>1. Adam (Adaptive Moment Estimation):</strong></p>
+            <pre><code># Original Adam (1990s):
+# m_t = β₁*m_{t-1} + (1-β₁)*g_t              # First moment (mean)
+# v_t = β₂*v_{t-1} + (1-β₂)*g_t²             # Second moment (variance)
+# θ_t = θ_{t-1} - α*m_t/(√v_t + ε)          # Update
+
+optimizer = torch.optim.Adam(
+    model.parameters(),
+    lr=1e-3,
+    betas=(0.9, 0.999),
+    eps=1e-8
+)
+
+# Pros: Fast convergence, adapts per-parameter
+# Cons: Weight decay implemented incorrectly</code></pre>
+
+            <p><strong>2. AdamW (Adam with Decoupled Weight Decay):</strong></p>
+            <pre><code># AdamW (2017):
+# Same as Adam but weight decay applied correctly:
+# θ_t = θ_{t-1} - α*m_t/(√v_t + ε) - α*λ*θ_t  # Separate decay
+
+optimizer = torch.optim.AdamW(
+    model.parameters(),
+    lr=5e-4,
+    betas=(0.9, 0.999),
+    eps=1e-8,
+    weight_decay=0.01  # Decoupled!
+)
+
+# Pros: Better generalization than Adam, standard for transformers
+# Cons: Still adaptive (can be unstable on some tasks)</code></pre>
+
+            <p><strong>3. Lion (Evolved Sign Momentum):</strong></p>
+            <pre><code># Lion (2023):
+# Much simpler update rule:
+# m_t = β₁*m_{t-1} + (1-β₁)*g_t
+# θ_t = θ_{t-1} - α*(sign(m_t) + λ*θ_t)     # Sign of momentum!
+
+# PyTorch implementation:
+class Lion(torch.optim.Optimizer):
+    def __init__(self, params, lr=1e-4, betas=(0.9, 0.99), weight_decay=0.0):
+        defaults = dict(lr=lr, betas=betas, weight_decay=weight_decay)
+        super().__init__(params, defaults)
+
+    @torch.no_grad()
+    def step(self):
+        for group in self.param_groups:
+            for p in group['params']:
+                if p.grad is None:
+                    continue
+
+                grad = p.grad
+                state = self.state[p]
+
+                # Initialize momentum
+                if 'exp_avg' not in state:
+                    state['exp_avg'] = torch.zeros_like(p)
+
+                exp_avg = state['exp_avg']
+                beta1, beta2 = group['betas']
+
+                # Update: sign of interpolated gradient
+                update = exp_avg * beta1 + grad * (1 - beta1)
+                p.add_(torch.sign(update), alpha=-group['lr'])
+
+                # Weight decay
+                p.mul_(1 - group['lr'] * group['weight_decay'])
+
+                # Update momentum
+                exp_avg.mul_(beta2).add_(grad, alpha=1 - beta2)
+
+# Pros: Memory efficient (no second moment), faster
+# Cons: Requires smaller LR, less mature/tested
+
+# Usage:
+optimizer = Lion(
+    model.parameters(),
+    lr=1e-4,  # Typically 3-10× smaller than AdamW!
+    betas=(0.9, 0.99),
+    weight_decay=0.1  # Typically 3-10× larger!
+)</code></pre>
+
+            <p><strong>Comparison:</strong></p>
+            <ul>
+                <li><strong>Adam:</strong> Don't use (use AdamW instead)</li>
+                <li><strong>AdamW:</strong> Default choice for transformers</li>
+                <li><strong>Lion:</strong> Emerging alternative, uses less memory</li>
+            </ul>
+
+            <pre><code># Memory comparison (per parameter):
+# Adam/AdamW: 2× params (m and v)
+# Lion: 1× params (only m)
+# → 50% memory savings!
+
+# Speed: Lion slightly faster (simpler updates)
+# Quality: AdamW ≈ Lion (task-dependent)</code></pre>
+        </div>
+        <div class="tags">cs pythonML training optimizers adam adamw lion comparison EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">CLOZE: Learning rate warmup typically uses <span class="cloze">10%</span> of total training steps, going from <span class="cloze">0 to peak learning rate</span>, followed by <span class="cloze">cosine or linear decay</span>.</div>
+        <div class="back">
+            <strong>Answer: 10%, 0 to peak learning rate, cosine or linear decay</strong>
+
+            <p>Standard warmup schedule:</p>
+            <pre><code>import math
+
+# Total training: 100K steps
+total_steps = 100_000
+
+# Warmup: 10% of total
+warmup_steps = int(0.1 * total_steps)  # 10,000 steps
+
+# Peak learning rate
+peak_lr = 5e-4
+
+# Schedule visualization:
+def get_lr_at_step(step, total_steps, warmup_steps, peak_lr):
+    """Get learning rate for given step."""
+    if step < warmup_steps:
+        # Warmup: linear 0 → peak_lr
+        return (step / warmup_steps) * peak_lr
+    else:
+        # Cosine decay: peak_lr → 0
+        progress = (step - warmup_steps) / (total_steps - warmup_steps)
+        return 0.5 * peak_lr * (1 + math.cos(math.pi * progress))
+
+# Plot learning rate schedule:
+steps = range(total_steps)
+lrs = [get_lr_at_step(s, total_steps, warmup_steps, peak_lr) for s in steps]
+
+# Key points:
+# Step 0: LR = 0
+# Step 10,000 (warmup done): LR = 5e-4 (peak)
+# Step 55,000 (midpoint): LR ≈ 2.5e-4
+# Step 100,000 (end): LR ≈ 0
+
+# Alternative: Linear decay instead of cosine
+def linear_decay(step, total_steps, warmup_steps, peak_lr):
+    if step < warmup_steps:
+        return (step / warmup_steps) * peak_lr
+    else:
+        progress = (step - warmup_steps) / (total_steps - warmup_steps)
+        return peak_lr * (1 - progress)
+
+# Variations:
+# 1. Shorter warmup (5%): For smaller models
+# 2. Longer warmup (20%): For very large models or large batch sizes
+# 3. Constant after warmup: For continual learning
+# 4. Inverse sqrt: 1/√step (used in original Transformer)
+
+# Rule of thumb:
+# - Small models: warmup = 5-10%
+# - Large models (>1B params): warmup = 1-5%
+# - Very large batch sizes: warmup = 10-20%
+
+# Implementation:
+from torch.optim.lr_scheduler import LambdaLR
+
+def get_scheduler(optimizer, warmup_steps, total_steps):
+    def lr_lambda(step):
+        if step < warmup_steps:
+            return step / warmup_steps
+        progress = (step - warmup_steps) / (total_steps - warmup_steps)
+        return 0.5 * (1 + math.cos(math.pi * progress))
+
+    return LambdaLR(optimizer, lr_lambda)</code></pre>
+        </div>
+        <div class="tags">cs pythonML training warmup learning-rate cloze scheduler EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">How do you implement and use learning rate range test (LR finder)?</div>
+        <div class="back">
+            <strong>LR range test finds optimal learning rate before full training:</strong>
+            <pre><code>import torch
+import matplotlib.pyplot as plt
+
+def find_lr(model, train_loader, optimizer, criterion,
+           start_lr=1e-7, end_lr=10, num_iter=100):
+    """
+    Learning rate range test.
+
+    Start with very small LR, gradually increase,
+    track loss at each step.
+    """
+    model.train()
+
+    # Store results
+    lrs = []
+    losses = []
+
+    # Exponential increase from start_lr to end_lr
+    lr_mult = (end_lr / start_lr) ** (1 / num_iter)
+
+    # Set initial LR
+    lr = start_lr
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+    # Best loss seen (for stopping criterion)
+    best_loss = float('inf')
+
+    for i, batch in enumerate(train_loader):
+        if i >= num_iter:
+            break
+
+        # Training step
+        optimizer.zero_grad()
+        outputs = model(batch)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        # Record
+        lrs.append(lr)
+        losses.append(loss.item())
+
+        # Stop if loss explodes (>4× best loss)
+        if loss.item() > 4 * best_loss:
+            break
+
+        best_loss = min(best_loss, loss.item())
+
+        # Increase LR
+        lr *= lr_mult
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+
+    # Plot results
+    plt.figure(figsize=(10, 6))
+    plt.plot(lrs, losses)
+    plt.xscale('log')
+    plt.xlabel('Learning Rate')
+    plt.ylabel('Loss')
+    plt.title('Learning Rate Range Test')
+    plt.savefig('lr_finder.png')
+
+    return lrs, losses
+
+# Interpreting results:
+# Loss curve typically looks like:
+#
+#  Loss
+#   │     /‾‾‾\
+#   │    /     \___
+#   │   /           \
+#   │  /             \____
+#   │ /                   \____
+#   └────────────────────────────> LR (log scale)
+#    1e-7  1e-5   1e-3      1e-1
+#          ↑      ↑         ↑
+#        Start  Optimal   Diverge
+
+# How to pick LR:
+# 1. Find where loss starts decreasing (learning starts)
+# 2. Find where loss is lowest
+# 3. Pick 10× smaller than where loss explodes
+# 4. Or: Pick value at steepest descent
+
+# Example:
+# - Loss starts decreasing at LR=1e-5
+# - Steepest descent at LR=3e-4
+# - Loss explodes at LR=1e-2
+# → Choose LR ≈ 1e-3 or 3e-4
+
+# Usage:
+model = MyModel()
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)  # Dummy LR
+
+lrs, losses = find_lr(
+    model, train_loader, optimizer, criterion,
+    start_lr=1e-7, end_lr=1, num_iter=100
+)
+
+# Find best LR (steepest descent):
+import numpy as np
+gradients = np.gradient(losses)
+best_idx = np.argmin(gradients)
+best_lr = lrs[best_idx]
+
+print(f"Suggested LR: {best_lr:.2e}")
+
+# Then train with found LR:
+optimizer = torch.optim.AdamW(model.parameters(), lr=best_lr)</code></pre>
+        </div>
+        <div class="tags">cs pythonML training lr-finder learning-rate hyperparameter EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">How do you implement proper model checkpointing and resumable training?</div>
+        <div class="back">
+            <strong>Checkpointing saves complete training state for resumption:</strong>
+            <pre><code>import torch
+import os
+
+def save_checkpoint(model, optimizer, scheduler, epoch, step,
+                   loss, checkpoint_dir, is_best=False):
+    """
+    Save complete training state.
+    """
+    checkpoint = {
+        # Model
+        'model_state_dict': model.state_dict(),
+
+        # Optimizer
+        'optimizer_state_dict': optimizer.state_dict(),
+
+        # Scheduler
+        'scheduler_state_dict': scheduler.state_dict() if scheduler else None,
+
+        # Training state
+        'epoch': epoch,
+        'step': step,
+        'loss': loss,
+
+        # RNG states (for reproducibility)
+        'rng_state': torch.get_rng_state(),
+        'cuda_rng_state': torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+    }
+
+    # Save latest checkpoint
+    checkpoint_path = os.path.join(checkpoint_dir, 'checkpoint_latest.pt')
+    torch.save(checkpoint, checkpoint_path)
+
+    # Save best checkpoint
+    if is_best:
+        best_path = os.path.join(checkpoint_dir, 'checkpoint_best.pt')
+        torch.save(checkpoint, best_path)
+
+    # Optional: Save periodic checkpoints
+    if step % 10000 == 0:
+        periodic_path = os.path.join(checkpoint_dir, f'checkpoint_step_{step}.pt')
+        torch.save(checkpoint, periodic_path)
+
+def load_checkpoint(model, optimizer, scheduler, checkpoint_path):
+    """
+    Load training state from checkpoint.
+    """
+    checkpoint = torch.load(checkpoint_path)
+
+    # Restore model
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+    # Restore optimizer
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+    # Restore scheduler
+    if scheduler and checkpoint['scheduler_state_dict']:
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+
+    # Restore training state
+    start_epoch = checkpoint['epoch']
+    start_step = checkpoint['step']
+    best_loss = checkpoint['loss']
+
+    # Restore RNG states (for exact reproducibility)
+    torch.set_rng_state(checkpoint['rng_state'])
+    if checkpoint['cuda_rng_state'] and torch.cuda.is_available():
+        torch.cuda.set_rng_state_all(checkpoint['cuda_rng_state'])
+
+    print(f"Resumed from epoch {start_epoch}, step {start_step}")
+
+    return start_epoch, start_step, best_loss
+
+# Training loop with checkpointing:
+def train_with_checkpointing(model, train_loader, val_loader,
+                             optimizer, scheduler, num_epochs,
+                             checkpoint_dir='./checkpoints'):
+    os.makedirs(checkpoint_dir, exist_ok=True)
+
+    # Check for existing checkpoint
+    latest_checkpoint = os.path.join(checkpoint_dir, 'checkpoint_latest.pt')
+    if os.path.exists(latest_checkpoint):
+        start_epoch, global_step, best_loss = load_checkpoint(
+            model, optimizer, scheduler, latest_checkpoint
+        )
+        print("Resuming from checkpoint")
+    else:
+        start_epoch = 0
+        global_step = 0
+        best_loss = float('inf')
+        print("Starting training from scratch")
+
+    for epoch in range(start_epoch, num_epochs):
+        for batch in train_loader:
+            # Training step
+            loss = train_step(model, batch, optimizer)
+            global_step += 1
+
+            if scheduler:
+                scheduler.step()
+
+            # Validate periodically
+            if global_step % 1000 == 0:
+                val_loss = validate(model, val_loader)
+
+                # Check if best model
+                is_best = val_loss < best_loss
+                if is_best:
+                    best_loss = val_loss
+
+                # Save checkpoint
+                save_checkpoint(
+                    model, optimizer, scheduler,
+                    epoch, global_step, val_loss,
+                    checkpoint_dir, is_best=is_best
+                )
+
+                print(f"Step {global_step}, Loss: {val_loss:.4f}, Best: {best_loss:.4f}")
+
+# Best practices:
+# 1. Save frequently (every N steps or every epoch)
+# 2. Keep multiple checkpoints (not just latest)
+# 3. Save optimizer state (important for Adam momentum)
+# 4. Save RNG states for reproducibility
+# 5. Track best model separately
+# 6. Delete old checkpoints to save disk space
+
+# Disk space management:
+def cleanup_old_checkpoints(checkpoint_dir, keep_last_n=5):
+    """Keep only last N checkpoints."""
+    checkpoints = sorted([
+        f for f in os.listdir(checkpoint_dir)
+        if f.startswith('checkpoint_step_')
+    ])
+
+    # Delete all but last N
+    for ckpt in checkpoints[:-keep_last_n]:
+        os.remove(os.path.join(checkpoint_dir, ckpt))</code></pre>
+        </div>
+        <div class="tags">cs pythonML training checkpointing resume state EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">CLOZE: The Lion optimizer typically requires learning rates <span class="cloze">3-10× smaller</span> and weight decay <span class="cloze">3-10× larger</span> compared to AdamW, but uses <span class="cloze">50% less memory</span> by only tracking first moment.</div>
+        <div class="back">
+            <strong>Answer: 3-10× smaller, 3-10× larger, 50% less memory</strong>
+
+            <p>Lion vs AdamW configuration:</p>
+            <pre><code># AdamW configuration (standard):
+optimizer_adamw = torch.optim.AdamW(
+    model.parameters(),
+    lr=3e-4,           # Typical for transformers
+    weight_decay=0.01,
+    betas=(0.9, 0.999)
+)
+
+# Lion configuration (equivalent):
+from lion_pytorch import Lion  # pip install lion-pytorch
+
+optimizer_lion = Lion(
+    model.parameters(),
+    lr=3e-5,           # 10× smaller!
+    weight_decay=0.1,  # 10× larger!
+    betas=(0.9, 0.99)  # β2 also smaller
+)
+
+# Why these differences?
+# 1. Lion uses sign(momentum) → unit magnitude updates
+#    - AdamW: updates scaled by gradient magnitude
+#    - Lion: updates are always ±1 (after sign)
+#    - Need smaller LR to compensate
+
+# 2. Lion's weight decay is more effective
+#    - Applied to sign-based updates
+#    - Less "fighting" between gradient and decay
+#    - Can use stronger decay
+
+# Memory savings:
+# Parameter count: P
+# AdamW memory: P + 2P = 3P total
+#   - P: model parameters
+#   - P: first moment (momentum)
+#   - P: second moment (variance)
+
+# Lion memory: P + P = 2P total
+#   - P: model parameters
+#   - P: first moment (momentum only)
+#   - No second moment!
+#   → 33% reduction in total memory (50% reduction in optimizer state)
+
+# Example: GPT-3 (175B parameters)
+# AdamW: 175B + 350B = 525B values (1.05TB in fp16)
+# Lion: 175B + 175B = 350B values (700GB in fp16)
+# Savings: 350GB!
+
+# Speed comparison:
+# Lion: Slightly faster per step (simpler update rule)
+# AdamW: Baseline
+
+# Quality comparison (empirical):
+# Task-dependent, often comparable
+# Some tasks: Lion better
+# Some tasks: AdamW better
+
+# When to use Lion:
+# ✓ Memory-constrained (large models)
+# ✓ Willing to tune hyperparameters
+# ✓ Long training runs
+
+# When to stick with AdamW:
+# ✓ Established baselines
+# ✓ Short training (less tuning time)
+# ✓ Memory not a constraint</code></pre>
+        </div>
+        <div class="tags">cs pythonML lion optimizer cloze memory hyperparameters EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">How do you detect and handle training instabilities (loss spikes, NaN loss)?</div>
+        <div class="back">
+            <strong>Monitor and recover from training issues:</strong>
+            <pre><code>import torch
+import numpy as np
+
+class TrainingMonitor:
+    """Monitor training for instabilities."""
+    def __init__(self, patience=5, loss_scale_threshold=3.0):
+        self.loss_history = []
+        self.grad_norm_history = []
+        self.patience = patience
+        self.loss_scale_threshold = loss_scale_threshold
+
+    def check_loss(self, loss):
+        """Check if loss is problematic."""
+        # Check for NaN
+        if torch.isnan(loss) or torch.isinf(loss):
+            return "NaN or Inf loss detected!"
+
+        loss_val = loss.item()
+
+        # Check for sudden spike
+        if len(self.loss_history) > 10:
+            recent_mean = np.mean(self.loss_history[-10:])
+            if loss_val > self.loss_scale_threshold * recent_mean:
+                return f"Loss spike: {loss_val:.4f} vs recent {recent_mean:.4f}"
+
+        self.loss_history.append(loss_val)
+        return None  # All good
+
+    def check_gradients(self, model):
+        """Check gradient health."""
+        total_norm = 0.0
+        num_params = 0
+
+        for p in model.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.data.norm(2)
+                total_norm += param_norm.item() ** 2
+                num_params += 1
+
+        total_norm = total_norm ** 0.5
+
+        # Check for exploding gradients
+        if total_norm > 100.0:
+            return f"Exploding gradients: norm={total_norm:.2f}"
+
+        # Check for vanishing gradients
+        if total_norm < 1e-6:
+            return f"Vanishing gradients: norm={total_norm:.2e}"
+
+        # Check for NaN
+        if np.isnan(total_norm):
+            return "NaN gradients detected!"
+
+        self.grad_norm_history.append(total_norm)
+        return None
+
+# Recovery strategies:
+def train_with_recovery(model, train_loader, optimizer,
+                       checkpoint_dir='./checkpoints'):
+    monitor = TrainingMonitor()
+
+    # Keep recent checkpoints for recovery
+    checkpoint_queue = []
+
+    for step, batch in enumerate(train_loader):
+        # Forward and backward
+        loss = compute_loss(model, batch)
+
+        # Check for issues BEFORE backprop
+        loss_issue = monitor.check_loss(loss)
+        if loss_issue:
+            print(f"⚠️  {loss_issue}")
+            print("→ Loading previous checkpoint and reducing LR")
+
+            # Load most recent good checkpoint
+            if checkpoint_queue:
+                load_checkpoint(model, optimizer, checkpoint_queue[-1])
+
+            # Reduce learning rate
+            for param_group in optimizer.param_groups:
+                param_group['lr'] *= 0.5
+
+            continue  # Skip this batch
+
+        loss.backward()
+
+        # Check gradients
+        grad_issue = monitor.check_gradients(model)
+        if grad_issue:
+            print(f"⚠️  {grad_issue}")
+            print("→ Skipping this batch")
+            optimizer.zero_grad()
+            continue
+
+        # Clip gradients (safety)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+        optimizer.step()
+        optimizer.zero_grad()
+
+        # Save checkpoint periodically
+        if step % 1000 == 0:
+            ckpt_path = f"{checkpoint_dir}/checkpoint_{step}.pt"
+            save_checkpoint(model, optimizer, step, ckpt_path)
+
+            checkpoint_queue.append(ckpt_path)
+            if len(checkpoint_queue) > 5:  # Keep last 5
+                old_ckpt = checkpoint_queue.pop(0)
+                os.remove(old_ckpt)
+
+# Common causes and fixes:
+"""
+1. NaN loss:
+   Cause: Numerical instability, overflow
+   Fix: - Lower learning rate
+        - Use gradient clipping
+        - Check input data (no NaNs/Infs)
+        - Use mixed precision carefully
+
+2. Loss spikes:
+   Cause: Bad batch, learning rate too high
+   Fix: - Gradient clipping
+        - Gradient accumulation (more stable)
+        - Learning rate warmup
+        - Skip bad batches
+
+3. Exploding gradients (norm > 100):
+   Cause: Deep network, high learning rate
+   Fix: - Gradient clipping (max_norm=1.0)
+        - Lower learning rate
+        - Better initialization
+
+4. Vanishing gradients (norm < 1e-6):
+   Cause: Deep network, bad initialization
+   Fix: - Check model architecture (LayerNorm?)
+        - Better initialization
+        - Higher learning rate (carefully)
+
+5. Training doesn't start (loss constant):
+   Cause: Learning rate too small, weights frozen
+   Fix: - Check LR (try LR range test)
+        - Verify all params have requires_grad=True
+        - Check batch size (too small?)
+"""</code></pre>
+        </div>
+        <div class="tags">cs pythonML training debugging instability monitoring EN</div>
+    </div>
+
+</body>
+</html>
