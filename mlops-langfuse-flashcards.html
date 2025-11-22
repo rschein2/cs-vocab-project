@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MLOps with LangFuse Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(249, 250, 251, 0.95);
+        }
+        h1 {
+            color: rgba(31, 41, 55, 0.95);
+            border-bottom: 3px solid rgba(76, 175, 80, 0.8);
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(31, 41, 55, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+        }
+        .back {
+            color: rgba(55, 65, 81, 0.95);
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(229, 231, 235, 0.95);
+            font-size: 12px;
+            color: rgba(107, 114, 128, 0.95);
+        }
+        code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            color: rgba(197, 34, 31, 0.95);
+            font-size: 0.9em;
+        }
+        pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+        pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        strong {
+            color: rgba(31, 41, 55, 0.95);
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>MLOps with LangFuse Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            What is LangFuse and how do you set it up?
+        </div>
+        <div class="back">
+            <strong>LangFuse:</strong> Open-source LLM observability and analytics platform for tracing, monitoring, and improving LLM applications.
+
+            <p><strong>Key features:</strong></p>
+            <ul>
+                <li>Tracing LLM calls and chains</li>
+                <li>Prompt management and versioning</li>
+                <li>Cost tracking</li>
+                <li>Latency monitoring</li>
+                <li>User feedback collection</li>
+                <li>Dataset management</li>
+            </ul>
+
+            <strong>Installation and setup:</strong>
+            <pre><code># Install
+pip install langfuse
+
+# Set up client
+from langfuse import Langfuse
+
+langfuse = Langfuse(
+    public_key="pk-lf-...",  # From LangFuse dashboard
+    secret_key="sk-lf-...",
+    host="https://cloud.langfuse.com"  # or self-hosted
+)
+
+# Test connection
+langfuse.auth_check()
+
+# Environment variables (recommended)
+# export LANGFUSE_PUBLIC_KEY="pk-lf-..."
+# export LANGFUSE_SECRET_KEY="sk-lf-..."
+# export LANGFUSE_HOST="https://cloud.langfuse.com"
+
+# Then just:
+from langfuse import Langfuse
+langfuse = Langfuse()  # Auto-loads from env vars</code></pre>
+
+            <strong>Basic tracing:</strong>
+            <pre><code>import openai
+
+# Create a trace
+trace = langfuse.trace(
+    name="chatbot-conversation",
+    user_id="user-123",
+    metadata={"environment": "production"}
+)
+
+# Create a generation (LLM call)
+generation = trace.generation(
+    name="chat-response",
+    model="gpt-4",
+    model_parameters={"temperature": 0.7, "max_tokens": 500}
+)
+
+# Make LLM call
+response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}],
+    temperature=0.7
+)
+
+# Update generation with results
+generation.end(
+    output=response.choices[0].message.content,
+    usage={
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens
+    }
+)
+
+# End trace
+trace.update(output=response.choices[0].message.content)
+
+# Flush to ensure data is sent
+langfuse.flush()</code></pre>
+
+            <strong>Context manager style:</strong>
+            <pre><code>from langfuse.decorators import langfuse_context, observe
+
+@observe()
+def chatbot(user_input: str) -> str:
+    # Automatically traced!
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": user_input}]
+    )
+    return response.choices[0].message.content
+
+# Call function - trace automatically created
+result = chatbot("Tell me a joke")</code></pre>
+        </div>
+        <div class="tags">cs pythonML mlops langfuse setup observability EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            How do you trace multi-step LLM chains with LangFuse?
+        </div>
+        <div class="back">
+            <strong>Tracing chains:</strong> Track multiple LLM calls, tool uses, and processing steps in a single trace.
+
+            <strong>Nested spans:</strong>
+            <pre><code>from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+# Create main trace
+trace = langfuse.trace(
+    name="rag-pipeline",
+    user_id="user-456",
+    session_id="session-789"
+)
+
+# Step 1: Query rewriting
+span1 = trace.span(name="query-rewrite")
+rewritten_query = rewrite_query(user_query)
+span1.end(output=rewritten_query)
+
+# Step 2: Vector search
+span2 = trace.span(name="vector-search")
+documents = vector_db.search(rewritten_query, top_k=5)
+span2.end(
+    output=documents,
+    metadata={"num_results": len(documents)}
+)
+
+# Step 3: LLM generation
+generation = trace.generation(
+    name="final-response",
+    model="gpt-4",
+    input={"query": rewritten_query, "context": documents}
+)
+
+response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "Answer based on context"},
+        {"role": "user", "content": f"Context: {documents}\n\nQ: {rewritten_query}"}
+    ]
+)
+
+generation.end(
+    output=response.choices[0].message.content,
+    usage={
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens
+    }
+)
+
+trace.update(output=response.choices[0].message.content)
+langfuse.flush()</code></pre>
+
+            <strong>Using decorators for automatic tracing:</strong>
+            <pre><code>from langfuse.decorators import observe
+
+@observe()
+def rewrite_query(query: str) -> str:
+    # Automatically creates a span
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": f"Rewrite: {query}"}]
+    )
+    return response.choices[0].message.content
+
+@observe()
+def search_docs(query: str) -> list:
+    # Another span
+    results = vector_db.search(query, top_k=5)
+    return results
+
+@observe()
+def generate_response(query: str, docs: list) -> str:
+    # LLM generation
+    context = "\n".join(docs)
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "Answer using context"},
+            {"role": "user", "content": f"Context: {context}\n\nQ: {query}"}
+        ]
+    )
+    return response.choices[0].message.content
+
+@observe()
+def rag_pipeline(user_query: str) -> str:
+    # Main trace - contains all nested spans
+    rewritten = rewrite_query(user_query)
+    docs = search_docs(rewritten)
+    answer = generate_response(rewritten, docs)
+    return answer
+
+# Everything is automatically traced!
+result = rag_pipeline("What is LangFuse?")</code></pre>
+
+            <strong>Adding metadata and tags:</strong>
+            <pre><code>@observe(
+    name="custom-name",
+    metadata={"version": "v2", "experiment": "test-A"},
+    tags=["production", "rag"]
+)
+def my_function(input: str) -> str:
+    # Function implementation
+    return output
+
+# Or update within function
+from langfuse.decorators import langfuse_context
+
+@observe()
+def process_data(data: str) -> str:
+    # Update current observation
+    langfuse_context.update_current_observation(
+        metadata={"data_length": len(data)},
+        tags=["processed"]
+    )
+
+    result = process(data)
+
+    langfuse_context.update_current_observation(
+        output=result
+    )
+
+    return result</code></pre>
+        </div>
+        <div class="tags">cs pythonML mlops langfuse tracing chains EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            How do you manage prompts with LangFuse?
+        </div>
+        <div class="back">
+            <strong>Prompt Management:</strong> Version, track, and A/B test prompts.
+
+            <strong>Creating and using prompts:</strong>
+            <pre><code>from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+# Create a prompt (in dashboard or API)
+langfuse.create_prompt(
+    name="chatbot-system-prompt",
+    prompt="You are a helpful assistant. Answer concisely and accurately.",
+    labels=["production"],
+    config={
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "max_tokens": 500
+    }
+)
+
+# Fetch prompt at runtime
+prompt = langfuse.get_prompt("chatbot-system-prompt")
+
+print(prompt.prompt)  # The prompt text
+print(prompt.config)  # Model config
+
+# Use with OpenAI
+import openai
+
+response = openai.ChatCompletion.create(
+    model=prompt.config["model"],
+    messages=[
+        {"role": "system", "content": prompt.prompt},
+        {"role": "user", "content": user_input}
+    ],
+    temperature=prompt.config["temperature"],
+    max_tokens=prompt.config["max_tokens"]
+)
+
+# Link prompt to trace
+trace = langfuse.trace(name="chatbot")
+generation = trace.generation(
+    name="response",
+    prompt=prompt,  # Link to prompt version
+    model=prompt.config["model"]
+)
+
+generation.end(output=response.choices[0].message.content)</code></pre>
+
+            <strong>Prompt versioning:</strong>
+            <pre><code># Create new version of prompt
+langfuse.create_prompt(
+    name="chatbot-system-prompt",
+    prompt="You are a friendly assistant. Be warm and helpful!",
+    labels=["production", "v2"],
+    config={
+        "model": "gpt-4",
+        "temperature": 0.8,  # Updated
+        "max_tokens": 500
+    }
+)
+
+# Fetch specific version
+prompt_v1 = langfuse.get_prompt("chatbot-system-prompt", version=1)
+prompt_v2 = langfuse.get_prompt("chatbot-system-prompt", version=2)
+
+# Fetch latest production version
+prompt_latest = langfuse.get_prompt(
+    "chatbot-system-prompt",
+    label="production"
+)
+
+# Compare performance across versions in dashboard</code></pre>
+
+            <strong>Prompt with variables:</strong>
+            <pre><code># Create prompt template
+langfuse.create_prompt(
+    name="summarize-article",
+    prompt="Summarize the following article in {{num_sentences}} sentences:\n\n{{article}}",
+    config={
+        "model": "gpt-3.5-turbo",
+        "temperature": 0.3
+    }
+)
+
+# Use prompt with variables
+prompt = langfuse.get_prompt("summarize-article")
+
+# Compile with variables
+article_text = "Long article content..."
+compiled_prompt = prompt.compile(
+    num_sentences=3,
+    article=article_text
+)
+
+response = openai.ChatCompletion.create(
+    model=prompt.config["model"],
+    messages=[{"role": "user", "content": compiled_prompt}]
+)</code></pre>
+
+            <strong>A/B testing prompts:</strong>
+            <pre><code>import random
+
+# Randomly select prompt version
+version = random.choice(["v1", "v2"])
+
+prompt = langfuse.get_prompt(
+    "chatbot-system-prompt",
+    label=version
+)
+
+trace = langfuse.trace(
+    name="chatbot-ab-test",
+    metadata={"prompt_version": version}
+)
+
+# Use prompt
+response = call_llm(prompt)
+
+# Later: analyze which version performs better
+# in LangFuse dashboard by filtering on metadata</code></pre>
+
+            <strong>Decorators with prompts:</strong>
+            <pre><code>from langfuse.decorators import observe, langfuse_context
+
+@observe()
+def chatbot_with_prompt(user_input: str) -> str:
+    # Fetch prompt
+    prompt = langfuse_context.get_prompt("chatbot-system-prompt")
+
+    response = openai.ChatCompletion.create(
+        model=prompt.config["model"],
+        messages=[
+            {"role": "system", "content": prompt.prompt},
+            {"role": "user", "content": user_input}
+        ],
+        **prompt.config
+    )
+
+    return response.choices[0].message.content</code></pre>
+        </div>
+        <div class="tags">cs pythonML mlops langfuse prompts versioning EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            How do you track costs and usage with LangFuse?
+        </div>
+        <div class="back">
+            <strong>Cost Tracking:</strong> Monitor token usage and costs across all LLM calls.
+
+            <strong>Automatic cost calculation:</strong>
+            <pre><code>from langfuse import Langfuse
+import openai
+
+langfuse = Langfuse()
+
+trace = langfuse.trace(name="expensive-operation")
+
+generation = trace.generation(
+    name="gpt4-call",
+    model="gpt-4"  # LangFuse knows GPT-4 pricing
+)
+
+response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Long prompt..."}]
+)
+
+# LangFuse automatically calculates cost!
+generation.end(
+    output=response.choices[0].message.content,
+    usage={
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens
+    }
+)
+
+langfuse.flush()
+
+# View costs in dashboard:
+# - Total cost per trace
+# - Cost by model
+# - Cost trends over time
+# - Cost per user/session</code></pre>
+
+            <strong>Custom model pricing:</strong>
+            <pre><code># For custom or self-hosted models
+generation = trace.generation(
+    name="custom-llm",
+    model="my-custom-model",
+    usage={
+        "input": 1000,  # Input tokens
+        "output": 500,  # Output tokens
+        "unit": "TOKENS"
+    },
+    # Manually specify cost
+    cost_details={
+        "input_cost": 0.001,  # $0.001 per token
+        "output_cost": 0.002,
+        "total_cost": 0.001 * 1000 + 0.002 * 500  # $2.00
+    }
+)
+
+generation.end()</code></pre>
+
+            <strong>Monitoring usage:</strong>
+            <pre><code>from langfuse.decorators import observe
+
+@observe()
+def expensive_llm_call(prompt: str) -> dict:
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    # LangFuse automatically tracks:
+    # - Tokens used
+    # - Cost
+    # - Latency
+
+    return {
+        "response": response.choices[0].message.content,
+        "tokens": response.usage.total_tokens,
+        "cost": calculate_cost(response.usage)  # Optional manual calc
+    }
+
+# After many calls, query LangFuse API for analytics
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+# Get traces with high cost
+high_cost_traces = langfuse.get_traces(
+    filter={
+        "cost": {"$gt": 1.0}  # Cost > $1
+    }
+)
+
+for trace in high_cost_traces:
+    print(f"Trace {trace.id}: ${trace.cost:.2f}")
+    print(f"  Tokens: {trace.usage}")
+
+# Export for analysis
+import pandas as pd
+
+traces_data = []
+for trace in langfuse.get_traces(limit=1000):
+    traces_data.append({
+        "id": trace.id,
+        "name": trace.name,
+        "cost": trace.cost,
+        "tokens": trace.usage.get("total_tokens", 0),
+        "latency": trace.latency,
+        "timestamp": trace.timestamp
+    })
+
+df = pd.DataFrame(traces_data)
+print(df.groupby("name")["cost"].sum())  # Cost by operation type</code></pre>
+
+            <strong>Setting cost alerts:</strong>
+            <pre><code># In application code
+def check_daily_cost():
+    from datetime import datetime, timedelta
+    import os
+
+    # Get today's traces
+    today = datetime.now().date()
+    traces = langfuse.get_traces(
+        from_timestamp=datetime.combine(today, datetime.min.time()),
+        to_timestamp=datetime.now()
+    )
+
+    total_cost = sum(t.cost for t in traces if t.cost)
+
+    # Alert if over budget
+    if total_cost > float(os.getenv("DAILY_BUDGET", "100.0")):
+        send_alert(f"Daily cost ${total_cost:.2f} exceeds budget!")
+
+    return total_cost
+
+# Run periodically
+import schedule
+
+schedule.every().hour.do(check_daily_cost)
+
+while True:
+    schedule.run_pending()
+    time.sleep(60)</code></pre>
+
+            <strong>Per-user cost tracking:</strong>
+            <pre><code>@observe()
+def process_user_request(user_id: str, request: str) -> str:
+    # Associate with user
+    trace = langfuse.trace(
+        name="user-request",
+        user_id=user_id,
+        metadata={"tier": get_user_tier(user_id)}
+    )
+
+    response = call_llm(request)
+
+    # Later: query cost by user
+    user_traces = langfuse.get_traces(
+        filter={"user_id": user_id}
+    )
+
+    user_cost = sum(t.cost for t in user_traces if t.cost)
+    print(f"User {user_id} total cost: ${user_cost:.2f}")
+
+    return response</code></pre>
+        </div>
+        <div class="tags">cs pythonML mlops langfuse cost-tracking usage EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            How do you integrate LangFuse with LangChain?
+        </div>
+        <div class="back">
+            <strong>LangChain Integration:</strong> Automatic tracing of LangChain chains, agents, and tools.
+
+            <strong>Setup:</strong>
+            <pre><code># Install
+pip install langfuse langchain
+
+# Method 1: Callback handler
+from langfuse.callback import CallbackHandler
+
+langfuse_handler = CallbackHandler(
+    public_key="pk-lf-...",
+    secret_key="sk-lf-...",
+    host="https://cloud.langfuse.com"
+)
+
+# Use with LangChain
+from langchain.chat_models import ChatOpenAI
+from langchain.chains import LLMChain
+from langchain.prompts import ChatPromptTemplate
+
+llm = ChatOpenAI(model="gpt-4", temperature=0.7)
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant"),
+    ("user", "{input}")
+])
+
+chain = LLMChain(llm=llm, prompt=prompt)
+
+# Pass callback to trace
+response = chain.run(
+    input="What is LangFuse?",
+    callbacks=[langfuse_handler]
+)
+
+# Automatically traced in LangFuse!</code></pre>
+
+            <strong>Tracing agents:</strong>
+            <pre><code>from langchain.agents import initialize_agent, AgentType, Tool
+from langchain.tools import DuckDuckGoSearchRun
+
+# Define tools
+search = DuckDuckGoSearchRun()
+
+tools = [
+    Tool(
+        name="Search",
+        func=search.run,
+        description="Search the internet"
+    )
+]
+
+# Create agent
+agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+# Run with tracing
+result = agent.run(
+    "What's the weather in San Francisco?",
+    callbacks=[langfuse_handler]
+)
+
+# LangFuse dashboard shows:
+# - Agent planning steps
+# - Tool calls
+# - Multiple LLM calls
+# - Final response
+# All in one trace!</code></pre>
+
+            <strong>Tracing RAG chains:</strong>
+            <pre><code>from langchain.chains import RetrievalQA
+from langchain.vectorstores import FAISS
+from langchain.embeddings import OpenAIEmbeddings
+
+# Load vector store
+embeddings = OpenAIEmbeddings()
+vectorstore = FAISS.load_local("my_index", embeddings)
+
+# Create RAG chain
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    chain_type="stuff",
+    retriever=vectorstore.as_retriever(),
+    return_source_documents=True
+)
+
+# Run with tracing
+result = qa_chain(
+    {"query": "What is machine learning?"},
+    callbacks=[langfuse_handler]
+)
+
+# Trace includes:
+# - Document retrieval
+# - Context preparation
+# - LLM generation</code></pre>
+
+            <strong>Global callback (trace all chains):</strong>
+            <pre><code>from langchain.callbacks import get_openai_callback
+
+# Set as default callback
+import langchain
+langchain.callbacks.manager.tracing_v2_enabled = True
+
+# Or configure globally
+from langfuse.callback import CallbackHandler
+
+langfuse_handler = CallbackHandler()
+
+# Now all chains automatically traced
+chain1.run("Query 1")  # Traced
+chain2.run("Query 2")  # Traced
+agent.run("Query 3")   # Traced</code></pre>
+
+            <strong>Custom metadata:</strong>
+            <pre><code>from langfuse.callback import CallbackHandler
+
+langfuse_handler = CallbackHandler(
+    trace_name="custom-chain",
+    session_id="session-123",
+    user_id="user-456",
+    metadata={"version": "v2", "experiment": "A"},
+    tags=["production", "critical"]
+)
+
+result = chain.run(
+    input="...",
+    callbacks=[langfuse_handler]
+)</code></pre>
+
+            <strong>Error tracking:</strong>
+            <pre><code>try:
+    result = chain.run(
+        input="Problematic input",
+        callbacks=[langfuse_handler]
+    )
+except Exception as e:
+    # Error automatically logged to LangFuse
+    langfuse_handler.flush()
+    raise
+
+# View errors in LangFuse dashboard
+# - Filter by status: "error"
+# - See error messages and stack traces
+# - Analyze which inputs cause failures</code></pre>
+        </div>
+        <div class="tags">cs pythonML mlops langfuse langchain integration EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            How do you collect and use user feedback with LangFuse?
+        </div>
+        <div class="back">
+            <strong>User Feedback:</strong> Collect ratings, comments, and corrections to improve your LLM app.
+
+            <strong>Basic feedback:</strong>
+            <pre><code>from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+# Create trace
+trace = langfuse.trace(
+    name="chatbot-response",
+    user_id="user-123"
+)
+
+# ... generate response ...
+
+trace_id = trace.id
+
+# Later: user provides feedback
+langfuse.score(
+    trace_id=trace_id,
+    name="user-rating",
+    value=5,  # 1-5 stars
+    comment="Great response!"
+)
+
+# Or thumbs up/down
+langfuse.score(
+    trace_id=trace_id,
+    name="thumbs",
+    value=1,  # 1 = thumbs up, 0 = thumbs down
+)
+
+langfuse.flush()</code></pre>
+
+            <strong>Multiple feedback dimensions:</strong>
+            <pre><code># Collect different types of feedback
+trace_id = response_trace.id
+
+# Accuracy
+langfuse.score(
+    trace_id=trace_id,
+    name="accuracy",
+    value=4,
+    comment="Mostly correct but missed one detail"
+)
+
+# Helpfulness
+langfuse.score(
+    trace_id=trace_id,
+    name="helpfulness",
+    value=5
+)
+
+# Tone
+langfuse.score(
+    trace_id=trace_id,
+    name="tone",
+    value=3,
+    comment="A bit too formal"
+)
+
+# View all feedback dimensions in dashboard
+# Analyze correlations between dimensions</code></pre>
+
+            <strong>Feedback API endpoint:</strong>
+            <pre><code>from flask import Flask, request, jsonify
+from langfuse import Langfuse
+
+app = Flask(__name__)
+langfuse = Langfuse()
+
+@app.route("/api/feedback", methods=["POST"])
+def submit_feedback():
+    data = request.json
+
+    langfuse.score(
+        trace_id=data["trace_id"],
+        name=data.get("feedback_type", "rating"),
+        value=data["value"],
+        comment=data.get("comment", "")
+    )
+
+    langfuse.flush()
+
+    return jsonify({"status": "success"})
+
+# Frontend sends feedback:
+# POST /api/feedback
+# {
+#   "trace_id": "trace-123",
+#   "feedback_type": "rating",
+#   "value": 5,
+#   "comment": "Excellent!"
+# }</code></pre>
+
+            <strong>Analyzing feedback:</strong>
+            <pre><code># Get traces with low ratings
+low_rated = langfuse.get_scores(
+    name="user-rating",
+    filter={"value": {"$lt": 3}}  # Rating < 3
+)
+
+for score in low_rated:
+    trace = langfuse.get_trace(score.trace_id)
+    print(f"Low rating on trace: {trace.id}")
+    print(f"  Input: {trace.input}")
+    print(f"  Output: {trace.output}")
+    print(f"  Rating: {score.value}")
+    print(f"  Comment: {score.comment}")
+    print()
+
+# Aggregate statistics
+from collections import Counter
+
+ratings = [s.value for s in langfuse.get_scores(name="user-rating")]
+print(f"Average rating: {sum(ratings) / len(ratings):.2f}")
+print(f"Rating distribution: {Counter(ratings)}")</code></pre>
+
+            <strong>Feedback-driven improvements:</strong>
+            <pre><code># Find problematic prompts
+def analyze_prompt_performance():
+    # Get all traces using a specific prompt
+    traces = langfuse.get_traces(
+        filter={"prompt.name": "chatbot-system-prompt"}
+    )
+
+    # Get ratings for these traces
+    trace_ratings = {}
+    for trace in traces:
+        scores = langfuse.get_scores(trace_id=trace.id, name="user-rating")
+        if scores:
+            trace_ratings[trace.id] = scores[0].value
+
+    # Calculate average rating
+    avg_rating = sum(trace_ratings.values()) / len(trace_ratings)
+
+    print(f"Prompt average rating: {avg_rating:.2f}")
+
+    if avg_rating < 3.5:
+        print("⚠️ Consider updating this prompt!")
+
+        # Get common feedback themes
+        low_rated_traces = [
+            t for t in traces
+            if trace_ratings.get(t.id, 0) < 3
+        ]
+
+        for trace in low_rated_traces[:5]:
+            print(f"  Example low-rated response: {trace.output[:100]}...")
+
+analyze_prompt_performance()</code></pre>
+
+            <strong>A/B testing with feedback:</strong>
+            <pre><code># Compare two prompt versions by user feedback
+import random
+
+def chatbot_ab_test(user_input: str) -> tuple:
+    version = random.choice(["v1", "v2"])
+
+    prompt = langfuse.get_prompt("chatbot-prompt", label=version)
+
+    trace = langfuse.trace(
+        name="ab-test",
+        metadata={"prompt_version": version}
+    )
+
+    response = call_llm(prompt, user_input)
+
+    return response, trace.id, version
+
+# Usage
+response, trace_id, version = chatbot_ab_test("Hello!")
+print(response)
+
+# Later: collect feedback
+submit_feedback(trace_id, rating=5)
+
+# Analyze which version gets better ratings
+v1_traces = langfuse.get_traces(filter={"metadata.prompt_version": "v1"})
+v2_traces = langfuse.get_traces(filter={"metadata.prompt_version": "v2"})
+
+# Compare average ratings
+# Determine winner!</code></pre>
+        </div>
+        <div class="tags">cs pythonML mlops langfuse feedback user-feedback EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            How do you manage datasets and evaluations in LangFuse?
+        </div>
+        <div class="back">
+            <strong>Datasets:</strong> Store test cases, golden answers, and evaluation sets.
+
+            <strong>Creating datasets:</strong>
+            <pre><code>from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+# Create dataset
+langfuse.create_dataset(
+    name="chatbot-eval-set",
+    description="Test cases for chatbot",
+    metadata={"version": "v1", "created_by": "team"}
+)
+
+# Add items to dataset
+langfuse.create_dataset_item(
+    dataset_name="chatbot-eval-set",
+    input={
+        "question": "What is machine learning?",
+        "context": "..."
+    },
+    expected_output="Machine learning is a subset of AI...",
+    metadata={"category": "definitions", "difficulty": "easy"}
+)
+
+langfuse.create_dataset_item(
+    dataset_name="chatbot-eval-set",
+    input={
+        "question": "Explain neural networks",
+        "context": "..."
+    },
+    expected_output="Neural networks are computing systems...",
+    metadata={"category": "definitions", "difficulty": "medium"}
+)</code></pre>
+
+            <strong>Running evaluations:</strong>
+            <pre><code>from langfuse import Langfuse
+from langfuse.decorators import observe
+
+langfuse = Langfuse()
+
+# Get dataset
+dataset = langfuse.get_dataset("chatbot-eval-set")
+
+@observe()
+def run_chatbot(input_data: dict) -> str:
+    """Your chatbot implementation"""
+    response = call_llm(
+        question=input_data["question"],
+        context=input_data.get("context", "")
+    )
+    return response
+
+# Run evaluation
+for item in dataset.items:
+    # Run chatbot
+    output = run_chatbot(item.input)
+
+    # Create dataset run
+    langfuse.create_dataset_run_item(
+        dataset_item_id=item.id,
+        run_name="eval-run-2024-01-15",
+        output=output,
+        metadata={"model": "gpt-4", "temperature": 0.7}
+    )
+
+langfuse.flush()
+
+# View results in dashboard</code></pre>
+
+            <strong>Automatic evaluation metrics:</strong>
+            <pre><code>from langfuse import Langfuse
+import openai
+
+def evaluate_response(expected: str, actual: str) -> dict:
+    """Use LLM to evaluate response quality"""
+
+    eval_prompt = f"""
+    Rate the quality of the actual answer compared to expected answer.
+
+    Expected: {expected}
+    Actual: {actual}
+
+    Provide scores (0-5) for:
+    1. Accuracy
+    2. Completeness
+    3. Clarity
+
+    Format: accuracy=X, completeness=Y, clarity=Z
+    """
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": eval_prompt}]
+    )
+
+    # Parse scores
+    scores_text = response.choices[0].message.content
+    # Parse and return scores...
+
+    return {
+        "accuracy": 4,
+        "completeness": 5,
+        "clarity": 4
+    }
+
+# Use in evaluation loop
+dataset = langfuse.get_dataset("chatbot-eval-set")
+
+for item in dataset.items:
+    output = run_chatbot(item.input)
+
+    # Evaluate
+    scores = evaluate_response(item.expected_output, output)
+
+    # Create run item with scores
+    run_item = langfuse.create_dataset_run_item(
+        dataset_item_id=item.id,
+        run_name="eval-with-scores",
+        output=output
+    )
+
+    # Add evaluation scores
+    for metric_name, score_value in scores.items():
+        langfuse.score(
+            trace_id=run_item.trace_id,
+            name=metric_name,
+            value=score_value
+        )
+
+langfuse.flush()
+
+# Analyze aggregated scores in dashboard</code></pre>
+
+            <strong>Regression testing:</strong>
+            <pre><code>def regression_test(dataset_name: str, baseline_run: str, new_run: str):
+    """Compare two evaluation runs"""
+
+    dataset = langfuse.get_dataset(dataset_name)
+
+    # Get scores for both runs
+    baseline_scores = langfuse.get_dataset_run(baseline_run)
+    new_scores = langfuse.get_dataset_run(new_run)
+
+    # Compare
+    improvements = 0
+    regressions = 0
+
+    for item in dataset.items:
+        baseline_score = get_score(baseline_scores, item.id)
+        new_score = get_score(new_scores, item.id)
+
+        if new_score > baseline_score:
+            improvements += 1
+        elif new_score < baseline_score:
+            regressions += 1
+            print(f"Regression on item {item.id}:")
+            print(f"  Input: {item.input}")
+            print(f"  Baseline score: {baseline_score}")
+            print(f"  New score: {new_score}")
+
+    print(f"\nSummary:")
+    print(f"  Improvements: {improvements}")
+    print(f"  Regressions: {regressions}")
+
+    return regressions == 0  # Pass if no regressions
+
+# Use in CI/CD
+if not regression_test("chatbot-eval-set", "baseline", "latest"):
+    raise Exception("Regression detected! Blocking deployment.")</code></pre>
+
+            <strong>Export datasets:</strong>
+            <pre><code># Export to JSON
+dataset = langfuse.get_dataset("chatbot-eval-set")
+
+import json
+
+dataset_export = {
+    "name": dataset.name,
+    "items": [
+        {
+            "input": item.input,
+            "expected_output": item.expected_output,
+            "metadata": item.metadata
+        }
+        for item in dataset.items
+    ]
+}
+
+with open("dataset.json", "w") as f:
+    json.dump(dataset_export, f, indent=2)
+
+# Import from production traces
+# Flag good production responses as dataset items
+trace = langfuse.get_trace(trace_id)
+
+if user_rating >= 4:
+    langfuse.create_dataset_item(
+        dataset_name="production-examples",
+        input=trace.input,
+        expected_output=trace.output,
+        metadata={"source": "production", "rating": user_rating}
+    )</code></pre>
+        </div>
+        <div class="tags">cs pythonML mlops langfuse datasets evaluation EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            How do you implement session tracking with LangFuse?
+        </div>
+        <div class="back">
+            <strong>Session Tracking:</strong> Group related traces (e.g., multi-turn conversations) into sessions.
+
+            <strong>Basic session tracking:</strong>
+            <pre><code>from langfuse import Langfuse
+import uuid
+
+langfuse = Langfuse()
+
+# Start session
+session_id = str(uuid.uuid4())
+
+# First turn
+trace1 = langfuse.trace(
+    name="chatbot-turn-1",
+    session_id=session_id,
+    user_id="user-123",
+    input="What is machine learning?"
+)
+
+response1 = call_llm("What is machine learning?")
+trace1.update(output=response1)
+
+# Second turn (same session)
+trace2 = langfuse.trace(
+    name="chatbot-turn-2",
+    session_id=session_id,
+    user_id="user-123",
+    input="Can you give me an example?"
+)
+
+response2 = call_llm("Can you give me an example?", context=response1)
+trace2.update(output=response2)
+
+# Third turn
+trace3 = langfuse.trace(
+    name="chatbot-turn-3",
+    session_id=session_id,
+    user_id="user-123",
+    input="Thanks!"
+)
+
+response3 = call_llm("Thanks!")
+trace3.update(output=response3)
+
+langfuse.flush()
+
+# View entire conversation in LangFuse dashboard
+# Filter by session_id to see all turns</code></pre>
+
+            <strong>Conversation manager:</strong>
+            <pre><code>class Conversation:
+    def __init__(self, user_id: str):
+        self.user_id = user_id
+        self.session_id = str(uuid.uuid4())
+        self.langfuse = Langfuse()
+        self.turn_count = 0
+        self.history = []
+
+    def send_message(self, user_input: str) -> str:
+        self.turn_count += 1
+
+        # Create trace for this turn
+        trace = self.langfuse.trace(
+            name=f"turn-{self.turn_count}",
+            session_id=self.session_id,
+            user_id=self.user_id,
+            input=user_input,
+            metadata={"turn": self.turn_count}
+        )
+
+        # Get response with history
+        response = call_llm_with_history(
+            user_input=user_input,
+            history=self.history
+        )
+
+        # Update trace
+        trace.update(output=response)
+
+        # Update history
+        self.history.append({
+            "role": "user",
+            "content": user_input
+        })
+        self.history.append({
+            "role": "assistant",
+            "content": response
+        })
+
+        return response
+
+    def end_session(self):
+        # Add session-level metadata
+        self.langfuse.flush()
+
+        # Optionally: create session summary
+        summary_trace = self.langfuse.trace(
+            name="session-summary",
+            session_id=self.session_id,
+            metadata={
+                "total_turns": self.turn_count,
+                "ended_at": datetime.now().isoformat()
+            }
+        )
+
+# Usage
+conv = Conversation(user_id="user-456")
+
+conv.send_message("Hi! What's machine learning?")
+conv.send_message("Can you give an example?")
+conv.send_message("Thanks, that's helpful!")
+
+conv.end_session()</code></pre>
+
+            <strong>Session analytics:</strong>
+            <pre><code># Get all sessions for a user
+user_sessions = langfuse.get_traces(
+    filter={"user_id": "user-123"},
+    group_by="session_id"
+)
+
+# Analyze session metrics
+for session_id, traces in user_sessions.items():
+    print(f"\nSession: {session_id}")
+    print(f"  Turns: {len(traces)}")
+    print(f"  Total cost: ${sum(t.cost for t in traces if t.cost):.4f}")
+    print(f"  Total tokens: {sum(t.usage.get('total_tokens', 0) for t in traces)}")
+
+    # Session duration
+    start_time = min(t.timestamp for t in traces)
+    end_time = max(t.timestamp for t in traces)
+    duration = (end_time - start_time).total_seconds()
+    print(f"  Duration: {duration:.0f}s")
+
+# Average session length
+session_lengths = [len(traces) for traces in user_sessions.values()]
+avg_length = sum(session_lengths) / len(session_lengths)
+print(f"\nAverage session length: {avg_length:.1f} turns")</code></pre>
+
+            <strong>Session-level feedback:</strong>
+            <pre><code># Collect feedback for entire session
+def end_conversation_feedback(session_id: str, overall_rating: int, comment: str = ""):
+    # Get all traces in session
+    traces = langfuse.get_traces(
+        filter={"session_id": session_id}
+    )
+
+    # Add score to first trace (or create session summary trace)
+    first_trace = traces[0]
+
+    langfuse.score(
+        trace_id=first_trace.id,
+        name="session-rating",
+        value=overall_rating,
+        comment=comment
+    )
+
+    langfuse.flush()
+
+# Usage
+end_conversation_feedback(
+    session_id=session_id,
+    overall_rating=5,
+    comment="Very helpful conversation!"
+)</code></pre>
+
+            <strong>Session context preservation:</strong>
+            <pre><code>class SessionManager:
+    def __init__(self):
+        self.sessions = {}  # session_id -> Conversation
+        self.langfuse = Langfuse()
+
+    def get_or_create_session(self, session_id: str, user_id: str) -> Conversation:
+        if session_id not in self.sessions:
+            self.sessions[session_id] = Conversation(
+                session_id=session_id,
+                user_id=user_id
+            )
+        return self.sessions[session_id]
+
+    def handle_message(self, session_id: str, user_id: str, message: str) -> str:
+        conv = self.get_or_create_session(session_id, user_id)
+        response = conv.send_message(message)
+        return response
+
+    def cleanup_inactive_sessions(self, timeout_minutes: int = 30):
+        """Remove sessions inactive for > timeout"""
+        now = datetime.now()
+        to_remove = []
+
+        for session_id, conv in self.sessions.items():
+            if (now - conv.last_activity).seconds > timeout_minutes * 60:
+                conv.end_session()
+                to_remove.append(session_id)
+
+        for session_id in to_remove:
+            del self.sessions[session_id]
+
+# Global session manager
+session_mgr = SessionManager()
+
+# API endpoint
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.json
+    response = session_mgr.handle_message(
+        session_id=data["session_id"],
+        user_id=data["user_id"],
+        message=data["message"]
+    )
+    return jsonify({"response": response})</code></pre>
+        </div>
+        <div class="tags">cs pythonML mlops langfuse sessions tracking EN</div>
+    </div>
+
+</body>
+</html>

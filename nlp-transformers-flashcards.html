@@ -1,0 +1,2651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NLP & Transformers Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(249, 250, 251, 0.95);
+        }
+        h1 {
+            color: rgba(31, 41, 55, 0.95);
+            border-bottom: 3px solid rgba(76, 175, 80, 0.8);
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(31, 41, 55, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+        }
+        .back {
+            color: rgba(55, 65, 81, 0.95);
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(229, 231, 235, 0.95);
+            font-size: 12px;
+            color: rgba(107, 114, 128, 0.95);
+        }
+        code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            color: rgba(197, 34, 31, 0.95);
+            font-size: 0.9em;
+        }
+        pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+        pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        strong {
+            color: rgba(31, 41, 55, 0.95);
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>NLP & Transformers Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            How do you load and use a pretrained model from Hugging Face?
+        </div>
+        <div class="back">
+            <strong>Using AutoModel and AutoTokenizer (recommended):</strong>
+
+            <pre><code>from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+# Load pretrained model and tokenizer
+model_name = "bert-base-uncased"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForSequenceClassification.from_pretrained(
+    model_name,
+    num_labels=2  # for binary classification
+)
+
+# Tokenize input
+text = "This movie is great!"
+inputs = tokenizer(
+    text,
+    padding=True,
+    truncation=True,
+    max_length=512,
+    return_tensors="pt"  # PyTorch tensors
+)
+
+# Get predictions
+outputs = model(**inputs)
+logits = outputs.logits  # shape: (batch_size, num_labels)
+
+# Different task types
+from transformers import (
+    AutoModelForSequenceClassification,  # Text classification
+    AutoModelForTokenClassification,     # NER, POS tagging
+    AutoModelForQuestionAnswering,       # Q&A
+    AutoModelForCausalLM,                # GPT-style generation
+    AutoModelForMaskedLM,                # BERT-style MLM
+    AutoModelForSeq2SeqLM                # T5, BART translation/summarization
+)
+
+# Example: Text generation
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model = AutoModelForCausalLM.from_pretrained("gpt2")
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+
+inputs = tokenizer("Once upon a time", return_tensors="pt")
+outputs = model.generate(**inputs, max_length=50)
+text = tokenizer.decode(outputs[0])</code></pre>
+
+            <strong>Key points:</strong>
+            <ul>
+                <li>AutoTokenizer/AutoModel automatically detect correct class</li>
+                <li>Use task-specific AutoModel classes</li>
+                <li>Always match model and tokenizer names</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers huggingface EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            What is tokenization and what are the main tokenization algorithms?
+        </div>
+        <div class="back">
+            <strong>Tokenization:</strong> Converting text into tokens (subwords/words) that models can process.
+
+            <p><strong>Main algorithms:</strong></p>
+
+            <p><strong>1. WordPiece (BERT):</strong></p>
+            <ul>
+                <li>Breaks words into subwords based on vocabulary</li>
+                <li>Uses ## to mark subword continuations</li>
+                <li>Example: "playing" → ["play", "##ing"]</li>
+            </ul>
+
+            <p><strong>2. BPE - Byte Pair Encoding (GPT-2, RoBERTa):</strong></p>
+            <ul>
+                <li>Merges most frequent character pairs iteratively</li>
+                <li>Example: "lowest" → ["low", "est"]</li>
+            </ul>
+
+            <p><strong>3. SentencePiece (T5, XLNet):</strong></p>
+            <ul>
+                <li>Language-agnostic, treats text as raw characters</li>
+                <li>Handles spaces as special characters</li>
+                <li>Example: "▁hello" (▁ = space)</li>
+            </ul>
+
+            <strong>Example usage:</strong>
+            <pre><code>from transformers import AutoTokenizer
+
+# BERT (WordPiece)
+bert_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+tokens = bert_tokenizer.tokenize("playing games")
+# ['playing', 'games']
+
+tokens = bert_tokenizer.tokenize("unhappiness")
+# ['un', '##hap', '##pi', '##ness']
+
+# Get token IDs
+input_ids = bert_tokenizer.encode("Hello world")
+# [101, 7592, 2088, 102]  (101=[CLS], 102=[SEP])
+
+# Decode back
+text = bert_tokenizer.decode(input_ids)
+# "[CLS] hello world [SEP]"
+
+# Full tokenization
+inputs = bert_tokenizer(
+    "Hello world",
+    return_tensors="pt",
+    padding=True,
+    truncation=True
+)
+# Returns: input_ids, attention_mask, (token_type_ids)</code></pre>
+
+            <p><strong>Special tokens:</strong></p>
+            <ul>
+                <li><code>[CLS]</code> - Classification token (BERT)</li>
+                <li><code>[SEP]</code> - Separator between sentences</li>
+                <li><code>[PAD]</code> - Padding token</li>
+                <li><code>[UNK]</code> - Unknown token</li>
+                <li><code>[MASK]</code> - Masked token (BERT MLM)</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers tokenization EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            How do you handle padding and truncation for variable-length sequences?
+        </div>
+        <div class="back">
+            <strong>Padding:</strong> Add special tokens to make all sequences same length.
+            <br>
+            <strong>Truncation:</strong> Cut sequences that are too long.
+
+            <strong>Example:</strong>
+            <pre><code>from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+texts = [
+    "Short text",
+    "This is a much longer text that might need truncation"
+]
+
+# Automatic padding and truncation
+inputs = tokenizer(
+    texts,
+    padding=True,        # Pad to longest in batch
+    truncation=True,     # Truncate to max_length
+    max_length=10,       # Maximum sequence length
+    return_tensors="pt"  # Return PyTorch tensors
+)
+
+print(inputs['input_ids'].shape)  # (2, 10)
+print(inputs['attention_mask'].shape)  # (2, 10)
+
+# Padding strategies
+# padding=True           - Pad to longest sequence in batch
+# padding='max_length'   - Pad to max_length
+# padding='longest'      - Same as True
+# padding=False          - No padding (error if different lengths)
+
+# Example with attention mask
+inputs = tokenizer(
+    ["Hello", "Hello world how are you"],
+    padding=True,
+    return_tensors="pt"
+)
+
+print(inputs['input_ids'])
+# tensor([[  101,  7592,   102,     0,     0,     0,     0],
+#         [  101,  7592,  2088,  2129,  2024,  2017,   102]])
+
+print(inputs['attention_mask'])
+# tensor([[1, 1, 1, 0, 0, 0, 0],  # 0 = ignore padding
+#         [1, 1, 1, 1, 1, 1, 1]])
+
+# In model forward pass
+model(**inputs)
+# attention_mask tells model to ignore padding tokens</code></pre>
+
+            <p><strong>Truncation strategies:</strong></p>
+            <pre><code># truncation='longest_first' (default)
+# Truncates longest sequence first when using pairs
+
+# For single sequences
+inputs = tokenizer(
+    "Very long text " * 100,
+    truncation=True,
+    max_length=512
+)
+
+# For sentence pairs (e.g., question answering)
+inputs = tokenizer(
+    "Question text",
+    "Context text that might be very long",
+    truncation='only_second',  # Only truncate context
+    max_length=512
+)</code></pre>
+
+            <strong>Best practices:</strong>
+            <ul>
+                <li>Always use <code>padding=True</code> for batches</li>
+                <li>Set <code>max_length</code> to model's limit (512 for BERT)</li>
+                <li>Use <code>attention_mask</code> to handle padding correctly</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers padding truncation EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            What is the Transformer architecture and how does self-attention work?
+        </div>
+        <div class="back">
+            <strong>Transformer:</strong> Architecture based on self-attention mechanism (no recurrence).
+
+            <p><strong>Key components:</strong></p>
+            <ul>
+                <li><strong>Self-Attention:</strong> Each token attends to all other tokens</li>
+                <li><strong>Multi-Head Attention:</strong> Multiple attention mechanisms in parallel</li>
+                <li><strong>Feed-Forward Network:</strong> Position-wise fully connected layers</li>
+                <li><strong>Positional Encoding:</strong> Inject position information</li>
+                <li><strong>Layer Normalization:</strong> Normalize activations</li>
+                <li><strong>Residual Connections:</strong> Skip connections</li>
+            </ul>
+
+            <p><strong>Self-Attention mechanism:</strong></p>
+            <pre><code># Query, Key, Value matrices
+# For each token, compute attention to all other tokens
+
+# 1. Compute Q, K, V from input
+Q = input @ W_q  # Query
+K = input @ W_k  # Key
+V = input @ W_v  # Value
+
+# 2. Compute attention scores
+scores = (Q @ K.T) / sqrt(d_k)  # Scaled dot-product
+
+# 3. Apply softmax to get attention weights
+attention_weights = softmax(scores, dim=-1)
+
+# 4. Weighted sum of values
+output = attention_weights @ V
+
+# In code:
+import torch
+import torch.nn.functional as F
+
+def scaled_dot_product_attention(Q, K, V, mask=None):
+    d_k = Q.size(-1)
+    scores = torch.matmul(Q, K.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_k).float())
+
+    if mask is not None:
+        scores = scores.masked_fill(mask == 0, -1e9)
+
+    attention = F.softmax(scores, dim=-1)
+    output = torch.matmul(attention, V)
+
+    return output, attention</code></pre>
+
+            <p><strong>Multi-Head Attention:</strong></p>
+            <pre><code># Run attention in parallel with different learned projections
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        self.num_heads = num_heads
+        self.d_model = d_model
+        self.d_k = d_model // num_heads
+
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+
+    def forward(self, x, mask=None):
+        batch_size = x.size(0)
+
+        # Linear projections in batch from d_model => h x d_k
+        Q = self.W_q(x).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(x).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(x).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+
+        # Apply attention on all heads in parallel
+        output, attention = scaled_dot_product_attention(Q, K, V, mask)
+
+        # Concatenate heads and apply final linear
+        output = output.transpose(1, 2).contiguous().view(batch_size, -1, self.d_model)
+        output = self.W_o(output)
+
+        return output</code></pre>
+
+            <p><strong>Why it works:</strong></p>
+            <ul>
+                <li>Captures long-range dependencies efficiently</li>
+                <li>Parallel computation (unlike RNNs)</li>
+                <li>Attention weights are interpretable</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers attention architecture EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            How do you fine-tune a pretrained model for classification?
+        </div>
+        <div class="back">
+            <strong>Fine-tuning:</strong> Train pretrained model on your specific task.
+
+            <strong>Complete example:</strong>
+            <pre><code>from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trainer, TrainingArguments
+from datasets import load_dataset
+import torch
+
+# 1. Load pretrained model
+model_name = "bert-base-uncased"
+num_labels = 2  # binary classification
+
+model = AutoModelForSequenceClassification.from_pretrained(
+    model_name,
+    num_labels=num_labels
+)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+# 2. Prepare dataset
+dataset = load_dataset("imdb")
+
+def tokenize_function(examples):
+    return tokenizer(
+        examples["text"],
+        padding="max_length",
+        truncation=True,
+        max_length=512
+    )
+
+tokenized_datasets = dataset.map(tokenize_function, batched=True)
+
+# 3. Set up training arguments
+training_args = TrainingArguments(
+    output_dir="./results",
+    num_train_epochs=3,
+    per_device_train_batch_size=8,
+    per_device_eval_batch_size=8,
+    warmup_steps=500,
+    weight_decay=0.01,
+    logging_dir="./logs",
+    logging_steps=10,
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    load_best_model_at_end=True,
+    metric_for_best_model="accuracy"
+)
+
+# 4. Define metrics
+from datasets import load_metric
+
+def compute_metrics(eval_pred):
+    metric = load_metric("accuracy")
+    logits, labels = eval_pred
+    predictions = torch.argmax(torch.tensor(logits), dim=-1)
+    return metric.compute(predictions=predictions, references=labels)
+
+# 5. Create Trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_datasets["train"],
+    eval_dataset=tokenized_datasets["test"],
+    compute_metrics=compute_metrics
+)
+
+# 6. Train
+trainer.train()
+
+# 7. Evaluate
+results = trainer.evaluate()
+print(results)
+
+# 8. Save model
+model.save_pretrained("./my-finetuned-model")
+tokenizer.save_pretrained("./my-finetuned-model")
+
+# 9. Load and use
+model = AutoModelForSequenceClassification.from_pretrained("./my-finetuned-model")
+tokenizer = AutoTokenizer.from_pretrained("./my-finetuned-model")
+
+inputs = tokenizer("Great movie!", return_tensors="pt")
+outputs = model(**inputs)
+prediction = torch.argmax(outputs.logits, dim=-1)
+print(prediction)  # 1 (positive)</code></pre>
+
+            <p><strong>Manual training loop:</strong></p>
+            <pre><code>from torch.optim import AdamW
+from transformers import get_linear_schedule_with_warmup
+
+optimizer = AdamW(model.parameters(), lr=2e-5)
+num_training_steps = len(train_dataloader) * num_epochs
+scheduler = get_linear_schedule_with_warmup(
+    optimizer,
+    num_warmup_steps=0,
+    num_training_steps=num_training_steps
+)
+
+model.train()
+for epoch in range(num_epochs):
+    for batch in train_dataloader:
+        optimizer.zero_grad()
+
+        outputs = model(**batch)
+        loss = outputs.loss
+        loss.backward()
+
+        optimizer.step()
+        scheduler.step()</code></pre>
+        </div>
+        <div class="tags">cs pythonML nlp transformers fine-tuning EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            How do you use the Hugging Face Pipeline API?
+        </div>
+        <div class="back">
+            <strong>Pipeline:</strong> High-level API for common NLP tasks.
+
+            <strong>Available pipelines:</strong>
+            <pre><code>from transformers import pipeline
+
+# Text classification (sentiment, etc.)
+classifier = pipeline("sentiment-analysis")
+result = classifier("I love this!")
+# [{'label': 'POSITIVE', 'score': 0.9998}]
+
+# Named Entity Recognition
+ner = pipeline("ner", grouped_entities=True)
+result = ner("My name is John and I live in New York")
+# [{'entity_group': 'PER', 'word': 'John', ...},
+#  {'entity_group': 'LOC', 'word': 'New York', ...}]
+
+# Question Answering
+qa = pipeline("question-answering")
+result = qa(
+    question="Where do I live?",
+    context="My name is John and I live in New York"
+)
+# {'answer': 'New York', 'score': 0.98, 'start': 31, 'end': 39}
+
+# Text Generation
+generator = pipeline("text-generation", model="gpt2")
+result = generator("Once upon a time", max_length=50, num_return_sequences=2)
+
+# Summarization
+summarizer = pipeline("summarization")
+result = summarizer(long_article, max_length=130, min_length=30)
+
+# Translation
+translator = pipeline("translation_en_to_fr")
+result = translator("Hello, how are you?")
+
+# Fill-mask (BERT-style)
+unmasker = pipeline("fill-mask")
+result = unmasker("Paris is the [MASK] of France")
+# [{'token_str': 'capital', 'score': 0.98, ...}]
+
+# Zero-shot classification
+classifier = pipeline("zero-shot-classification")
+result = classifier(
+    "This is a course about Python",
+    candidate_labels=["education", "politics", "business"]
+)
+# {'labels': ['education', 'business', 'politics'],
+#  'scores': [0.95, 0.03, 0.02]}
+
+# Feature extraction (embeddings)
+feature_extractor = pipeline("feature-extraction")
+result = feature_extractor("This is a test")
+# Returns embeddings for each token</code></pre>
+
+            <p><strong>Custom model with pipeline:</strong></p>
+            <pre><code># Specify model and tokenizer
+classifier = pipeline(
+    "sentiment-analysis",
+    model="distilbert-base-uncased-finetuned-sst-2-english",
+    tokenizer="distilbert-base-uncased-finetuned-sst-2-english",
+    device=0  # Use GPU
+)
+
+# Local model
+classifier = pipeline("text-classification", model="./my-model")
+
+# Batch processing
+texts = ["text 1", "text 2", "text 3"]
+results = classifier(texts, batch_size=8)</code></pre>
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>Simple interface, no need to handle tokenization</li>
+                <li>Automatic model downloading</li>
+                <li>Good for prototyping and demos</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers pipeline huggingface EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            How do you create a custom dataset for Hugging Face Transformers?
+        </div>
+        <div class="back">
+            <strong>Using PyTorch Dataset:</strong>
+
+            <pre><code>from torch.utils.data import Dataset, DataLoader
+from transformers import AutoTokenizer
+import torch
+
+class CustomTextDataset(Dataset):
+    def __init__(self, texts, labels, tokenizer, max_length=512):
+        self.texts = texts
+        self.labels = labels
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+
+    def __len__(self):
+        return len(self.texts)
+
+    def __getitem__(self, idx):
+        text = self.texts[idx]
+        label = self.labels[idx]
+
+        # Tokenize
+        encoding = self.tokenizer(
+            text,
+            padding='max_length',
+            truncation=True,
+            max_length=self.max_length,
+            return_tensors='pt'
+        )
+
+        return {
+            'input_ids': encoding['input_ids'].flatten(),
+            'attention_mask': encoding['attention_mask'].flatten(),
+            'labels': torch.tensor(label, dtype=torch.long)
+        }
+
+# Usage
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+texts = ["Great movie!", "Terrible film", "Not bad"]
+labels = [1, 0, 1]  # 1=positive, 0=negative
+
+dataset = CustomTextDataset(texts, labels, tokenizer)
+dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
+
+for batch in dataloader:
+    print(batch['input_ids'].shape)  # (2, 512)
+    print(batch['attention_mask'].shape)  # (2, 512)
+    print(batch['labels'].shape)  # (2,)</code></pre>
+
+            <p><strong>Using Hugging Face datasets library:</strong></p>
+            <pre><code>from datasets import Dataset, DatasetDict
+import pandas as pd
+
+# From pandas DataFrame
+df = pd.DataFrame({
+    'text': ['Great!', 'Bad!', 'OK'],
+    'label': [1, 0, 1]
+})
+dataset = Dataset.from_pandas(df)
+
+# From dictionary
+data = {
+    'text': ['Great!', 'Bad!', 'OK'],
+    'label': [1, 0, 1]
+}
+dataset = Dataset.from_dict(data)
+
+# From CSV
+dataset = Dataset.from_csv('data.csv')
+
+# Create train/test split
+dataset_dict = dataset.train_test_split(test_size=0.2)
+train_dataset = dataset_dict['train']
+test_dataset = dataset_dict['test']
+
+# Map tokenization
+def tokenize_function(examples):
+    return tokenizer(
+        examples['text'],
+        padding='max_length',
+        truncation=True
+    )
+
+tokenized_dataset = dataset.map(tokenize_function, batched=True)
+
+# Remove original text column
+tokenized_dataset = tokenized_dataset.remove_columns(['text'])
+
+# Set format for PyTorch
+tokenized_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'label'])</code></pre>
+
+            <p><strong>For sequence-to-sequence (e.g., summarization):</strong></p>
+            <pre><code>class Seq2SeqDataset(Dataset):
+    def __init__(self, source_texts, target_texts, tokenizer, max_length=512):
+        self.source_texts = source_texts
+        self.target_texts = target_texts
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+
+    def __len__(self):
+        return len(self.source_texts)
+
+    def __getitem__(self, idx):
+        source = self.source_texts[idx]
+        target = self.target_texts[idx]
+
+        # Tokenize source
+        source_encoding = self.tokenizer(
+            source,
+            max_length=self.max_length,
+            padding='max_length',
+            truncation=True,
+            return_tensors='pt'
+        )
+
+        # Tokenize target
+        target_encoding = self.tokenizer(
+            target,
+            max_length=self.max_length,
+            padding='max_length',
+            truncation=True,
+            return_tensors='pt'
+        )
+
+        return {
+            'input_ids': source_encoding['input_ids'].flatten(),
+            'attention_mask': source_encoding['attention_mask'].flatten(),
+            'labels': target_encoding['input_ids'].flatten()
+        }</code></pre>
+        </div>
+        <div class="tags">cs pythonML nlp transformers dataset custom-dataset EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            What are the key differences between BERT, GPT, and T5?
+        </div>
+        <div class="back">
+            <strong>Three major transformer architectures:</strong>
+
+            <p><strong>BERT (Encoder-only):</strong></p>
+            <ul>
+                <li><strong>Full name:</strong> Bidirectional Encoder Representations from Transformers</li>
+                <li><strong>Architecture:</strong> Encoder-only (bidirectional)</li>
+                <li><strong>Training:</strong> Masked Language Modeling (MLM) + Next Sentence Prediction</li>
+                <li><strong>Best for:</strong> Classification, NER, Q&A, feature extraction</li>
+                <li><strong>Cannot:</strong> Generate text autoregressively</li>
+            </ul>
+
+            <p><strong>GPT (Decoder-only):</strong></p>
+            <ul>
+                <li><strong>Full name:</strong> Generative Pre-trained Transformer</li>
+                <li><strong>Architecture:</strong> Decoder-only (unidirectional/causal)</li>
+                <li><strong>Training:</strong> Causal Language Modeling (predict next token)</li>
+                <li><strong>Best for:</strong> Text generation, completion, few-shot learning</li>
+                <li><strong>Cannot:</strong> See future tokens (by design)</li>
+            </ul>
+
+            <p><strong>T5 (Encoder-Decoder):</strong></p>
+            <ul>
+                <li><strong>Full name:</strong> Text-to-Text Transfer Transformer</li>
+                <li><strong>Architecture:</strong> Full encoder-decoder</li>
+                <li><strong>Training:</strong> Span corruption (mask spans of text)</li>
+                <li><strong>Best for:</strong> Translation, summarization, Q&A as text generation</li>
+                <li><strong>Unique:</strong> Treats all tasks as text-to-text</li>
+            </ul>
+
+            <strong>Code examples:</strong>
+            <pre><code># BERT - Classification
+from transformers import BertTokenizer, BertForSequenceClassification
+
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
+
+inputs = tokenizer("Hello world", return_tensors="pt")
+outputs = model(**inputs)
+logits = outputs.logits  # Classification scores
+
+# GPT-2 - Generation
+from transformers import GPT2Tokenizer, GPT2LMHeadModel
+
+tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+model = GPT2LMHeadModel.from_pretrained('gpt2')
+
+inputs = tokenizer("Once upon a time", return_tensors="pt")
+outputs = model.generate(**inputs, max_length=50)
+text = tokenizer.decode(outputs[0])
+
+# T5 - Text-to-text
+from transformers import T5Tokenizer, T5ForConditionalGeneration
+
+tokenizer = T5Tokenizer.from_pretrained('t5-small')
+model = T5ForConditionalGeneration.from_pretrained('t5-small')
+
+# T5 requires task prefix
+inputs = tokenizer("translate English to French: Hello", return_tensors="pt")
+outputs = model.generate(**inputs)
+text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+# Or summarization
+inputs = tokenizer("summarize: " + long_text, return_tensors="pt")
+outputs = model.generate(**inputs)
+summary = tokenizer.decode(outputs[0], skip_special_tokens=True)</code></pre>
+
+            <p><strong>Attention masks:</strong></p>
+            <ul>
+                <li><strong>BERT:</strong> Bidirectional (sees all tokens)</li>
+                <li><strong>GPT:</strong> Causal (only sees past tokens)</li>
+                <li><strong>T5:</strong> Bidirectional in encoder, causal in decoder</li>
+            </ul>
+
+            <strong>Which to use?</strong>
+            <ul>
+                <li>Classification/NER/Q&A: BERT or RoBERTa</li>
+                <li>Text generation: GPT-2, GPT-3, or GPT-4</li>
+                <li>Translation/Summarization: T5 or BART</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers bert gpt t5 EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            How do you generate text with temperature, top-k, and top-p sampling?
+        </div>
+        <div class="back">
+            <strong>Text generation parameters control randomness and quality:</strong>
+
+            <p><strong>Temperature:</strong> Controls randomness of predictions</p>
+            <ul>
+                <li>Low (0.1-0.5): More focused, deterministic</li>
+                <li>Medium (0.7-1.0): Balanced</li>
+                <li>High (1.5+): More random, creative</li>
+            </ul>
+
+            <p><strong>Top-k sampling:</strong> Sample from top k most likely tokens</p>
+            <p><strong>Top-p (nucleus) sampling:</strong> Sample from smallest set of tokens whose cumulative probability exceeds p</p>
+
+            <strong>Examples:</strong>
+            <pre><code>from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model = AutoModelForCausalLM.from_pretrained("gpt2")
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+
+prompt = "Once upon a time"
+inputs = tokenizer(prompt, return_tensors="pt")
+
+# Greedy decoding (deterministic, takes highest prob)
+outputs = model.generate(
+    **inputs,
+    max_length=50,
+    do_sample=False  # greedy
+)
+
+# Temperature sampling
+outputs = model.generate(
+    **inputs,
+    max_length=50,
+    do_sample=True,
+    temperature=0.7  # lower = more focused
+)
+
+# Top-k sampling (only consider top k tokens)
+outputs = model.generate(
+    **inputs,
+    max_length=50,
+    do_sample=True,
+    top_k=50  # consider top 50 tokens
+)
+
+# Top-p (nucleus) sampling (dynamic vocabulary)
+outputs = model.generate(
+    **inputs,
+    max_length=50,
+    do_sample=True,
+    top_p=0.9  # consider tokens that sum to 90% prob
+)
+
+# Combine temperature + top-p (recommended)
+outputs = model.generate(
+    **inputs,
+    max_length=50,
+    do_sample=True,
+    temperature=0.8,
+    top_p=0.95,
+    top_k=0  # disable top-k when using top-p
+)
+
+# Beam search (explores multiple paths)
+outputs = model.generate(
+    **inputs,
+    max_length=50,
+    num_beams=5,  # number of beams
+    early_stopping=True
+)
+
+# Generate multiple sequences
+outputs = model.generate(
+    **inputs,
+    max_length=50,
+    num_return_sequences=3,  # return 3 different sequences
+    do_sample=True,
+    temperature=0.8,
+    top_p=0.95
+)
+
+for i, output in enumerate(outputs):
+    text = tokenizer.decode(output, skip_special_tokens=True)
+    print(f"Sequence {i+1}: {text}")
+
+# Control repetition
+outputs = model.generate(
+    **inputs,
+    max_length=50,
+    repetition_penalty=1.2,  # penalize repetition
+    no_repeat_ngram_size=2   # don't repeat 2-grams
+)</code></pre>
+
+            <p><strong>Recommendations:</strong></p>
+            <ul>
+                <li><strong>Creative writing:</strong> temp=0.8-1.0, top_p=0.9</li>
+                <li><strong>Code generation:</strong> temp=0.2, top_p=0.95</li>
+                <li><strong>Factual tasks:</strong> temp=0.3, beam_search=True</li>
+                <li><strong>Chatbots:</strong> temp=0.7, top_p=0.9</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers text-generation sampling EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            How do you use positional encodings in Transformers?
+        </div>
+        <div class="back">
+            <strong>Positional Encoding:</strong> Add position information since Transformers have no inherent notion of sequence order.
+
+            <p><strong>Types:</strong></p>
+
+            <p><strong>1. Sinusoidal (Original Transformer, BERT):</strong></p>
+            <pre><code>import torch
+import math
+
+def get_sinusoidal_encoding(seq_len, d_model):
+    """
+    Generate sinusoidal positional encodings
+    seq_len: sequence length
+    d_model: embedding dimension
+    """
+    position = torch.arange(seq_len).unsqueeze(1)
+    div_term = torch.exp(
+        torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model)
+    )
+
+    pe = torch.zeros(seq_len, d_model)
+    pe[:, 0::2] = torch.sin(position * div_term)  # even indices
+    pe[:, 1::2] = torch.cos(position * div_term)  # odd indices
+
+    return pe
+
+# Usage
+seq_len = 100
+d_model = 512
+pos_encoding = get_sinusoidal_encoding(seq_len, d_model)
+
+# Add to embeddings
+embeddings = token_embeddings + pos_encoding</code></pre>
+
+            <p><strong>2. Learned (GPT, BERT):</strong></p>
+            <pre><code>import torch.nn as nn
+
+class LearnedPositionalEncoding(nn.Module):
+    def __init__(self, max_seq_len, d_model):
+        super().__init__()
+        self.position_embeddings = nn.Embedding(max_seq_len, d_model)
+
+    def forward(self, x):
+        batch_size, seq_len = x.size(0), x.size(1)
+        positions = torch.arange(seq_len, device=x.device).unsqueeze(0).expand(batch_size, -1)
+        return self.position_embeddings(positions)
+
+# Usage
+max_seq_len = 512
+d_model = 768
+
+pos_encoder = LearnedPositionalEncoding(max_seq_len, d_model)
+token_embeddings = embedding_layer(input_ids)
+pos_embeddings = pos_encoder(input_ids)
+
+# Combine
+embeddings = token_embeddings + pos_embeddings</code></pre>
+
+            <p><strong>3. Relative Positional Encodings (T5, Transformer-XL):</strong></p>
+            <pre><code># Instead of absolute positions, encode relative distances
+# "How far apart are these two tokens?"
+
+# In T5, implemented as learned relative position biases
+# Added to attention scores, not embeddings</code></pre>
+
+            <p><strong>Why needed:</strong></p>
+            <ul>
+                <li>Self-attention is permutation-invariant</li>
+                <li>Without position info, "cat sat" = "sat cat"</li>
+                <li>Position encoding breaks this symmetry</li>
+            </ul>
+
+            <p><strong>In practice (Hugging Face):</strong></p>
+            <pre><code># Positional encodings are handled automatically
+from transformers import BertModel
+
+model = BertModel.from_pretrained("bert-base-uncased")
+
+# Model internally adds positional embeddings
+# You don't need to add them manually
+
+# Access position embeddings
+position_embeddings = model.embeddings.position_embeddings
+print(position_embeddings.weight.shape)  # (512, 768)
+# 512 positions, 768 dims</code></pre>
+
+            <strong>Comparison:</strong>
+            <ul>
+                <li><strong>Sinusoidal:</strong> Works for any length, deterministic</li>
+                <li><strong>Learned:</strong> Better performance, limited to max_seq_len</li>
+                <li><strong>Relative:</strong> Better for long sequences, handles variable lengths</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers positional-encoding EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">
+            How do you handle long documents that exceed the model's max length?
+        </div>
+        <div class="back">
+            <strong>Problem:</strong> Most transformers have max length (512 for BERT, 1024 for GPT-2).
+
+            <p><strong>Solutions:</strong></p>
+
+            <p><strong>1. Truncation (simple but loses information):</strong></p>
+            <pre><code>inputs = tokenizer(
+    long_text,
+    truncation=True,
+    max_length=512,
+    return_tensors="pt"
+)
+# Just cuts off the rest</code></pre>
+
+            <p><strong>2. Sliding window (process in chunks):</strong></p>
+            <pre><code>def sliding_window_inference(text, model, tokenizer, max_length=512, stride=256):
+    """
+    Process long text with sliding window
+    stride: overlap between windows
+    """
+    tokens = tokenizer(text, return_tensors="pt", truncation=False)
+    input_ids = tokens['input_ids'][0]
+
+    predictions = []
+    start = 0
+
+    while start < len(input_ids):
+        end = min(start + max_length, len(input_ids))
+        chunk_ids = input_ids[start:end].unsqueeze(0)
+
+        # Get predictions for chunk
+        outputs = model(chunk_ids)
+        predictions.append(outputs.logits)
+
+        start += stride
+
+    # Aggregate predictions (average, max, etc.)
+    return torch.cat(predictions, dim=0).mean(dim=0)
+
+# Usage
+result = sliding_window_inference(long_text, model, tokenizer)</code></pre>
+
+            <p><strong>3. Hierarchical processing (chunk + aggregate):</strong></p>
+            <pre><code>def hierarchical_classification(text, model, tokenizer, chunk_size=512):
+    """
+    1. Split into chunks
+    2. Get embeddings for each chunk
+    3. Aggregate chunk embeddings
+    4. Final classification
+    """
+    # Split text into sentences or paragraphs
+    chunks = split_into_chunks(text, chunk_size)
+
+    chunk_embeddings = []
+    for chunk in chunks:
+        inputs = tokenizer(chunk, return_tensors="pt", max_length=512, truncation=True)
+        outputs = model(**inputs, output_hidden_states=True)
+
+        # Get [CLS] token embedding
+        cls_embedding = outputs.hidden_states[-1][:, 0, :]
+        chunk_embeddings.append(cls_embedding)
+
+    # Aggregate (mean, max, attention-based)
+    doc_embedding = torch.stack(chunk_embeddings).mean(dim=0)
+
+    # Final classification layer
+    logits = classifier(doc_embedding)
+    return logits</code></pre>
+
+            <p><strong>4. Use models designed for long contexts:</strong></p>
+            <pre><code># Longformer (4096 tokens)
+from transformers import LongformerTokenizer, LongformerForSequenceClassification
+
+tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
+model = LongformerForSequenceClassification.from_pretrained("allenai/longformer-base-4096")
+
+inputs = tokenizer(long_text, return_tensors="pt", max_length=4096, truncation=True)
+outputs = model(**inputs)
+
+# LED (16384 tokens for summarization)
+from transformers import LEDTokenizer, LEDForConditionalGeneration
+
+tokenizer = LEDTokenizer.from_pretrained("allenai/led-base-16384")
+model = LEDForConditionalGeneration.from_pretrained("allenai/led-base-16384")
+
+# BigBird (4096 tokens)
+from transformers import BigBirdTokenizer, BigBirdForSequenceClassification</code></pre>
+
+            <p><strong>5. Retrieval-based (for Q&A):</strong></p>
+            <pre><code># First retrieve relevant passages, then process
+def retrieval_qa(question, document, model, tokenizer):
+    # 1. Split document into passages
+    passages = split_into_passages(document)
+
+    # 2. Find most relevant passages (BM25, embeddings)
+    relevant_passages = retrieve_top_k(question, passages, k=3)
+
+    # 3. Process only relevant passages
+    context = " ".join(relevant_passages)
+    inputs = tokenizer(question, context, return_tensors="pt", max_length=512, truncation=True)
+
+    outputs = model(**inputs)
+    return outputs</code></pre>
+
+            <strong>Recommendations:</strong>
+            <ul>
+                <li><strong>Classification:</strong> Hierarchical or sliding window</li>
+                <li><strong>Summarization:</strong> LED or chunk-wise summarization</li>
+                <li><strong>Q&A:</strong> Retrieval-based approach</li>
+                <li><strong>General:</strong> Use Longformer/BigBird if possible</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers long-documents EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">
+            How do you extract and use embeddings from transformers?
+        </div>
+        <div class="back">
+            <strong>Embeddings:</strong> Dense vector representations of text that capture semantic meaning.
+
+            <strong>Extracting embeddings:</strong>
+            <pre><code>from transformers import AutoTokenizer, AutoModel
+import torch
+
+model_name = "bert-base-uncased"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModel.from_pretrained(model_name)
+
+text = "This is a sample sentence"
+inputs = tokenizer(text, return_tensors="pt")
+
+# Get all hidden states
+with torch.no_grad():
+    outputs = model(**inputs, output_hidden_states=True)
+
+# Different embedding options:
+
+# 1. [CLS] token embedding (common for classification)
+cls_embedding = outputs.last_hidden_state[:, 0, :]
+print(cls_embedding.shape)  # (1, 768)
+
+# 2. Mean pooling (average all tokens)
+token_embeddings = outputs.last_hidden_state
+attention_mask = inputs['attention_mask']
+
+# Mask padding tokens
+masked_embeddings = token_embeddings * attention_mask.unsqueeze(-1)
+summed = masked_embeddings.sum(dim=1)
+counts = attention_mask.sum(dim=1, keepdim=True)
+mean_embedding = summed / counts
+print(mean_embedding.shape)  # (1, 768)
+
+# 3. Max pooling
+max_embedding = token_embeddings.max(dim=1)[0]
+
+# 4. Use specific layer (not just last)
+# outputs.hidden_states is tuple of all layer outputs
+second_to_last = outputs.hidden_states[-2][:, 0, :]</code></pre>
+
+            <p><strong>For sentence similarity:</strong></p>
+            <pre><code>def get_sentence_embedding(text, model, tokenizer):
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
+
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    # Mean pooling
+    token_embeddings = outputs.last_hidden_state
+    attention_mask = inputs['attention_mask']
+    input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+    sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
+    sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+    return sum_embeddings / sum_mask
+
+# Get embeddings for two sentences
+sent1 = "The cat sat on the mat"
+sent2 = "A feline rested on the rug"
+
+emb1 = get_sentence_embedding(sent1, model, tokenizer)
+emb2 = get_sentence_embedding(sent2, model, tokenizer)
+
+# Cosine similarity
+from torch.nn.functional import cosine_similarity
+similarity = cosine_similarity(emb1, emb2)
+print(f"Similarity: {similarity.item():.4f}")</code></pre>
+
+            <p><strong>Use sentence transformers (better for similarity):</strong></p>
+            <pre><code>from sentence_transformers import SentenceTransformer
+
+# Pretrained on similarity tasks
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+sentences = [
+    "The cat sat on the mat",
+    "A feline rested on the rug",
+    "The dog ran in the park"
+]
+
+# Get embeddings
+embeddings = model.encode(sentences)
+print(embeddings.shape)  # (3, 384)
+
+# Compute similarity
+from sklearn.metrics.pairwise import cosine_similarity
+similarities = cosine_similarity(embeddings)
+print(similarities)</code></pre>
+
+            <p><strong>Common use cases:</strong></p>
+            <pre><code># 1. Semantic search
+query_emb = model.encode("machine learning")
+doc_embs = model.encode(documents)
+scores = cosine_similarity([query_emb], doc_embs)[0]
+top_docs = np.argsort(scores)[::-1][:5]
+
+# 2. Clustering
+from sklearn.cluster import KMeans
+embeddings = model.encode(texts)
+kmeans = KMeans(n_clusters=5)
+clusters = kmeans.fit_predict(embeddings)
+
+# 3. Classification features
+from sklearn.linear_model import LogisticRegression
+train_embs = model.encode(train_texts)
+clf = LogisticRegression()
+clf.fit(train_embs, train_labels)</code></pre>
+
+            <strong>Best practices:</strong>
+            <ul>
+                <li>For sentence similarity: Use sentence-transformers</li>
+                <li>For classification: Use [CLS] token or fine-tune</li>
+                <li>For semantic search: Mean pooling works well</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers embeddings EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">
+            How do you implement custom attention mechanisms?
+        </div>
+        <div class="back">
+            <strong>Custom attention for specific tasks:</strong>
+
+            <p><strong>1. Basic custom attention layer:</strong></p>
+            <pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class CustomAttention(nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.attention = nn.Linear(hidden_size, 1)
+
+    def forward(self, encoder_outputs):
+        # encoder_outputs: (batch, seq_len, hidden_size)
+
+        # Compute attention scores
+        scores = self.attention(encoder_outputs)  # (batch, seq_len, 1)
+        scores = scores.squeeze(-1)  # (batch, seq_len)
+
+        # Apply softmax
+        attention_weights = F.softmax(scores, dim=1)  # (batch, seq_len)
+
+        # Weighted sum
+        context = torch.bmm(
+            attention_weights.unsqueeze(1),  # (batch, 1, seq_len)
+            encoder_outputs  # (batch, seq_len, hidden_size)
+        )  # (batch, 1, hidden_size)
+
+        context = context.squeeze(1)  # (batch, hidden_size)
+
+        return context, attention_weights</code></pre>
+
+            <p><strong>2. Additive (Bahdanau) attention:</strong></p>
+            <pre><code>class AdditiveAttention(nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.W1 = nn.Linear(hidden_size, hidden_size)
+        self.W2 = nn.Linear(hidden_size, hidden_size)
+        self.V = nn.Linear(hidden_size, 1)
+
+    def forward(self, query, keys):
+        # query: (batch, hidden_size) - decoder state
+        # keys: (batch, seq_len, hidden_size) - encoder outputs
+
+        # Expand query to match keys
+        query = query.unsqueeze(1)  # (batch, 1, hidden_size)
+
+        # Compute scores
+        scores = self.V(torch.tanh(
+            self.W1(query) + self.W2(keys)
+        ))  # (batch, seq_len, 1)
+
+        scores = scores.squeeze(-1)  # (batch, seq_len)
+
+        # Attention weights
+        attention_weights = F.softmax(scores, dim=1)
+
+        # Context vector
+        context = torch.bmm(
+            attention_weights.unsqueeze(1),
+            keys
+        ).squeeze(1)
+
+        return context, attention_weights</code></pre>
+
+            <p><strong>3. Multiplicative (Luong) attention:</strong></p>
+            <pre><code>class MultiplicativeAttention(nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.W = nn.Linear(hidden_size, hidden_size)
+
+    def forward(self, query, keys):
+        # query: (batch, hidden_size)
+        # keys: (batch, seq_len, hidden_size)
+
+        # Transform query
+        query = self.W(query).unsqueeze(1)  # (batch, 1, hidden_size)
+
+        # Compute scores via dot product
+        scores = torch.bmm(query, keys.transpose(1, 2))  # (batch, 1, seq_len)
+        scores = scores.squeeze(1)  # (batch, seq_len)
+
+        # Attention weights
+        attention_weights = F.softmax(scores, dim=1)
+
+        # Context
+        context = torch.bmm(
+            attention_weights.unsqueeze(1),
+            keys
+        ).squeeze(1)
+
+        return context, attention_weights</code></pre>
+
+            <p><strong>4. Self-attention with custom masking:</strong></p>
+            <pre><code>class CustomSelfAttention(nn.Module):
+    def __init__(self, hidden_size, num_heads=8):
+        super().__init__()
+        self.num_heads = num_heads
+        self.head_dim = hidden_size // num_heads
+
+        self.q_proj = nn.Linear(hidden_size, hidden_size)
+        self.k_proj = nn.Linear(hidden_size, hidden_size)
+        self.v_proj = nn.Linear(hidden_size, hidden_size)
+        self.out_proj = nn.Linear(hidden_size, hidden_size)
+
+    def forward(self, x, mask=None):
+        batch_size, seq_len, hidden_size = x.size()
+
+        # Project Q, K, V
+        Q = self.q_proj(x)
+        K = self.k_proj(x)
+        V = self.v_proj(x)
+
+        # Reshape for multi-head
+        Q = Q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        K = K.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        V = V.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+
+        # Scaled dot-product attention
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / (self.head_dim ** 0.5)
+
+        # Apply mask (e.g., causal mask)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+
+        attention_weights = F.softmax(scores, dim=-1)
+        context = torch.matmul(attention_weights, V)
+
+        # Reshape and project
+        context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, hidden_size)
+        output = self.out_proj(context)
+
+        return output, attention_weights
+
+# Usage with causal mask
+def create_causal_mask(seq_len, device):
+    mask = torch.triu(torch.ones(seq_len, seq_len, device=device), diagonal=1)
+    return mask == 0  # True for positions to attend to
+
+mask = create_causal_mask(10, device='cpu')
+attention = CustomSelfAttention(512)
+output, weights = attention(x, mask=mask.unsqueeze(0).unsqueeze(0))</code></pre>
+
+            <p><strong>5. Cross-attention (for encoder-decoder):</strong></p>
+            <pre><code>class CrossAttention(nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.q_proj = nn.Linear(hidden_size, hidden_size)
+        self.k_proj = nn.Linear(hidden_size, hidden_size)
+        self.v_proj = nn.Linear(hidden_size, hidden_size)
+        self.out_proj = nn.Linear(hidden_size, hidden_size)
+
+    def forward(self, decoder_hidden, encoder_outputs):
+        # decoder_hidden: (batch, 1, hidden_size) - query
+        # encoder_outputs: (batch, seq_len, hidden_size) - key & value
+
+        Q = self.q_proj(decoder_hidden)
+        K = self.k_proj(encoder_outputs)
+        V = self.v_proj(encoder_outputs)
+
+        scores = torch.bmm(Q, K.transpose(1, 2)) / (K.size(-1) ** 0.5)
+        attention_weights = F.softmax(scores, dim=-1)
+        context = torch.bmm(attention_weights, V)
+
+        output = self.out_proj(context)
+        return output, attention_weights</code></pre>
+        </div>
+        <div class="tags">cs pythonML nlp transformers attention custom EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">
+            How do you use Hugging Face Trainer for custom training loops?
+        </div>
+        <div class="back">
+            <strong>Trainer API:</strong> High-level API for training with automatic handling of many details.
+
+            <p><strong>Basic Trainer usage:</strong></p>
+            <pre><code>from transformers import Trainer, TrainingArguments
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from datasets import load_dataset
+
+# Load model and data
+model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+dataset = load_dataset("imdb")
+
+# Tokenize
+def tokenize(batch):
+    return tokenizer(batch["text"], padding=True, truncation=True)
+
+tokenized = dataset.map(tokenize, batched=True)
+
+# Training arguments
+training_args = TrainingArguments(
+    output_dir="./results",
+    num_train_epochs=3,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=64,
+    warmup_steps=500,
+    weight_decay=0.01,
+    logging_dir="./logs",
+    logging_steps=100,
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    load_best_model_at_end=True,
+    metric_for_best_model="accuracy",
+    greater_is_better=True,
+    fp16=True,  # Mixed precision
+    dataloader_num_workers=4,
+    gradient_accumulation_steps=2,
+    learning_rate=2e-5,
+    lr_scheduler_type="linear"
+)
+
+# Compute metrics
+import numpy as np
+from datasets import load_metric
+
+def compute_metrics(eval_pred):
+    metric = load_metric("accuracy")
+    logits, labels = eval_pred
+    predictions = np.argmax(logits, axis=-1)
+    return metric.compute(predictions=predictions, references=labels)
+
+# Create Trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized["train"],
+    eval_dataset=tokenized["test"],
+    compute_metrics=compute_metrics
+)
+
+# Train
+trainer.train()
+
+# Evaluate
+results = trainer.evaluate()
+print(results)</code></pre>
+
+            <p><strong>Custom Trainer with custom loss:</strong></p>
+            <pre><code>class CustomTrainer(Trainer):
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
+
+        # Custom loss (e.g., focal loss)
+        loss_fct = FocalLoss()
+        loss = loss_fct(logits, labels)
+
+        return (loss, outputs) if return_outputs else loss
+
+# Custom callbacks
+from transformers import TrainerCallback
+
+class CustomCallback(TrainerCallback):
+    def on_epoch_end(self, args, state, control, **kwargs):
+        print(f"Epoch {state.epoch} completed!")
+        # Custom logic here
+
+    def on_train_begin(self, args, state, control, **kwargs):
+        print("Training started!")
+
+trainer = CustomTrainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+    callbacks=[CustomCallback()]
+)</code></pre>
+
+            <p><strong>Advanced features:</strong></p>
+            <pre><code># Gradient checkpointing (save memory)
+model.gradient_checkpointing_enable()
+
+# Custom optimizer
+from torch.optim import AdamW
+
+optimizer = AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    optimizers=(optimizer, None)  # (optimizer, scheduler)
+)
+
+# Custom data collator
+from transformers import DataCollatorWithPadding
+
+data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    data_collator=data_collator
+)
+
+# Resume from checkpoint
+trainer.train(resume_from_checkpoint="./results/checkpoint-1000")
+
+# Predict on new data
+predictions = trainer.predict(test_dataset)
+print(predictions.predictions.shape)
+print(predictions.label_ids.shape)
+print(predictions.metrics)</code></pre>
+
+            <p><strong>Distributed training (multi-GPU):</strong></p>
+            <pre><code># Automatic with Trainer
+training_args = TrainingArguments(
+    output_dir="./results",
+    per_device_train_batch_size=16,
+    # Trainer automatically detects multiple GPUs
+)
+
+# Or explicit with accelerate
+# Run: accelerate config
+# Then: accelerate launch train.py</code></pre>
+        </div>
+        <div class="tags">cs pythonML nlp transformers trainer huggingface EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">
+            How do you perform Named Entity Recognition (NER) with transformers?
+        </div>
+        <div class="back">
+            <strong>NER:</strong> Identify and classify named entities (people, locations, organizations, etc.) in text.
+
+            <p><strong>Using Pipeline (easiest):</strong></p>
+            <pre><code>from transformers import pipeline
+
+# Load NER pipeline
+ner = pipeline("ner", grouped_entities=True)
+
+text = "My name is John and I work at Google in New York"
+entities = ner(text)
+
+for entity in entities:
+    print(f"{entity['word']}: {entity['entity_group']} ({entity['score']:.2f})")
+
+# Output:
+# John: PER (0.99)
+# Google: ORG (0.99)
+# New York: LOC (0.99)</code></pre>
+
+            <p><strong>Manual approach for fine-tuning:</strong></p>
+            <pre><code>from transformers import AutoTokenizer, AutoModelForTokenClassification
+import torch
+
+# Load model
+model_name = "dslim/bert-base-NER"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForTokenClassification.from_pretrained(model_name)
+
+# Tokenize
+text = "John works at Google"
+inputs = tokenizer(text, return_tensors="pt")
+
+# Get predictions
+with torch.no_grad():
+    outputs = model(**inputs)
+    predictions = torch.argmax(outputs.logits, dim=-1)
+
+# Decode predictions
+tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
+labels = [model.config.id2label[p.item()] for p in predictions[0]]
+
+# Combine tokens and labels
+for token, label in zip(tokens, labels):
+    if token not in ['[CLS]', '[SEP]', '[PAD]']:
+        print(f"{token}: {label}")</code></pre>
+
+            <p><strong>Fine-tuning on custom NER dataset:</strong></p>
+            <pre><code>from datasets import load_dataset
+from transformers import AutoTokenizer, AutoModelForTokenClassification, TrainingArguments, Trainer, DataCollatorForTokenClassification
+
+# Load dataset (CoNLL-2003 format)
+dataset = load_dataset("conll2003")
+
+# Define label mapping
+label_list = dataset["train"].features["ner_tags"].feature.names
+label2id = {label: i for i, label in enumerate(label_list)}
+id2label = {i: label for label, i in label2id.items()}
+
+# Load model
+model = AutoModelForTokenClassification.from_pretrained(
+    "bert-base-uncased",
+    num_labels=len(label_list),
+    id2label=id2label,
+    label2id=label2id
+)
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+# Tokenize and align labels
+def tokenize_and_align_labels(examples):
+    tokenized_inputs = tokenizer(
+        examples["tokens"],
+        truncation=True,
+        is_split_into_words=True,  # Important!
+        max_length=512
+    )
+
+    labels = []
+    for i, label in enumerate(examples["ner_tags"]):
+        word_ids = tokenized_inputs.word_ids(batch_index=i)
+        label_ids = []
+
+        previous_word_idx = None
+        for word_idx in word_ids:
+            if word_idx is None:
+                # Special tokens get -100 (ignored in loss)
+                label_ids.append(-100)
+            elif word_idx != previous_word_idx:
+                # First token of word gets actual label
+                label_ids.append(label[word_idx])
+            else:
+                # Subsequent tokens of same word get -100
+                # Or same label for BIO scheme
+                label_ids.append(-100)
+
+            previous_word_idx = word_idx
+
+        labels.append(label_ids)
+
+    tokenized_inputs["labels"] = labels
+    return tokenized_inputs
+
+tokenized_dataset = dataset.map(tokenize_and_align_labels, batched=True)
+
+# Data collator
+data_collator = DataCollatorForTokenClassification(tokenizer)
+
+# Metrics
+import numpy as np
+from datasets import load_metric
+
+metric = load_metric("seqeval")
+
+def compute_metrics(eval_preds):
+    logits, labels = eval_preds
+    predictions = np.argmax(logits, axis=-1)
+
+    # Remove ignored index (-100)
+    true_predictions = [
+        [label_list[p] for p, l in zip(prediction, label) if l != -100]
+        for prediction, label in zip(predictions, labels)
+    ]
+    true_labels = [
+        [label_list[l] for p, l in zip(prediction, label) if l != -100]
+        for prediction, label in zip(predictions, labels)
+    ]
+
+    results = metric.compute(predictions=true_predictions, references=true_labels)
+    return {
+        "precision": results["overall_precision"],
+        "recall": results["overall_recall"],
+        "f1": results["overall_f1"],
+        "accuracy": results["overall_accuracy"]
+    }
+
+# Training
+training_args = TrainingArguments(
+    output_dir="./ner-model",
+    evaluation_strategy="epoch",
+    learning_rate=2e-5,
+    per_device_train_batch_size=16,
+    num_train_epochs=3,
+    weight_decay=0.01
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_dataset["train"],
+    eval_dataset=tokenized_dataset["validation"],
+    data_collator=data_collator,
+    tokenizer=tokenizer,
+    compute_metrics=compute_metrics
+)
+
+trainer.train()
+
+# Inference
+def ner_inference(text, model, tokenizer):
+    inputs = tokenizer(text, return_tensors="pt")
+    with torch.no_grad():
+        outputs = model(**inputs)
+        predictions = torch.argmax(outputs.logits, dim=-1)
+
+    tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
+    labels = [model.config.id2label[p.item()] for p in predictions[0]]
+
+    # Group entities
+    entities = []
+    current_entity = None
+
+    for token, label in zip(tokens, labels):
+        if token in ['[CLS]', '[SEP]', '[PAD]']:
+            continue
+
+        if label.startswith('B-'):  # Begin
+            if current_entity:
+                entities.append(current_entity)
+            current_entity = {'text': token, 'label': label[2:]}
+        elif label.startswith('I-') and current_entity:  # Inside
+            current_entity['text'] += ' ' + token
+        else:  # O (outside)
+            if current_entity:
+                entities.append(current_entity)
+                current_entity = None
+
+    if current_entity:
+        entities.append(current_entity)
+
+    return entities
+
+entities = ner_inference("John works at Google in NYC", model, tokenizer)
+print(entities)</code></pre>
+        </div>
+        <div class="tags">cs pythonML nlp transformers ner named-entity-recognition EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">
+            How do you implement text generation with constraints (controlled generation)?
+        </div>
+        <div class="back">
+            <strong>Controlled generation:</strong> Generate text that meets specific constraints.
+
+            <p><strong>1. Prefix/Prompt-based control:</strong></p>
+            <pre><code>from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model = AutoModelForCausalLM.from_pretrained("gpt2")
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+
+# Control via prompt engineering
+prefix = "Write a positive review: "
+inputs = tokenizer(prefix, return_tensors="pt")
+outputs = model.generate(**inputs, max_length=50)
+text = tokenizer.decode(outputs[0])
+
+# Or more explicit
+prompts = {
+    "positive": "This product is amazing because",
+    "negative": "This product is terrible because",
+    "formal": "In professional terms,",
+    "casual": "Yo, check this out:"
+}</code></pre>
+
+            <p><strong>2. Constrained beam search (force specific words/phrases):</strong></p>
+            <pre><code>from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, PhrasalConstraint
+
+model = AutoModelForSeq2SeqLM.from_pretrained("t5-small")
+tokenizer = AutoTokenizer.from_pretrained("t5-small")
+
+input_text = "translate English to French: The house is wonderful"
+inputs = tokenizer(input_text, return_tensors="pt")
+
+# Force specific phrases to appear
+force_words = ["magnifique", "maison"]
+force_words_ids = [
+    tokenizer(word, add_special_tokens=False).input_ids
+    for word in force_words
+]
+
+outputs = model.generate(
+    **inputs,
+    force_words_ids=force_words_ids,
+    num_beams=5,
+    max_length=50
+)
+
+text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+print(text)  # Will contain both "magnifique" and "maison"</code></pre>
+
+            <p><strong>3. Logit processors (custom constraints):</strong></p>
+            <pre><code>from transformers import LogitsProcessor, LogitsProcessorList
+import torch
+
+class CustomLogitsProcessor(LogitsProcessor):
+    def __init__(self, banned_words, tokenizer):
+        self.banned_word_ids = [
+            tokenizer.encode(word, add_special_tokens=False)[0]
+            for word in banned_words
+        ]
+
+    def __call__(self, input_ids, scores):
+        # Set probability of banned words to -inf
+        scores[:, self.banned_word_ids] = -float('inf')
+        return scores
+
+# Ban certain words
+banned_words = ["bad", "terrible", "awful"]
+processor = CustomLogitsProcessor(banned_words, tokenizer)
+
+# Another example: force next token
+class ForceTokenProcessor(LogitsProcessor):
+    def __init__(self, force_token_id):
+        self.force_token_id = force_token_id
+
+    def __call__(self, input_ids, scores):
+        if input_ids.shape[1] == 5:  # At position 5, force this token
+            scores[:, :] = -float('inf')
+            scores[:, self.force_token_id] = 0
+        return scores
+
+# Use processors
+logits_processor = LogitsProcessorList([
+    CustomLogitsProcessor(["bad", "terrible"], tokenizer)
+])
+
+outputs = model.generate(
+    **inputs,
+    logits_processor=logits_processor,
+    max_length=50
+)</code></pre>
+
+            <p><strong>4. Classifier-guided generation (PPLM-style):</strong></p>
+            <pre><code>class SentimentGuidedGenerator:
+    def __init__(self, model, tokenizer, sentiment_model):
+        self.model = model
+        self.tokenizer = tokenizer
+        self.sentiment_model = sentiment_model
+
+    def generate_with_sentiment(self, prompt, target_sentiment, steps=10):
+        inputs = self.tokenizer(prompt, return_tensors="pt")
+        current_ids = inputs['input_ids']
+
+        for _ in range(steps):
+            # Get next token logits
+            outputs = self.model(current_ids)
+            next_token_logits = outputs.logits[:, -1, :]
+
+            # Sample candidate tokens
+            candidates = torch.topk(next_token_logits, k=10).indices
+
+            # Score each candidate with sentiment model
+            scores = []
+            for candidate in candidates[0]:
+                candidate_seq = torch.cat([current_ids, candidate.unsqueeze(0).unsqueeze(0)], dim=1)
+                text = self.tokenizer.decode(candidate_seq[0])
+
+                # Get sentiment score
+                sent_inputs = self.sentiment_tokenizer(text, return_tensors="pt")
+                sent_outputs = self.sentiment_model(**sent_inputs)
+                sentiment_score = sent_outputs.logits[0, target_sentiment].item()
+
+                scores.append(sentiment_score)
+
+            # Pick token with best sentiment score
+            best_idx = torch.argmax(torch.tensor(scores))
+            next_token = candidates[0, best_idx].unsqueeze(0).unsqueeze(0)
+
+            current_ids = torch.cat([current_ids, next_token], dim=1)
+
+        return self.tokenizer.decode(current_ids[0])</code></pre>
+
+            <p><strong>5. Structured generation (JSON, code):</strong></p>
+            <pre><code>from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model = AutoModelForCausalLM.from_pretrained("Salesforce/codegen-350M-mono")
+tokenizer = AutoTokenizer.from_pretrained("Salesforce/codegen-350M-mono")
+
+# Generate valid JSON
+prompt = '''Generate a JSON object with name and age:
+{
+    "name": "'''
+
+inputs = tokenizer(prompt, return_tensors="pt")
+outputs = model.generate(
+    **inputs,
+    max_length=50,
+    temperature=0.3,  # Lower temp for more deterministic
+    do_sample=True
+)
+
+text = tokenizer.decode(outputs[0])
+
+# Or use grammar-constrained decoding libraries
+# like outlines or guidance for guaranteed valid JSON/code</code></pre>
+
+            <p><strong>6. Using control codes (CTRL model):</strong></p>
+            <pre><code>from transformers import CTRLTokenizer, CTRLLMHeadModel
+
+tokenizer = CTRLTokenizer.from_pretrained("ctrl")
+model = CTRLLMHeadModel.from_pretrained("ctrl")
+
+# CTRL uses control codes to guide generation
+prompts = [
+    "Reviews Rating: 5.0 This restaurant",  # Positive review
+    "Legal This contract",  # Legal text
+    "Questions Q: What is Python? A:",  # Q&A format
+]
+
+for prompt in prompts:
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(**inputs, max_length=50)
+    text = tokenizer.decode(outputs[0])
+    print(text)</code></pre>
+        </div>
+        <div class="tags">cs pythonML nlp transformers controlled-generation constraints EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">
+            How do you efficiently batch process variable-length texts?
+        </div>
+        <div class="back">
+            <strong>Challenge:</strong> Variable-length inputs require padding, which wastes computation.
+
+            <p><strong>1. Dynamic padding (pad per batch, not globally):</strong></p>
+            <pre><code>from transformers import DataCollatorWithPadding
+
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+# Don't pad during tokenization
+def tokenize_function(examples):
+    return tokenizer(
+        examples["text"],
+        truncation=True,
+        # NO padding here!
+    )
+
+tokenized_dataset = dataset.map(tokenize_function, batched=True)
+
+# Pad dynamically per batch
+data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+
+# DataLoader will pad each batch to longest in that batch
+from torch.utils.data import DataLoader
+
+dataloader = DataLoader(
+    tokenized_dataset,
+    batch_size=32,
+    collate_fn=data_collator  # Dynamic padding
+)
+
+# This is much more efficient than padding all to max_length!</code></pre>
+
+            <p><strong>2. Bucket batching (group similar lengths):</strong></p>
+            <pre><code>from torch.utils.data import Dataset, Sampler
+import numpy as np
+
+class BucketSampler(Sampler):
+    def __init__(self, lengths, batch_size, shuffle=True):
+        self.lengths = lengths
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+
+    def __iter__(self):
+        # Sort by length
+        indices = np.argsort(self.lengths)
+
+        # Create buckets
+        batches = []
+        for i in range(0, len(indices), self.batch_size):
+            batch = indices[i:i + self.batch_size].tolist()
+            batches.append(batch)
+
+        # Shuffle buckets (not within buckets)
+        if self.shuffle:
+            np.random.shuffle(batches)
+
+        for batch in batches:
+            yield batch
+
+    def __len__(self):
+        return (len(self.lengths) + self.batch_size - 1) // self.batch_size
+
+# Get lengths
+def get_length(example):
+    return len(tokenizer(example["text"])["input_ids"])
+
+lengths = [get_length(ex) for ex in dataset]
+
+# Use bucket sampler
+sampler = BucketSampler(lengths, batch_size=32)
+dataloader = DataLoader(
+    dataset,
+    batch_sampler=sampler,
+    collate_fn=data_collator
+)
+
+# Batches will have similar-length sequences
+# Much less padding waste!</code></pre>
+
+            <p><strong>3. Packed sequences (pack multiple examples into one):</strong></p>
+            <pre><code>def pack_sequences(examples, max_length=512):
+    """Pack multiple short examples into single sequences"""
+    packed = []
+    current_input_ids = []
+    current_attention_mask = []
+
+    for example in examples:
+        input_ids = example['input_ids']
+        attention_mask = example['attention_mask']
+
+        if len(current_input_ids) + len(input_ids) <= max_length:
+            # Add separator token
+            current_input_ids.extend(input_ids + [tokenizer.sep_token_id])
+            current_attention_mask.extend(attention_mask + [1])
+        else:
+            # Save current packed sequence
+            packed.append({
+                'input_ids': current_input_ids,
+                'attention_mask': current_attention_mask
+            })
+
+            # Start new sequence
+            current_input_ids = input_ids
+            current_attention_mask = attention_mask
+
+    # Don't forget last sequence
+    if current_input_ids:
+        packed.append({
+            'input_ids': current_input_ids,
+            'attention_mask': current_attention_mask
+        })
+
+    return packed</code></pre>
+
+            <p><strong>4. Gradient accumulation for larger effective batch size:</strong></p>
+            <pre><code># Can't fit batch_size=64 in memory? Use gradient accumulation
+
+training_args = TrainingArguments(
+    per_device_train_batch_size=16,  # Actual batch size
+    gradient_accumulation_steps=4,   # Accumulate 4 steps
+    # Effective batch size = 16 * 4 = 64
+)
+
+# Or manually:
+accumulation_steps = 4
+optimizer.zero_grad()
+
+for i, batch in enumerate(dataloader):
+    outputs = model(**batch)
+    loss = outputs.loss / accumulation_steps  # Scale loss
+    loss.backward()
+
+    if (i + 1) % accumulation_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()</code></pre>
+
+            <p><strong>5. Smart batching with DataLoader:</strong></p>
+            <pre><code>from torch.utils.data import DataLoader
+
+def collate_fn_smart(batch):
+    # Sort batch by length (descending)
+    batch = sorted(batch, key=lambda x: len(x['input_ids']), reverse=True)
+
+    # Pad to longest in batch
+    max_len = len(batch[0]['input_ids'])
+
+    input_ids = []
+    attention_masks = []
+
+    for item in batch:
+        input_ids.append(
+            item['input_ids'] + [tokenizer.pad_token_id] * (max_len - len(item['input_ids']))
+        )
+        attention_masks.append(
+            item['attention_mask'] + [0] * (max_len - len(item['attention_mask']))
+        )
+
+    return {
+        'input_ids': torch.tensor(input_ids),
+        'attention_mask': torch.tensor(attention_masks)
+    }
+
+dataloader = DataLoader(
+    dataset,
+    batch_size=32,
+    collate_fn=collate_fn_smart
+)</code></pre>
+
+            <strong>Best practices:</strong>
+            <ul>
+                <li>Use DataCollatorWithPadding for dynamic padding</li>
+                <li>Sort/bucket sequences by length</li>
+                <li>Use gradient accumulation for large effective batches</li>
+                <li>Monitor actual vs padding tokens ratio</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers batching efficiency EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">
+            How do you use adapter layers for parameter-efficient fine-tuning?
+        </div>
+        <div class="back">
+            <strong>Adapters:</strong> Small trainable modules inserted into pretrained models. Only train adapters, freeze base model.
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>Train <1% of parameters vs full fine-tuning</li>
+                <li>Multiple task adapters for same base model</li>
+                <li>Faster training, less memory</li>
+                <li>Easy to share and compose adapters</li>
+            </ul>
+
+            <p><strong>Using Adapters library:</strong></p>
+            <pre><code># Install: pip install adapter-transformers
+
+from transformers import AutoAdapterModel, AutoTokenizer
+import adapters
+
+# Load model with adapter support
+model = AutoAdapterModel.from_pretrained("bert-base-uncased")
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+# Add adapter
+adapter_config = adapters.AdapterConfig.load("pfeiffer", reduction_factor=16)
+model.add_adapter("sentiment", config=adapter_config)
+
+# Activate adapter
+model.train_adapter("sentiment")
+# Now only adapter parameters are trained, base model frozen!
+
+# Train as normal
+from transformers import Trainer, TrainingArguments
+
+training_args = TrainingArguments(
+    output_dir="./adapter-output",
+    num_train_epochs=3,
+    per_device_train_batch_size=16,
+    learning_rate=1e-4  # Can use higher LR for adapters
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset
+)
+
+trainer.train()
+
+# Save adapter (small, ~1MB vs 400MB for full model)
+model.save_adapter("./my-adapter", "sentiment")
+
+# Load adapter
+model.load_adapter("./my-adapter")
+model.set_active_adapters("sentiment")
+
+# Use multiple adapters
+model.add_adapter("ner", config=adapter_config)
+model.train_adapter("ner")
+# ... train NER task
+
+# Switch between tasks
+model.set_active_adapters("sentiment")  # Use sentiment adapter
+# or
+model.set_active_adapters("ner")  # Use NER adapter
+
+# Stack adapters
+model.set_active_adapters(["sentiment", "ner"])  # Compose adapters</code></pre>
+
+            <p><strong>Using LoRA (Low-Rank Adaptation):</strong></p>
+            <pre><code># Install: pip install peft
+
+from peft import LoraConfig, get_peft_model, TaskType
+from transformers import AutoModelForSequenceClassification
+
+# Load base model
+model = AutoModelForSequenceClassification.from_pretrained(
+    "bert-base-uncased",
+    num_labels=2
+)
+
+# Configure LoRA
+lora_config = LoraConfig(
+    task_type=TaskType.SEQ_CLS,
+    r=8,  # Rank of update matrices
+    lora_alpha=32,  # Scaling factor
+    lora_dropout=0.1,
+    target_modules=["query", "value"]  # Which layers to adapt
+)
+
+# Wrap model with LoRA
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()
+# Output: trainable params: 294,912 || all params: 109,483,778 || trainable%: 0.27%
+
+# Train normally - only LoRA params trained
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset
+)
+
+trainer.train()
+
+# Save LoRA weights (tiny!)
+model.save_pretrained("./lora-sentiment")
+
+# Load LoRA weights
+from peft import PeftModel
+
+base_model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased")
+model = PeftModel.from_pretrained(base_model, "./lora-sentiment")
+
+# Merge LoRA weights into base model (optional)
+merged_model = model.merge_and_unload()
+merged_model.save_pretrained("./merged-model")</code></pre>
+
+            <p><strong>Prompt tuning (learn soft prompts):</strong></p>
+            <pre><code>from peft import PromptTuningConfig, get_peft_model, TaskType
+
+# Configure prompt tuning
+prompt_config = PromptTuningConfig(
+    task_type=TaskType.SEQ_CLS,
+    num_virtual_tokens=20,  # Number of learned prompt tokens
+    prompt_tuning_init="TEXT",  # or "RANDOM"
+    prompt_tuning_init_text="Classify sentiment:",
+    tokenizer_name_or_path="bert-base-uncased"
+)
+
+model = get_peft_model(base_model, prompt_config)
+model.print_trainable_parameters()
+# Even fewer params than LoRA!
+
+# Train
+trainer.train()</code></pre>
+
+            <p><strong>Comparison:</strong></p>
+            <ul>
+                <li><strong>Full fine-tuning:</strong> 100% params, best performance, most expensive</li>
+                <li><strong>Adapters:</strong> ~1% params, 95-98% of full FT performance</li>
+                <li><strong>LoRA:</strong> ~0.1-1% params, very close to full FT</li>
+                <li><strong>Prompt tuning:</strong> ~0.01% params, good for large models (T5, GPT)</li>
+            </ul>
+
+            <strong>When to use:</strong>
+            <ul>
+                <li>Multiple tasks on same base model</li>
+                <li>Limited compute/memory</li>
+                <li>Need to share task-specific weights</li>
+                <li>Continual learning scenarios</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers adapters lora peft EN</div>
+    </div>
+
+    <!-- Card 19 -->
+    <div class="card">
+        <div class="front">
+            How do you implement and use custom tokenizers?
+        </div>
+        <div class="back">
+            <strong>Custom tokenizer:</strong> Train your own tokenizer for domain-specific vocabulary.
+
+            <p><strong>Training a BPE tokenizer from scratch:</strong></p>
+            <pre><code>from tokenizers import Tokenizer, models, trainers, pre_tokenizers, decoders, processors
+
+# 1. Create base tokenizer with BPE model
+tokenizer = Tokenizer(models.BPE())
+
+# 2. Set pre-tokenizer (how to split text before BPE)
+tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+
+# 3. Configure trainer
+trainer = trainers.BpeTrainer(
+    vocab_size=30000,
+    min_frequency=2,
+    special_tokens=["[UNK]", "[CLS]", "[SEP]", "[PAD]", "[MASK]"]
+)
+
+# 4. Train on your corpus
+files = ["corpus1.txt", "corpus2.txt"]
+tokenizer.train(files, trainer)
+
+# 5. Set post-processor (add special tokens)
+tokenizer.post_processor = processors.TemplateProcessing(
+    single="[CLS] $A [SEP]",
+    pair="[CLS] $A [SEP] $B:1 [SEP]:1",
+    special_tokens=[
+        ("[CLS]", tokenizer.token_to_id("[CLS]")),
+        ("[SEP]", tokenizer.token_to_id("[SEP]")),
+    ],
+)
+
+# 6. Set decoder
+tokenizer.decoder = decoders.BPEDecoder()
+
+# 7. Save
+tokenizer.save("my-tokenizer.json")
+
+# 8. Use
+output = tokenizer.encode("Hello world!")
+print(output.tokens)
+print(output.ids)</code></pre>
+
+            <p><strong>Training WordPiece (BERT-style):</strong></p>
+            <pre><code>from tokenizers import Tokenizer, models, trainers, pre_tokenizers
+
+tokenizer = Tokenizer(models.WordPiece(unk_token="[UNK]"))
+tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+
+trainer = trainers.WordPieceTrainer(
+    vocab_size=30000,
+    special_tokens=["[UNK]", "[CLS]", "[SEP]", "[PAD]", "[MASK]"],
+    min_frequency=2
+)
+
+tokenizer.train(files, trainer)
+tokenizer.save("wordpiece-tokenizer.json")</code></pre>
+
+            <p><strong>Training SentencePiece:</strong></p>
+            <pre><code>import sentencepiece as spm
+
+# Train
+spm.SentencePieceTrainer.train(
+    input="corpus.txt",
+    model_prefix="sentencepiece",
+    vocab_size=32000,
+    model_type="bpe",  # or "unigram"
+    character_coverage=0.9995,
+    pad_id=0,
+    unk_id=1,
+    bos_id=2,
+    eos_id=3
+)
+
+# Load
+sp = spm.SentencePieceProcessor()
+sp.load("sentencepiece.model")
+
+# Use
+tokens = sp.encode_as_pieces("Hello world!")
+ids = sp.encode_as_ids("Hello world!")
+text = sp.decode_pieces(tokens)</code></pre>
+
+            <p><strong>Wrap custom tokenizer for Transformers:</strong></p>
+            <pre><code>from transformers import PreTrainedTokenizerFast
+
+# Load your trained tokenizer
+tokenizer = Tokenizer.from_file("my-tokenizer.json")
+
+# Wrap for Transformers
+wrapped_tokenizer = PreTrainedTokenizerFast(
+    tokenizer_object=tokenizer,
+    unk_token="[UNK]",
+    pad_token="[PAD]",
+    cls_token="[CLS]",
+    sep_token="[SEP]",
+    mask_token="[MASK]"
+)
+
+# Now works with Transformers models
+from transformers import BertConfig, BertForMaskedLM
+
+config = BertConfig(vocab_size=wrapped_tokenizer.vocab_size)
+model = BertForMaskedLM(config)
+
+# Use normally
+inputs = wrapped_tokenizer("Hello world", return_tensors="pt")
+outputs = model(**inputs)</code></pre>
+
+            <p><strong>Train tokenizer on custom dataset:</strong></p>
+            <pre><code>from datasets import load_dataset
+from tokenizers import Tokenizer, models, trainers, pre_tokenizers
+
+# Load dataset
+dataset = load_dataset("your-dataset")
+
+# Create iterator over texts
+def batch_iterator(batch_size=1000):
+    for i in range(0, len(dataset), batch_size):
+        yield dataset[i:i + batch_size]["text"]
+
+# Train tokenizer
+tokenizer = Tokenizer(models.BPE())
+tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=True)
+
+trainer = trainers.BpeTrainer(
+    vocab_size=30000,
+    special_tokens=["<s>", "<pad>", "</s>", "<unk>", "<mask>"]
+)
+
+tokenizer.train_from_iterator(batch_iterator(), trainer=trainer)
+
+# Save
+wrapped_tokenizer = PreTrainedTokenizerFast(
+    tokenizer_object=tokenizer,
+    bos_token="<s>",
+    eos_token="</s>",
+    unk_token="<unk>",
+    pad_token="<pad>",
+    mask_token="<mask>"
+)
+
+wrapped_tokenizer.save_pretrained("./my-custom-tokenizer")</code></pre>
+
+            <strong>Why custom tokenizer?</strong>
+            <ul>
+                <li>Domain-specific vocabulary (medical, legal, code)</li>
+                <li>New language not in pretrained models</li>
+                <li>Special characters/formatting in your domain</li>
+                <li>Better tokenization for your specific task</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers tokenizer custom EN</div>
+    </div>
+
+    <!-- Card 20 -->
+    <div class="card">
+        <div class="front">
+            How do you use cross-lingual models for multilingual tasks?
+        </div>
+        <div class="back">
+            <strong>Cross-lingual models:</strong> Models trained on multiple languages that can transfer knowledge across languages.
+
+            <p><strong>Popular multilingual models:</strong></p>
+            <ul>
+                <li><strong>mBERT:</strong> bert-base-multilingual-cased (104 languages)</li>
+                <li><strong>XLM-RoBERTa:</strong> xlm-roberta-base (100 languages, better than mBERT)</li>
+                <li><strong>mT5:</strong> google/mt5-small (101 languages, text-to-text)</li>
+                <li><strong>BLOOM:</strong> bigscience/bloom (46 languages, causal LM)</li>
+            </ul>
+
+            <p><strong>Zero-shot cross-lingual transfer:</strong></p>
+            <pre><code>from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from datasets import load_dataset
+
+# Load multilingual model
+model_name = "xlm-roberta-base"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForSequenceClassification.from_pretrained(
+    model_name,
+    num_labels=2
+)
+
+# Train on English data
+en_dataset = load_dataset("amazon_reviews_multi", "en")
+
+def tokenize(batch):
+    return tokenizer(batch["review_body"], truncation=True, padding=True)
+
+tokenized_en = en_dataset.map(tokenize, batched=True)
+
+# Train on English
+trainer = Trainer(model=model, train_dataset=tokenized_en["train"])
+trainer.train()
+
+# Evaluate on other languages (zero-shot!)
+fr_dataset = load_dataset("amazon_reviews_multi", "fr")
+tokenized_fr = fr_dataset.map(tokenize, batched=True)
+
+# Model works on French without French training data!
+results = trainer.evaluate(tokenized_fr["test"])
+print(f"French accuracy: {results['eval_accuracy']}")</code></pre>
+
+            <p><strong>Few-shot cross-lingual (translate-train):</strong></p>
+            <pre><code># Translate a few examples to target language
+from transformers import pipeline
+
+translator = pipeline("translation_en_to_fr", model="Helsinki-NLP/opus-mt-en-fr")
+
+# Translate training data
+en_texts = ["This is great!", "Terrible product"]
+fr_texts = [t['translation_text'] for t in translator(en_texts)]
+
+# Train on both English and French
+combined_dataset = concatenate_datasets([en_dataset, fr_dataset])
+trainer.train(train_dataset=combined_dataset)</code></pre>
+
+            <p><strong>Multilingual NER:</strong></p>
+            <pre><code>from transformers import AutoModelForTokenClassification, pipeline
+
+# Multilingual NER model
+model = AutoModelForTokenClassification.from_pretrained(
+    "xlm-roberta-large-finetuned-conll03-english"
+)
+tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-large")
+
+ner = pipeline("ner", model=model, tokenizer=tokenizer, grouped_entities=True)
+
+# Works on multiple languages
+texts = {
+    "en": "John works at Google in New York",
+    "fr": "Jean travaille chez Google à New York",
+    "de": "Johann arbeitet bei Google in New York"
+}
+
+for lang, text in texts.items():
+    entities = ner(text)
+    print(f"{lang}: {entities}")</code></pre>
+
+            <p><strong>Multilingual text generation:</strong></p>
+            <pre><code># mT5 for multilingual text-to-text
+from transformers import MT5ForConditionalGeneration, MT5Tokenizer
+
+model = MT5ForConditionalGeneration.from_pretrained("google/mt5-small")
+tokenizer = MT5Tokenizer.from_pretrained("google/mt5-small")
+
+# Summarization in different languages
+texts = {
+    "en": "summarize: The quick brown fox jumps over the lazy dog",
+    "fr": "summarize: Le renard brun rapide saute par-dessus le chien paresseux"
+}
+
+for lang, text in texts.items():
+    inputs = tokenizer(text, return_tensors="pt")
+    outputs = model.generate(**inputs, max_length=50)
+    summary = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    print(f"{lang}: {summary}")</code></pre>
+
+            <p><strong>Language identification:</strong></p>
+            <pre><code>from transformers import pipeline
+
+# Detect language
+lang_detector = pipeline("text-classification", model="papluca/xlm-roberta-base-language-detection")
+
+texts = [
+    "This is English",
+    "Ceci est français",
+    "Dies ist Deutsch"
+]
+
+for text in texts:
+    result = lang_detector(text)[0]
+    print(f"{text} -> {result['label']} ({result['score']:.2f})")</code></pre>
+
+            <p><strong>Cross-lingual sentence embeddings:</strong></p>
+            <pre><code>from sentence_transformers import SentenceTransformer
+
+# Model trained for cross-lingual semantic similarity
+model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
+
+# Sentences in different languages with same meaning
+sentences = {
+    "en": "The cat sits on the mat",
+    "fr": "Le chat est assis sur le tapis",
+    "de": "Die Katze sitzt auf der Matte"
+}
+
+embeddings = model.encode(list(sentences.values()))
+
+# Compute similarity
+from sklearn.metrics.pairwise import cosine_similarity
+similarities = cosine_similarity(embeddings)
+print(similarities)  # High similarity across languages!</code></pre>
+
+            <p><strong>Best practices:</strong></p>
+            <ul>
+                <li>XLM-RoBERTa generally better than mBERT</li>
+                <li>Fine-tune on high-resource language, transfer to low-resource</li>
+                <li>Mix languages during fine-tuning for better cross-lingual transfer</li>
+                <li>Use language-specific tokenization when available</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML nlp transformers multilingual cross-lingual EN</div>
+    </div>
+
+</body>
+</html>

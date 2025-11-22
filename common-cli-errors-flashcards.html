@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Common Command Line Errors Flashcards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background: rgba(245, 245, 245, 0.95);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(221, 221, 221, 0.9);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgba(51, 51, 51, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        .back {
+            color: rgba(68, 68, 68, 0.95);
+        }
+        .back code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: rgba(197, 34, 31, 0.95);
+        }
+        .back pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+        }
+        .back pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(238, 238, 238, 0.9);
+            font-size: 12px;
+            color: rgba(128, 128, 128, 0.95);
+        }
+        ol, ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        strong {
+            color: rgba(76, 175, 80, 0.95);
+        }
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Common Command Line Errors Flashcards</h1>
+
+    <div class="card">
+        <div class="front">
+            What's wrong with this common pattern and how should you fix it?
+            <pre><code>for file in $(ls *.txt); do
+    process "$file"
+done</code></pre>
+        </div>
+        <div class="back">
+            <strong>Never parse ls output - it breaks on spaces and special characters!</strong>
+
+            <p><strong>Why it's wrong:</strong></p>
+            <pre><code># If you have files:
+my file.txt
+data.txt
+
+# for file in $(ls *.txt) becomes:
+for file in my file.txt data.txt
+# Loop runs 3 times with: "my", "file.txt", "data.txt"
+# Your script breaks on "my" and "file.txt"</code></pre>
+
+            <p><strong>Correct way - use glob directly:</strong></p>
+            <pre><code>✓ CORRECT:
+for file in *.txt; do
+    process "$file"
+done
+
+# Glob expands BEFORE loop, preserves spaces
+# "my file.txt" stays as one argument</code></pre>
+
+            <p><strong>Why $(ls) is dangerous:</strong></p>
+            <ul>
+                <li>ls output splits on whitespace (breaks filenames with spaces)</li>
+                <li>Loses proper quoting and escaping</li>
+                <li>Can't handle newlines in filenames</li>
+                <li>Unnecessary subprocess</li>
+                <li>Just use glob: <code>*.txt</code> not <code>$(ls *.txt)</code></li>
+            </ul>
+
+            <p><strong>More correct patterns:</strong></p>
+            <pre><code># For all files recursively:
+find . -name "*.txt" -exec process {} +
+
+# Or with while loop:
+find . -name "*.txt" -print0 | while IFS= read -r -d '' file; do
+    process "$file"
+done
+
+# With bash globstar:
+shopt -s globstar
+for file in **/*.txt; do
+    process "$file"
+done
+
+# If no matches should skip loop:
+shopt -s nullglob
+for file in *.txt; do
+    process "$file"
+done</code></pre>
+
+            <p><strong>Common variations of this mistake:</strong></p>
+            <pre><code>❌ WRONG:
+files=$(ls)
+for file in $files; do ...
+
+❌ WRONG:
+cat $(ls *.txt)
+
+❌ WRONG:
+rm $(ls *.log)
+
+✓ CORRECT:
+for file in *; do ...
+cat *.txt
+rm *.log</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>NEVER: <code>for x in $(ls)</code> - always breaks</li>
+                <li>ALWAYS: <code>for x in *</code> or <code>for x in *.ext</code></li>
+                <li>Use <code>find</code> for complex searches</li>
+                <li>ls is for humans to read, not for scripts to parse</li>
+                <li>ShellCheck (linting tool) will warn about this</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors ls parsing antipatterns EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's wrong with forgetting quotes around variables? Show the correct way.
+            <pre><code>file=$1
+rm $file</code></pre>
+        </div>
+        <div class="back">
+            <strong>Unquoted variables cause word splitting and glob expansion!</strong>
+
+            <p><strong>The problem:</strong></p>
+            <pre><code>file="my document.txt"
+rm $file
+
+# Expands to:
+rm my document.txt
+# Tries to delete TWO files: "my" and "document.txt"
+# Deletes wrong files or errors!</code></pre>
+
+            <p><strong>Correct - always quote variables:</strong></p>
+            <pre><code>✓ CORRECT:
+file="my document.txt"
+rm "$file"
+
+# Expands to:
+rm "my document.txt"
+# Deletes ONE file as intended</code></pre>
+
+            <p><strong>Even worse - glob expansion:</strong></p>
+            <pre><code>file="*.txt"
+rm $file
+
+# Expands glob! Deletes ALL .txt files in directory
+# Probably not what you intended
+
+# Quoted version:
+rm "$file"
+# Tries to delete file literally named "*.txt"
+# Probably still wrong, but at least predictable</code></pre>
+
+            <p><strong>When unquoted variables are dangerous:</strong></p>
+            <pre><code>❌ WRONG - Word splitting:
+path="/home/user/My Documents"
+cd $path
+# Error: "cd: too many arguments"
+
+✓ CORRECT:
+cd "$path"
+
+❌ WRONG - Empty variable:
+file=""
+rm $file
+# Expands to: rm
+# Might delete random file or error strangely
+
+✓ CORRECT:
+rm "$file"
+# rm ""
+# Clear error: "cannot remove '': No such file"
+
+❌ WRONG - Leading dash:
+file="-rf /"
+rm $file
+# Expands to: rm -rf /
+# DISASTER! Interprets as options
+
+✓ CORRECT:
+rm "$file"
+# or better:
+rm -- "$file"</code></pre>
+
+            <p><strong>Rules for quoting:</strong></p>
+            <pre><code># ALWAYS quote:
+"$variable"
+"$@"         # All positional parameters
+"${array[@]}" # Array expansion
+
+# Exception - when you WANT splitting:
+options="-l -a"
+ls $options   # Intentional: becomes ls -l -a
+# But better to use array:
+options=(-l -a)
+ls "${options[@]}"</code></pre>
+
+            <p><strong>Common mistakes:</strong></p>
+            <pre><code>❌ if [ $var = "value" ]; then
+# Breaks if $var is empty or contains spaces
+
+✓ if [ "$var" = "value" ]; then
+
+❌ echo $PATH
+# Usually OK but technically wrong (could split)
+
+✓ echo "$PATH"
+
+❌ for arg in $@; do
+# Breaks on spaces in arguments
+
+✓ for arg in "$@"; do</code></pre>
+
+            <p><strong>Test your script with spaces:</strong></p>
+            <pre><code># If your script works with these, it's probably robust:
+file="file with spaces.txt"
+dir="/path/to/My Documents"
+input="value with    multiple   spaces"
+
+# Your script should handle these without breaking</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Default: ALWAYS quote variables</li>
+                <li>Exception: When you specifically want word splitting</li>
+                <li>Use <code>"$@"</code> not <code>$@</code> for arguments</li>
+                <li>ShellCheck warns about unquoted variables</li>
+                <li>Test scripts with filenames containing spaces</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors quoting variables word-splitting EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's wrong with using cat before piping to grep/awk/sed?
+            <pre><code>cat file.txt | grep "pattern"</code></pre>
+        </div>
+        <div class="back">
+            <strong>Useless Use of Cat (UUOC) - wastes a process!</strong>
+
+            <p><strong>The problem:</strong></p>
+            <pre><code>❌ WRONG (spawns unnecessary cat process):
+cat file.txt | grep "pattern"
+
+✓ CORRECT (grep reads file directly):
+grep "pattern" file.txt
+
+# Why it matters:
+# - Wastes process (cat does nothing useful)
+# - Slightly slower (two processes vs one)
+# - More typing
+# - Criticized as "code smell"</code></pre>
+
+            <p><strong>Common UUOC violations:</strong></p>
+            <pre><code>❌ cat file | grep pattern
+✓ grep pattern file
+
+❌ cat file | sed 's/old/new/'
+✓ sed 's/old/new/' file
+
+❌ cat file | awk '{print $1}'
+✓ awk '{print $1}' file
+
+❌ cat file | wc -l
+✓ wc -l file
+
+❌ cat file | head -10
+✓ head -10 file
+
+❌ cat file | tail -20
+✓ tail -20 file
+
+❌ cat *.txt | grep pattern
+✓ grep pattern *.txt</code></pre>
+
+            <p><strong>When cat IS appropriate:</strong></p>
+            <pre><code>✓ Concatenating multiple files:
+cat file1.txt file2.txt file3.txt | grep pattern
+# grep can do this too: grep pattern file1.txt file2.txt file3.txt
+
+✓ Reading from stdin:
+echo "test" | cat -n
+# Number lines from pipe input
+
+✓ When you need cat-specific options:
+cat -n file.txt | grep pattern  # Number lines first
+cat -A file.txt                 # Show all characters including hidden
+
+✓ Viewing files (human use, not in scripts):
+cat file.txt                    # Just read the file</code></pre>
+
+            <p><strong>But even then, alternatives often better:</strong></p>
+            <pre><code># Instead of cat with options:
+❌ cat -n file.txt
+✓ nl file.txt                  # Number lines (better tool)
+
+❌ cat file1 file2 file3
+✓ You usually don't need to concatenate - just pass all files:
+  grep pattern file1 file2 file3</code></pre>
+
+            <p><strong>The "useless use of cat" award:</strong></p>
+            <pre><code># Peak uselessness:
+❌ cat file.txt | cat | cat | grep pattern
+# Three cats doing nothing!
+
+✓ grep pattern file.txt
+
+# Slightly less obviously useless:
+❌ cat file.txt | grep pattern | cat
+# Last cat does nothing
+
+✓ cat file.txt | grep pattern
+# (or better: grep pattern file.txt)</code></pre>
+
+            <p><strong>Why people use cat unnecessarily:</strong></p>
+            <ul>
+                <li>Comfort of left-to-right reading: <code>cat file | process</code></li>
+                <li>Consistency in pipelines: <code>cat file | cmd1 | cmd2</code></li>
+                <li>Don't know grep/sed/awk can read files directly</li>
+                <li>Copying examples that use cat</li>
+            </ul>
+
+            <p><strong>Exception - when you want stdin behavior:</strong></p>
+            <pre><code># Some commands behave differently with filename vs stdin:
+diff <(grep pattern file1) <(grep pattern file2)
+# Process substitution provides stdin-like behavior
+
+# Or when command doesn't accept filename:
+some-command < file.txt       # Redirect stdin
+cat file.txt | some-command   # Same but with extra process</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Before typing <code>cat file |</code>, ask: "Does the next command accept files?"</li>
+                <li>grep, sed, awk, wc, head, tail all accept filename arguments</li>
+                <li>cat is for concatenation or viewing, not for piping single files</li>
+                <li>UUOC won't break anything - just inefficient and criticized</li>
+                <li>Some people use it anyway for readability (controversial)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors cat uuoc useless-use antipatterns EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's wrong with this and how do you handle filenames starting with dashes?
+            <pre><code>rm -rf *
+# or
+rm *.txt</code></pre>
+        </div>
+        <div class="back">
+            <strong>Filenames starting with '-' are interpreted as options - use -- to separate!</strong>
+
+            <p><strong>The problem:</strong></p>
+            <pre><code># If you have a file named: -rf
+rm *.txt
+
+# If glob expands to: -rf file1.txt file2.txt
+# Command becomes:
+rm -rf file1.txt file2.txt
+# Recursively deletes! Not what you wanted!
+
+# Or worse:
+file="-rf /"
+rm $file
+# DISASTER: rm -rf /</code></pre>
+
+            <p><strong>Correct - use -- to end options:</strong></p>
+            <pre><code>✓ CORRECT:
+rm -- *.txt
+rm -- "$file"
+
+# -- means "no more options after this"
+# Everything after -- is treated as filename, even if starts with -</code></pre>
+
+            <p><strong>Real examples of the danger:</strong></p>
+            <pre><code># Malicious filename:
+touch -- "-rf ~"
+# Creates file named "-rf ~"
+
+# Unsuspecting user:
+rm *
+# Expands to: rm -rf ~ (other files...)
+# Deletes entire home directory!
+
+# With --:
+rm -- *
+# Treats "-rf ~" as filename, safely deletes it</code></pre>
+
+            <p><strong>Commands that support --:</strong></p>
+            <pre><code>rm -- filename
+cp -- source dest
+mv -- old new
+cat -- file
+grep -- "-pattern" file   # Search for literal dash pattern
+chmod -- 755 file
+chown -- user file</code></pre>
+
+            <p><strong>Alternative - use ./ prefix:</strong></p>
+            <pre><code># Prefix with ./ makes it clearly a filename:
+rm ./-rf
+cp ./-file dest
+mv ./-badname newname
+
+# This works because ./- is a path, not an option</code></pre>
+
+            <p><strong>Protecting against malicious filenames:</strong></p>
+            <pre><code># Always use quotes and --:
+for file in *; do
+    rm -- "$file"
+done
+
+# Or check filename first:
+for file in *; do
+    if [[ $file == -* ]]; then
+        echo "Warning: filename starts with dash: $file"
+    fi
+    rm -- "$file"
+done
+
+# When downloading files:
+wget "http://evil.com/file"
+# Downloaded file could be named "-rf"
+# Always: rm -- "$(downloaded_filename)"</code></pre>
+
+            <p><strong>When -- doesn't work:</strong></p>
+            <pre><code># Some commands don't support --:
+# (older versions or non-GNU tools)
+
+# Use ./ instead:
+rm ./-file
+
+# Or move to safe name first:
+mv -file safe_name
+rm safe_name
+
+# Or use full path:
+rm /full/path/to/-file</code></pre>
+
+            <p><strong>Creating files with dash names (for testing):</strong></p>
+            <pre><code># Don't do:
+touch -testfile          # Error: invalid option
+
+# Do:
+touch -- -testfile
+touch ./-testfile
+echo > -testfile</code></pre>
+
+            <p><strong>Real-world scenario - git hooks:</strong></p>
+            <pre><code># User commits file named "-rf"
+# CI/CD script does:
+rm $filename            # DISASTER
+
+# Should be:
+rm -- "$filename"       # Safe</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>ALWAYS use <code>--</code> before variable filenames</li>
+                <li>Use <code>--</code> when using glob patterns: <code>rm -- *.txt</code></li>
+                <li>Alternative: prefix with <code>./</code> → <code>rm ./-file</code></li>
+                <li>Never trust user-supplied filenames</li>
+                <li>ShellCheck doesn't always catch this - be vigilant</li>
+                <li>This is a security issue, not just convenience</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors dash-filenames security options EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's wrong with this pattern for iterating over lines?
+            <pre><code>cat file.txt | while read line; do
+    echo "$line"
+done</code></pre>
+        </div>
+        <div class="back">
+            <strong>Multiple issues: UUOC, missing IFS/read options, and broken with leading/trailing spaces!</strong>
+
+            <p><strong>Problems with the code:</strong></p>
+            <ol>
+                <li>Useless cat (should redirect with &lt;)</li>
+                <li>Trims leading/trailing whitespace (IFS issue)</li>
+                <li>Drops backslashes (read -r needed)</li>
+                <li>Last line without newline might be dropped</li>
+            </ol>
+
+            <p><strong>Correct way - use input redirection:</strong></p>
+            <pre><code>✓ CORRECT:
+while IFS= read -r line; do
+    echo "$line"
+done < file.txt
+
+# IFS= prevents trimming whitespace
+# read -r prevents backslash interpretation
+# < file.txt avoids useless cat</code></pre>
+
+            <p><strong>Why each part matters:</strong></p>
+            <pre><code># Without IFS=:
+# Input: "  spaces  "
+while read line; do echo "[$line]"; done < file
+# Output: [spaces]  (leading/trailing spaces removed!)
+
+# With IFS=:
+while IFS= read line; do echo "[$line]"; done < file
+# Output: [  spaces  ]  (preserves spaces)
+
+# Without -r:
+# Input: "path\to\file"
+while read line; do echo "$line"; done < file
+# Output: pathtofile  (backslashes interpreted!)
+
+# With -r:
+while IFS= read -r line; do echo "$line"; done < file
+# Output: path\to\file  (backslashes preserved)</code></pre>
+
+            <p><strong>Handling last line without newline:</strong></p>
+            <pre><code># File ends without newline, last line might be dropped:
+while IFS= read -r line; do
+    echo "$line"
+done < file.txt
+
+# Better - handle last line:
+while IFS= read -r line || [ -n "$line" ]; do
+    echo "$line"
+done < file.txt
+
+# || [ -n "$line" ] checks if last line has content
+# Even if read fails (no newline), process the line</code></pre>
+
+            <p><strong>Common variations and fixes:</strong></p>
+            <pre><code>❌ for line in $(cat file); do
+# Terrible: word splitting, glob expansion, etc.
+
+❌ cat file | while read line; do
+# UUOC + missing IFS= read -r
+
+❌ while read line; do ... done < file
+# Missing IFS= and -r
+
+✓ while IFS= read -r line; do ... done < file
+# Correct!
+
+✓ while IFS= read -r line || [ -n "$line" ]; do ... done < file
+# Best - handles last line without newline</code></pre>
+
+            <p><strong>When you need to modify variables:</strong></p>
+            <pre><code># Problem: Subshell in pipeline loses variables!
+count=0
+cat file | while IFS= read -r line; do
+    ((count++))
+done
+echo "$count"    # Outputs: 0  (variable not updated!)
+
+# Why: Pipeline creates subshell, count increments there only
+
+# Solution 1: Use process substitution
+count=0
+while IFS= read -r line; do
+    ((count++))
+done < file
+echo "$count"    # Works! Correct count
+
+# Solution 2: Use process substitution with pipe
+count=0
+while IFS= read -r line; do
+    ((count++))
+done < <(cat file)
+echo "$count"    # Works!</code></pre>
+
+            <p><strong>Reading fields (CSV, etc.):</strong></p>
+            <pre><code># Read multiple fields:
+while IFS=, read -r name age city; do
+    echo "Name: $name, Age: $age, City: $city"
+done < data.csv
+
+# Skip header:
+{ IFS= read -r header; while IFS=, read -r name age; do
+    echo "$name: $age"
+done; } < data.csv</code></pre>
+
+            <p><strong>Alternative for simpler cases:</strong></p>
+            <pre><code># If you just need to process file contents:
+mapfile -t lines < file.txt
+for line in "${lines[@]}"; do
+    echo "$line"
+done
+
+# Or:
+readarray -t lines < file.txt
+
+# Loads entire file into array (memory intensive for large files)</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>ALWAYS: <code>while IFS= read -r line; do ... done &lt; file</code></li>
+                <li>NOT: <code>cat file | while read line</code></li>
+                <li>Add <code>|| [ -n "$line" ]</code> for files without trailing newline</li>
+                <li>Beware of pipeline subshells losing variable modifications</li>
+                <li>For simple iteration, mapfile/readarray is cleaner (bash 4+)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors while-read IFS subshells EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's the difference between [ and [[ in bash, and which should you use?
+            <pre><code>if [ $var = "value" ]; then</code></pre>
+        </div>
+        <div class="back">
+            <strong>Use [[ in bash scripts - it's safer and more powerful than [</strong>
+
+            <p><strong>Key differences:</strong></p>
+            <pre><code>[ ]   - POSIX test command (works in sh)
+[[ ]] - Bash keyword (bash/zsh only, more features)</code></pre>
+
+            <p><strong>Why [[ is better in bash:</strong></p>
+
+            <p><strong>1. No word splitting or glob expansion:</strong></p>
+            <pre><code>var="two words"
+
+❌ if [ $var = "two words" ]; then    # ERROR!
+# Expands to: [ two words = "two words" ]
+# Error: too many arguments
+
+✓ if [[ $var = "two words" ]]; then  # Works!
+# No word splitting inside [[]]
+
+# Or with [ you need quotes:
+✓ if [ "$var" = "two words" ]; then  # Works but annoying</code></pre>
+
+            <p><strong>2. Pattern matching with =:</strong></p>
+            <pre><code>file="test.txt"
+
+# [[ supports glob patterns:
+if [[ $file = *.txt ]]; then         # ✓ Matches!
+    echo "Text file"
+fi
+
+# [ treats *.txt literally:
+if [ "$file" = *.txt ]; then         # ✗ No match
+    # Only matches if file is literally "*.txt"
+fi</code></pre>
+
+            <p><strong>3. Regex matching with =~:</strong></p>
+            <pre><code># [[ supports regex:
+if [[ $email =~ ^[a-z]+@[a-z]+\.[a-z]+$ ]]; then
+    echo "Valid email format"
+fi
+
+# [ doesn't support regex at all
+# Would need: expr or grep</code></pre>
+
+            <p><strong>4. Logical operators easier:</strong></p>
+            <pre><code># With [[:
+if [[ $x -gt 0 && $x -lt 10 ]]; then
+    echo "Between 0 and 10"
+fi
+
+# With [ (more verbose):
+if [ "$x" -gt 0 ] && [ "$x" -lt 10 ]; then
+    # Need two separate tests
+
+# Or:
+if [ "$x" -gt 0 -a "$x" -lt 10 ]; then
+    # -a is deprecated and confusing</code></pre>
+
+            <p><strong>5. Safer with empty variables:</strong></p>
+            <pre><code>var=""
+
+❌ if [ $var = "value" ]; then       # ERROR!
+# Expands to: [ = "value" ]
+# Syntax error
+
+✓ if [[ $var = "value" ]]; then     # OK
+# Handles empty var gracefully
+
+# Or quote with [:
+✓ if [ "$var" = "value" ]; then     # OK</code></pre>
+
+            <p><strong>Comparison table:</strong></p>
+            <pre><code>Feature                  [         [[
+--------------------------------------------
+POSIX compatible         Yes       No
+Requires quotes          Yes       No
+Word splitting           Yes       No
+Glob expansion           Yes       No
+Pattern matching         No        Yes (=)
+Regex                    No        Yes (=~)
+&& and ||               No        Yes
+Cleaner syntax           No        Yes</code></pre>
+
+            <p><strong>When to use each:</strong></p>
+            <pre><code>Use [[ when:
+- Writing bash scripts (#!/bin/bash)
+- Want pattern matching
+- Need regex
+- Want cleaner syntax
+- Don't need POSIX portability
+
+Use [ when:
+- Writing POSIX sh scripts (#!/bin/sh)
+- Need maximum portability
+- Target minimal environments (busybox, etc.)
+- Old systems without bash</code></pre>
+
+            <p><strong>String comparisons:</strong></p>
+            <pre><code># Both work, [[ is cleaner:
+if [[ $name == "Alice" ]]; then    # or =
+if [ "$name" = "Alice" ]; then     # = only (not ==)
+
+# [[ supports == and = (equivalent)
+# [ only supports = in POSIX mode</code></pre>
+
+            <p><strong>Numeric comparisons:</strong></p>
+            <pre><code># Same in both:
+if [[ $num -eq 10 ]]; then
+if [ "$num" -eq 10 ]; then
+
+# But [[ can combine:
+if [[ $num -gt 5 && $num -lt 15 ]]; then
+
+# Common operators: -eq -ne -lt -le -gt -ge</code></pre>
+
+            <p><strong>File tests - same in both:</strong></p>
+            <pre><code>if [[ -f $file ]]; then        # File exists
+if [[ -d $dir ]]; then         # Directory exists
+if [[ -r $file ]]; then        # Readable
+if [[ -w $file ]]; then        # Writable
+if [[ -x $file ]]; then        # Executable
+if [[ -s $file ]]; then        # Not empty</code></pre>
+
+            <p><strong>Migration guide:</strong></p>
+            <pre><code># Change these patterns:
+❌ if [ "$x" = "value" ]; then
+✓ if [[ $x = "value" ]]; then
+
+❌ if [ "$x" -a "$y" ]; then
+✓ if [[ $x && $y ]]; then
+
+❌ if [ "$x" -o "$y" ]; then
+✓ if [[ $x || $y ]]; then</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Default to <code>[[ ]]</code> in bash scripts</li>
+                <li>Use <code>[ ]</code> only when POSIX portability needed</li>
+                <li><code>[[ ]]</code> doesn't need quotes around variables (but doesn't hurt)</li>
+                <li>ShellCheck warns about many <code>[ ]</code> gotchas</li>
+                <li>Never use <code>test</code> (same as <code>[ ]</code> but more verbose)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors test double-brackets conditionals EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's wrong with not checking exit codes after important commands?
+            <pre><code>cd /important/directory
+rm -rf *</code></pre>
+        </div>
+        <div class="back">
+            <strong>If cd fails, rm executes in wrong directory - DISASTER!</strong>
+
+            <p><strong>The nightmare scenario:</strong></p>
+            <pre><code>#!/bin/bash
+cd /var/data/temp
+rm -rf *
+
+# If /var/data/temp doesn't exist or no permission:
+# cd fails silently
+# Script continues in CURRENT directory
+# rm -rf * deletes everything in CURRENT directory!
+# Could be your home directory or worse</code></pre>
+
+            <p><strong>Correct way - check exit codes:</strong></p>
+            <pre><code>✓ Method 1: Check $? explicitly
+cd /important/directory
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to cd" >&2
+    exit 1
+fi
+rm -rf *
+
+✓ Method 2: Use &&
+cd /important/directory && rm -rf *
+# rm only runs if cd succeeds
+
+✓ Method 3: Use ||
+cd /important/directory || exit 1
+rm -rf *
+
+✓ Method 4: set -e (exit on any error)
+#!/bin/bash
+set -e
+cd /important/directory
+rm -rf *
+# Script exits if cd fails</code></pre>
+
+            <p><strong>Best practice - always check cd:</strong></p>
+            <pre><code># Define cd wrapper function:
+safe_cd() {
+    cd "$@" || {
+        echo "Error: Cannot cd to $*" >&2
+        return 1
+    }
+}
+
+# Use it:
+safe_cd /important/dir
+rm -rf *
+
+# Or even safer:
+safe_cd /important/dir || exit 1
+rm -rf *</code></pre>
+
+            <p><strong>Real-world disasters from unchecked cd:</strong></p>
+            <pre><code># Steam bug (2015) - deleted user files:
+STEAMROOT="$HOME/.steam"
+cd "$STEAMROOT"  # If this failed...
+rm -rf *         # Deleted user's $HOME!
+
+# Should have been:
+cd "$STEAMROOT" || exit 1
+rm -rf *
+
+# GitLab CE bug - deleted production database:
+cd "$install_dir"
+rm -rf *
+# If $install_dir was empty string, deleted root!</code></pre>
+
+            <p><strong>Commands you MUST check:</strong></p>
+            <pre><code># Critical - always check these:
+cd directory || exit 1
+mkdir -p directory || exit 1
+cp source dest || exit 1
+mv source dest || exit 1
+rm important_file || exit 1
+sudo systemctl restart service || exit 1
+
+# Especially critical before destructive operations:
+cd "$TMPDIR" || exit 1    # If fails, don't rm!
+rm -rf *</code></pre>
+
+            <p><strong>Using set -e for automatic checking:</strong></p>
+            <pre><code>#!/bin/bash
+set -e    # Exit on any error
+set -u    # Error on undefined variable
+set -o pipefail  # Catch errors in pipes
+
+cd /important/dir  # If this fails, script exits immediately
+rm -rf *           # Never runs if cd failed
+
+# set -e exceptions (still runs despite error):
+command || true    # Suppresses error
+if command; then   # Errors in if conditions allowed
+! command          # Negated commands allowed</code></pre>
+
+            <p><strong>Alternative - trap errors:</strong></p>
+            <pre><code>#!/bin/bash
+set -e
+
+trap 'echo "Error on line $LINENO" >&2' ERR
+
+cd /important/dir  # If fails, trap shows line number
+rm -rf *</code></pre>
+
+            <p><strong>Common exit codes:</strong></p>
+            <pre><code>0   - Success
+1   - General error
+2   - Misuse (wrong arguments)
+126 - Command not executable
+127 - Command not found
+128 - Invalid exit code
+130 - Ctrl+C (SIGINT)
+255 - Exit code out of range
+
+# Check last command:
+command
+echo $?    # Shows exit code
+
+# Use in conditions:
+if command; then          # Success (exit 0)
+if ! command; then        # Failure (exit non-zero)
+command && next_command   # Run next only on success
+command || handle_error   # Handle failure</code></pre>
+
+            <p><strong>Safe script template:</strong></p>
+            <pre><code>#!/bin/bash
+set -euo pipefail  # Strict mode
+
+# Cleanup on exit
+trap cleanup EXIT
+cleanup() {
+    # Remove temp files, etc.
+    rm -f "$TEMP_FILE"
+}
+
+# Validate inputs
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 <directory>" >&2
+    exit 1
+fi
+
+dir="$1"
+
+# Critical operations with checks
+cd "$dir" || {
+    echo "Error: Cannot access $dir" >&2
+    exit 1
+}
+
+# Rest of script...
+exit 0</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>ALWAYS check <code>cd</code> before destructive operations</li>
+                <li>Use <code>set -e</code> to exit on any error</li>
+                <li>Prefer <code>cd dir || exit 1</code> over unchecked <code>cd</code></li>
+                <li>Critical scripts should use strict mode: <code>set -euo pipefail</code></li>
+                <li>Wrap cd in function for reusability</li>
+                <li>Test error paths - what if directories don't exist?</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors exit-codes cd safety error-handling EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's wrong with using echo for user output in scripts?
+            <pre><code>name="O'Brien"
+echo "Hello, $name"</code></pre>
+        </div>
+        <div class="back">
+            <strong>echo behavior varies across systems - use printf for portability and safety!</strong>
+
+            <p><strong>Problems with echo:</strong></p>
+            <ol>
+                <li>Interpretation of backslashes varies (echo "test\n" behavior differs)</li>
+                <li>Handling of -n, -e flags inconsistent</li>
+                <li>Some echo interprets options in data</li>
+                <li>POSIX doesn't fully specify echo behavior</li>
+            </ol>
+
+            <p><strong>Dangerous echo examples:</strong></p>
+            <pre><code># Problem 1: Backslashes
+name="path\to\file"
+echo "$name"
+# GNU: path\to\file
+# BSD: pathtofile  (interprets escapes!)
+
+printf '%s\n' "$name"
+# Always: path\to\file
+
+# Problem 2: Leading dashes
+var="-n test"
+echo "$var"
+# Some shells: (no output, -n suppresses newline)
+# Others: -n test
+
+printf '%s\n' "$var"
+# Always: -n test
+
+# Problem 3: Escape sequences
+echo "Line1\nLine2"
+# Behavior varies: Could be literal or newline
+
+printf 'Line1\nLine2\n'
+# Always newline</code></pre>
+
+            <p><strong>Use printf instead:</strong></p>
+            <pre><code>✓ CORRECT - use printf:
+printf '%s\n' "Hello, $name"
+printf '%s\n' "$variable"
+
+# Format strings:
+printf 'Name: %s, Age: %d\n' "$name" "$age"
+
+# Multiple values:
+printf '%s\n' "Line 1" "Line 2" "Line 3"
+
+# No newline:
+printf '%s' "No newline after this"</code></pre>
+
+            <p><strong>Common printf patterns:</strong></p>
+            <pre><code># Print variable with newline:
+printf '%s\n' "$var"
+
+# Print literal text:
+printf 'Static text\n'
+
+# Format numbers:
+printf '%d\n' "$number"        # Integer
+printf '%.2f\n' "$float"       # 2 decimal places
+
+# Right-align in field:
+printf '%10s\n' "$name"        # Right-align in 10 chars
+printf '%-10s\n' "$name"       # Left-align in 10 chars
+
+# Multiple columns:
+printf '%-20s %5d %10s\n' "$name" "$age" "$city"
+
+# Hex/Octal:
+printf '%x\n' "$number"        # Hexadecimal
+printf '%o\n' "$number"        # Octal</code></pre>
+
+            <p><strong>When echo is OK:</strong></p>
+            <pre><code># These are safe uses of echo:
+echo "Starting process..."     # Literal strings, no variables
+echo                           # Blank line
+echo "Done"                    # Simple messages
+
+# But even these are safer with printf:
+printf 'Starting process...\n'
+printf '\n'
+printf 'Done\n'</code></pre>
+
+            <p><strong>Migrating from echo to printf:</strong></p>
+            <pre><code>❌ echo "Value: $var"
+✓ printf 'Value: %s\n' "$var"
+
+❌ echo -n "No newline"
+✓ printf '%s' "No newline"
+
+❌ echo "Line1\nLine2"
+✓ printf 'Line1\nLine2\n'
+
+❌ echo "$output"
+✓ printf '%s\n' "$output"
+
+❌ echo -e "Tab:\tDelimited"
+✓ printf 'Tab:\tDelimited\n'</code></pre>
+
+            <p><strong>printf format specifiers:</strong></p>
+            <pre><code>%s   - String (safest, use by default)
+%d   - Decimal integer
+%f   - Floating point
+%x   - Hexadecimal
+%o   - Octal
+%%   - Literal %
+
+# Width and precision:
+%10s     - Right-align in 10 characters
+%-10s    - Left-align in 10 characters
+%.2f     - 2 decimal places
+%5.2f    - 5 chars wide, 2 decimals</code></pre>
+
+            <p><strong>Security - printf prevents injection:</strong></p>
+            <pre><code># User input:
+input="-e \033[31mRED TEXT"
+
+echo "$input"
+# Might interpret ANSI codes, show red text!
+
+printf '%s\n' "$input"
+# Prints literally: -e \033[31mRED TEXT
+
+# This is a security feature - prevents terminal injection</code></pre>
+
+            <p><strong>Array printing:</strong></p>
+            <pre><code># Print each array element:
+arr=("one" "two" "three")
+
+# Echo (wrong):
+echo "${arr[@]}"    # Depends on IFS
+
+# Printf (correct):
+printf '%s\n' "${arr[@]}"
+# Prints each element on new line</code></pre>
+
+            <p><strong>Alternatives to echo:</strong></p>
+            <pre><code># For simple messages, also OK:
+cat <<EOF
+Multi-line
+message here
+EOF
+
+# Or:
+cat << 'EOF'
+No variable expansion $var
+EOF
+
+# But printf is most portable and flexible</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Default to <code>printf '%s\n' "$var"</code> instead of <code>echo "$var"</code></li>
+                <li>echo is OK for literal text: <code>echo "Starting..."</code></li>
+                <li>printf is more portable and predictable</li>
+                <li>printf prevents interpretation of data as options/escapes</li>
+                <li>For complex formatting, printf is much more powerful</li>
+                <li>ShellCheck warns about dangerous echo usage (SC2059, SC2028)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors echo printf portability output EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's wrong with using = instead of -eq for number comparisons?
+            <pre><code>if [ $count = 10 ]; then</code></pre>
+        </div>
+        <div class="back">
+            <strong>= does string comparison, -eq does numeric - use the right one!</strong>
+
+            <p><strong>The difference:</strong></p>
+            <pre><code># String comparison (lexicographic):
+[ "10" = "9" ]     # False ("1" comes before "9" alphabetically)
+[ "10" = "010" ]   # False (different strings)
+
+# Numeric comparison:
+[ 10 -eq 9 ]       # False (10 is not equal to 9)
+[ 10 -eq 010 ]     # True! (both equal 10 numerically)</code></pre>
+
+            <p><strong>Common mistakes:</strong></p>
+            <pre><code>count=10
+
+❌ WRONG (string comparison):
+if [ $count = 10 ]; then
+    echo "Count is 10"
+fi
+# Works, but only by luck (strings happen to match)
+
+# Breaks with leading zeros:
+count=010
+if [ $count = 10 ]; then    # FALSE! "010" ≠ "10"
+if [ $count -eq 10 ]; then  # TRUE! (both equal 10)
+
+# Breaks with large numbers:
+if [ "100" = "99" ]; then   # FALSE (lexicographically)
+# But "9" > "100" lexicographically!
+if [ "9" = "100" ]; then    # FALSE, but might surprise you
+# String "9" comes AFTER "1"!</code></pre>
+
+            <p><strong>Correct numeric comparisons:</strong></p>
+            <pre><code>✓ Use numeric operators for numbers:
+-eq    # Equal
+-ne    # Not equal
+-lt    # Less than
+-le    # Less than or equal
+-gt    # Greater than
+-ge    # Greater than or equal
+
+# Examples:
+if [ $age -ge 18 ]; then
+    echo "Adult"
+fi
+
+if [ $count -lt 100 ]; then
+    echo "Under 100"
+fi
+
+if [ $num -ne 0 ]; then
+    echo "Non-zero"
+fi</code></pre>
+
+            <p><strong>String comparison operators:</strong></p>
+            <pre><code>✓ Use string operators for strings:
+=      # Equal (or == in [[)
+!=     # Not equal
+<      # Less than (needs escaping in [: \<)
+>      # Greater than (needs escaping in [: \>)
+-z     # Zero length (empty string)
+-n     # Non-zero length (non-empty)
+
+# Examples:
+if [ "$name" = "Alice" ]; then
+    echo "Hello Alice"
+fi
+
+if [ -z "$var" ]; then
+    echo "Variable is empty"
+fi
+
+if [ -n "$input" ]; then
+    echo "Got input: $input"
+fi</code></pre>
+
+            <p><strong>Lexicographic vs numeric sorting:</strong></p>
+            <pre><code># String comparison (lexicographic):
+Sorted: 1, 10, 100, 2, 20, 200, 3, 30
+# Numbers sorted as strings (alphabetically)
+
+# Numeric comparison:
+Sorted: 1, 2, 3, 10, 20, 30, 100, 200
+# Numbers sorted numerically
+
+# Example:
+[ "2" > "10" ]    # TRUE in string comparison!
+# Because "2" > "1" alphabetically
+
+[ 2 -gt 10 ]      # FALSE in numeric comparison
+# 2 is not greater than 10</code></pre>
+
+            <p><strong>Version number comparison (tricky!):</strong></p>
+            <pre><code># Version strings need special handling:
+ver1="1.10.2"
+ver2="1.9.5"
+
+# String comparison WRONG:
+[ "$ver1" > "$ver2" ]    # FALSE! "1.10.2" < "1.9.5" alphabetically
+
+# Need to compare component by component:
+# Or use sort -V (version sort):
+if [ "$ver1" = "$(printf '%s\n' "$ver1" "$ver2" | sort -V | tail -1)" ]; then
+    echo "$ver1 is newer"
+fi</code></pre>
+
+            <p><strong>When comparison fails:</strong></p>
+            <pre><code># Non-numeric values:
+var="abc"
+if [ $var -eq 10 ]; then
+    # Error: "abc" is not a valid number
+
+# bash gives: bash: [: abc: integer expression expected
+
+# Should check first:
+if [[ $var =~ ^[0-9]+$ ]] && [ $var -eq 10 ]; then
+    echo "Is numeric and equals 10"
+fi</code></pre>
+
+            <p><strong>Alternative - arithmetic context:</strong></p>
+            <pre><code># For bash, can use (( )) for numeric:
+if (( count == 10 )); then
+    echo "Count is 10"
+fi
+
+if (( age >= 18 && age < 65 )); then
+    echo "Working age"
+fi
+
+# Benefits:
+# - Uses familiar operators: ==, !=, <, >, <=, >=
+# - No need for $ on variables
+# - Can do math: (( total = price * quantity ))
+
+# But only works in bash, not POSIX sh</code></pre>
+
+            <p><strong>Quick reference:</strong></p>
+            <pre><code>For NUMBERS:          For STRINGS:
+[ $x -eq $y ]        [ "$x" = "$y" ]
+[ $x -ne $y ]        [ "$x" != "$y" ]
+[ $x -lt $y ]        [ "$x" \< "$y" ]  (or use [[)
+[ $x -le $y ]        [ "$x" \<= "$y" ]  (no operator, use -lt or =)
+[ $x -gt $y ]        [ "$x" \> "$y" ]  (or use [[)
+[ $x -ge $y ]        [ "$x" \>= "$y" ]  (no operator, use -gt or =)
+
+Or in bash:
+(( x == y ))         [[ $x == $y ]]
+(( x != y ))         [[ $x != $y ]]
+(( x < y ))          [[ $x < $y ]]
+(( x > y ))          [[ $x > $y ]]</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Numbers → use <code>-eq -ne -lt -le -gt -ge</code></li>
+                <li>Strings → use <code>= != -z -n</code></li>
+                <li>In bash, <code>(( ))</code> is cleaner for numbers</li>
+                <li>Always quote strings: <code>[ "$var" = "value" ]</code></li>
+                <li>Check if value is numeric before using numeric operators</li>
+                <li>ShellCheck warns about this (SC2071, SC2072)</li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors comparison numeric string operators EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's wrong with using backticks for command substitution?
+            <pre><code>files=`ls *.txt`</code></pre>
+        </div>
+        <div class="back">
+            <strong>Backticks are deprecated - use $( ) instead!</strong>
+
+            <p><strong>Problems with backticks:</strong></p>
+            <ol>
+                <li>Hard to nest (requires escaping)</li>
+                <li>Hard to read (backtick vs apostrophe confusion)</li>
+                <li>Inconsistent quoting rules</li>
+                <li>Deprecated in modern shells</li>
+            </ol>
+
+            <p><strong>Correct - use $( ) syntax:</strong></p>
+            <pre><code>❌ OLD (backticks):
+files=`ls *.txt`
+date=`date +%Y-%m-%d`
+count=`wc -l < file.txt`
+
+✓ MODERN ($() syntax):
+files=$(ls *.txt)
+date=$(date +%Y-%m-%d)
+count=$(wc -l < file.txt)</code></pre>
+
+            <p><strong>Nesting - backticks are terrible:</strong></p>
+            <pre><code>❌ WRONG (backtick nesting - ugly and error-prone):
+outer=`echo \`date +%Y\``
+# Need to escape inner backticks
+# Hard to read, easy to get wrong
+
+✓ CORRECT ($() nesting - clean):
+outer=$(echo $(date +%Y))
+# No escaping needed
+# Easy to read and maintain
+
+# Complex nesting:
+result=$(echo "Today: $(date +%F) at $(date +%T)")
+# vs backtick version (nightmare):
+result=`echo "Today: \`date +%F\` at \`date +%T\`"`</code></pre>
+
+            <p><strong>Readability comparison:</strong></p>
+            <pre><code># Which is clearer?
+backtick: files=`find . -name \*.txt`
+$() form: files=$(find . -name "*.txt")
+
+# Multiple substitutions:
+backtick: echo "User `whoami` logged in at `date` on `hostname`"
+$() form: echo "User $(whoami) logged in at $(date) on $(hostname)"
+
+# The $() version is easier to parse visually</code></pre>
+
+            <p><strong>Common use cases:</strong></p>
+            <pre><code># Get command output:
+current_date=$(date +%Y-%m-%d)
+current_user=$(whoami)
+hostname=$(hostname)
+
+# Assign to variable:
+file_count=$(ls | wc -l)
+disk_usage=$(df -h / | tail -1 | awk '{print $5}')
+
+# Use in conditions:
+if [ "$(whoami)" = "root" ]; then
+    echo "Running as root"
+fi
+
+# Inline in strings:
+echo "Hello $(whoami), today is $(date +%A)"
+
+# Math:
+total=$(($(cat file1.txt | wc -l) + $(cat file2.txt | wc -l)))</code></pre>
+
+            <p><strong>Nesting example (real-world):</strong></p>
+            <pre><code># Get files modified today:
+files=$(find . -type f -newermt "$(date +%Y-%m-%d)")
+
+# Get most recent file:
+latest=$(ls -t $(find . -name "*.log") | head -1)
+
+# Backtick version is unreadable:
+latest=`ls -t \`find . -name "*.log"\` | head -1`</code></pre>
+
+            <p><strong>Edge cases:</strong></p>
+            <pre><code># Both preserve newlines if quoted:
+output="$(command)"    # Preserves newlines
+output=`command`       # Also preserves newlines
+
+# Both strip trailing newlines:
+output=$(echo "test")  # "test" (no trailing newline)
+output=`echo "test"`   # "test" (no trailing newline)
+
+# Both perform word splitting if unquoted:
+files=$(ls)            # Word splitting
+files=`ls`             # Word splitting
+# (But you shouldn't parse ls anyway!)</code></pre>
+
+            <p><strong>Historical note:</strong></p>
+            <ul>
+                <li>Backticks are from original Bourne shell (1970s)</li>
+                <li>$() introduced in Korn shell (1980s), adopted by bash</li>
+                <li>POSIX standardized $() as preferred form</li>
+                <li>Backticks kept for backwards compatibility only</li>
+                <li>All modern shells support $()</li>
+            </ul>
+
+            <p><strong>When you might see backticks:</strong></p>
+            <ul>
+                <li>Old scripts (pre-2000s)</li>
+                <li>Copy-pasted code from ancient tutorials</li>
+                <li>People who learned Unix in the 1980s</li>
+                <li>Scripts targeting ancient systems (rare)</li>
+            </ul>
+
+            <p><strong>Migration is simple:</strong></p>
+            <pre><code># Just replace ` with $( and ` with ):
+`command`         → $(command)
+`cmd1 \`cmd2\``   → $(cmd1 $(cmd2))
+
+# That's it! No behavior change, just syntax.</code></pre>
+
+            <p><strong>In strings:</strong></p>
+            <pre><code># Both work the same:
+echo "Today is `date`"
+echo "Today is $(date)"
+
+# But $() is more readable:
+echo "Files: $(ls | wc -l), Users: $(who | wc -l)"
+# vs
+echo "Files: `ls | wc -l`, Users: `who | wc -l`"</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>ALWAYS use <code>$()</code> instead of backticks</li>
+                <li>Easier to read, nest, and maintain</li>
+                <li>No escaping needed for nesting</li>
+                <li>Standardized by POSIX</li>
+                <li>ShellCheck warns about backticks (SC2006)</li>
+                <li>If you see backticks in code, update to <code>$()</code></li>
+            </ul>
+        </div>
+        <div class="tags">cs bash common-errors backticks command-substitution deprecated EN</div>
+    </div>
+
+</body>
+</html>

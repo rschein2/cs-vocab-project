@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reinforcement Learning Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(249, 250, 251, 0.95);
+        }
+        h1 {
+            color: rgba(31, 41, 55, 0.95);
+            border-bottom: 3px solid rgba(76, 175, 80, 0.8);
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(31, 41, 55, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+        }
+        .back {
+            color: rgba(55, 65, 81, 0.95);
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(229, 231, 235, 0.95);
+            font-size: 12px;
+            color: rgba(107, 114, 128, 0.95);
+        }
+        code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            color: rgba(197, 34, 31, 0.95);
+            font-size: 0.9em;
+        }
+        pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+        pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        strong {
+            color: rgba(31, 41, 55, 0.95);
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reinforcement Learning Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            What are the core components of a reinforcement learning system?
+        </div>
+        <div class="back">
+            <strong>Core RL components:</strong>
+
+            <ul>
+                <li><strong>Agent:</strong> The learner/decision maker</li>
+                <li><strong>Environment:</strong> The world the agent interacts with</li>
+                <li><strong>State (s):</strong> Current situation/observation</li>
+                <li><strong>Action (a):</strong> What the agent can do</li>
+                <li><strong>Reward (r):</strong> Feedback signal from environment</li>
+                <li><strong>Policy (π):</strong> Agent's strategy (state → action)</li>
+            </ul>
+
+            <strong>RL Loop:</strong>
+            <pre><code># Basic RL interaction loop
+state = env.reset()
+
+for step in range(max_steps):
+    # Agent chooses action based on policy
+    action = agent.select_action(state)
+
+    # Environment responds
+    next_state, reward, done, info = env.step(action)
+
+    # Agent learns from experience
+    agent.learn(state, action, reward, next_state, done)
+
+    # Update state
+    state = next_state
+
+    if done:
+        break</code></pre>
+
+            <strong>Goal:</strong> Agent learns policy π that maximizes cumulative reward
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning fundamentals EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            What is a Markov Decision Process (MDP)?
+        </div>
+        <div class="back">
+            <strong>MDP:</strong> Mathematical framework for modeling RL problems.
+
+            <p><strong>Components:</strong></p>
+            <ul>
+                <li><strong>S:</strong> Set of states</li>
+                <li><strong>A:</strong> Set of actions</li>
+                <li><strong>P:</strong> State transition probability P(s'|s,a)</li>
+                <li><strong>R:</strong> Reward function R(s,a,s')</li>
+                <li><strong>γ:</strong> Discount factor [0, 1]</li>
+            </ul>
+
+            <p><strong>Markov Property:</strong> Future depends only on current state, not history</p>
+            <pre><code>P(s_{t+1} | s_t, a_t) = P(s_{t+1} | s_t, a_t, s_{t-1}, a_{t-1}, ...)
+# Future state only depends on current state and action</code></pre>
+
+            <p><strong>Goal:</strong> Find optimal policy π* that maximizes expected return:</p>
+            <pre><code># Return (cumulative discounted reward)
+G_t = r_t + γ*r_{t+1} + γ²*r_{t+2} + ...
+    = Σ(γ^k * r_{t+k}) for k=0 to infinity
+
+# Example with γ=0.9
+# rewards: [1, 2, 3]
+return = 1 + 0.9*2 + 0.81*3 = 5.23</code></pre>
+
+            <strong>Discount factor γ:</strong>
+            <ul>
+                <li>γ = 0: Only immediate reward matters (myopic)</li>
+                <li>γ = 1: All future rewards equally important</li>
+                <li>γ = 0.99: Typical value (balance short/long term)</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning mdp markov EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between a policy and a value function?
+        </div>
+        <div class="back">
+            <strong>Policy (π):</strong> Mapping from states to actions (the strategy)
+            <br>
+            <strong>Value Function (V/Q):</strong> Expected return from a state (how good is this state)
+
+            <p><strong>Policy types:</strong></p>
+            <ul>
+                <li><strong>Deterministic:</strong> π(s) = a (always same action)</li>
+                <li><strong>Stochastic:</strong> π(a|s) = probability of action a in state s</li>
+            </ul>
+
+            <p><strong>Value function types:</strong></p>
+            <ul>
+                <li><strong>State value V^π(s):</strong> Expected return starting from state s following policy π</li>
+                <li><strong>Action value Q^π(s,a):</strong> Expected return starting from s, taking action a, then following π</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># Policy: what to do
+def policy(state):
+    if state == 'hungry':
+        return 'eat'  # deterministic
+    elif state == 'tired':
+        return random.choice(['sleep', 'coffee'])  # stochastic
+
+# State value: how good is this state
+V['hungry'] = -5  # bad state
+V['fed'] = 10     # good state
+
+# Action value: how good is this state-action pair
+Q[('hungry', 'eat')] = 8    # good action
+Q[('hungry', 'wait')] = -10  # bad action
+
+# Relationship
+V(s) = Σ π(a|s) * Q(s,a)
+# Value of state = expected Q value over policy
+
+# Optimal policy
+π*(s) = argmax_a Q*(s,a)
+# Choose action with highest Q value</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning policy value-function EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            What is Q-learning and how does it work?
+        </div>
+        <div class="back">
+            <strong>Q-learning:</strong> Off-policy algorithm to learn optimal action-value function Q*(s,a).
+
+            <p><strong>Key idea:</strong> Learn Q(s,a) using Bellman equation updates</p>
+
+            <p><strong>Bellman equation:</strong></p>
+            <pre><code>Q(s,a) = r + γ * max_a' Q(s',a')
+# Q value = immediate reward + discounted max future Q value</code></pre>
+
+            <p><strong>Q-learning update rule:</strong></p>
+            <pre><code># Update Q value towards target
+Q(s,a) ← Q(s,a) + α * [r + γ * max_a' Q(s',a') - Q(s,a)]
+#                      \_________________________/
+#                              TD error</code></pre>
+
+            <strong>Implementation:</strong>
+            <pre><code>import numpy as np
+
+# Initialize Q-table
+Q = np.zeros((num_states, num_actions))
+
+# Hyperparameters
+alpha = 0.1   # learning rate
+gamma = 0.99  # discount factor
+epsilon = 0.1 # exploration rate
+
+for episode in range(num_episodes):
+    state = env.reset()
+    done = False
+
+    while not done:
+        # Epsilon-greedy action selection
+        if np.random.random() < epsilon:
+            action = env.action_space.sample()  # explore
+        else:
+            action = np.argmax(Q[state])  # exploit
+
+        # Take action
+        next_state, reward, done, _ = env.step(action)
+
+        # Q-learning update
+        td_target = reward + gamma * np.max(Q[next_state])
+        td_error = td_target - Q[state, action]
+        Q[state, action] += alpha * td_error
+
+        state = next_state
+
+# Get optimal policy
+optimal_policy = np.argmax(Q, axis=1)</code></pre>
+
+            <strong>Off-policy:</strong> Learns optimal Q* while following exploratory policy (ε-greedy)
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning q-learning EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            What is the exploration vs exploitation tradeoff?
+        </div>
+        <div class="back">
+            <strong>Exploration vs Exploitation:</strong> Fundamental RL dilemma.
+
+            <p><strong>Exploitation:</strong></p>
+            <ul>
+                <li>Use current knowledge to maximize reward</li>
+                <li>Choose best known action</li>
+                <li>Risk: might miss better options</li>
+            </ul>
+
+            <p><strong>Exploration:</strong></p>
+            <ul>
+                <li>Try new actions to gather information</li>
+                <li>Choose random or uncertain actions</li>
+                <li>Risk: lower immediate reward</li>
+            </ul>
+
+            <p><strong>Need balance:</strong> Explore enough to find good actions, exploit enough to get rewards</p>
+
+            <strong>Common strategies:</strong>
+            <pre><code># 1. Epsilon-greedy (most common)
+if np.random.random() < epsilon:
+    action = random.choice(actions)  # explore
+else:
+    action = best_action  # exploit
+
+# Decaying epsilon
+epsilon = max(min_epsilon,
+              epsilon * decay_rate)
+
+# 2. Boltzmann/Softmax exploration
+def softmax_action(Q_values, temperature=1.0):
+    exp_Q = np.exp(Q_values / temperature)
+    probs = exp_Q / np.sum(exp_Q)
+    return np.random.choice(len(Q_values), p=probs)
+
+# Higher temperature = more exploration
+
+# 3. Upper Confidence Bound (UCB)
+def ucb_action(Q_values, counts, t, c=2):
+    ucb_values = Q_values + c * np.sqrt(
+        np.log(t) / (counts + 1e-5)
+    )
+    return np.argmax(ucb_values)
+
+# Bonus for less-tried actions
+
+# 4. Entropy regularization (in policy gradients)
+loss = policy_loss - entropy_coef * entropy
+# Encourage diverse actions</code></pre>
+
+            <strong>Typical schedule:</strong> Start with high exploration (ε=1.0), decay to low (ε=0.01)
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning exploration exploitation epsilon-greedy EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            What is experience replay and why is it important in DQN?
+        </div>
+        <div class="back">
+            <strong>Experience Replay:</strong> Store and reuse past experiences for training.
+
+            <p><strong>Replay Buffer:</strong> Store tuples (s, a, r, s', done)</p>
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>Breaks correlation between consecutive samples</li>
+                <li>Improves data efficiency (reuse experiences)</li>
+                <li>Stabilizes training</li>
+                <li>Enables off-policy learning</li>
+            </ul>
+
+            <strong>Implementation:</strong>
+            <pre><code>from collections import deque
+import random
+
+class ReplayBuffer:
+    def __init__(self, capacity=10000):
+        self.buffer = deque(maxlen=capacity)
+
+    def push(self, state, action, reward, next_state, done):
+        self.buffer.append(
+            (state, action, reward, next_state, done)
+        )
+
+    def sample(self, batch_size):
+        batch = random.sample(self.buffer, batch_size)
+        states, actions, rewards, next_states, dones = zip(*batch)
+
+        return (
+            np.array(states),
+            np.array(actions),
+            np.array(rewards),
+            np.array(next_states),
+            np.array(dones)
+        )
+
+    def __len__(self):
+        return len(self.buffer)
+
+# Usage in training loop
+replay_buffer = ReplayBuffer(capacity=100000)
+
+for episode in range(num_episodes):
+    state = env.reset()
+    done = False
+
+    while not done:
+        action = select_action(state)
+        next_state, reward, done, _ = env.step(action)
+
+        # Store experience
+        replay_buffer.push(
+            state, action, reward, next_state, done
+        )
+
+        # Learn from random batch
+        if len(replay_buffer) > batch_size:
+            batch = replay_buffer.sample(batch_size)
+            states, actions, rewards, next_states, dones = batch
+
+            # Update Q-network with batch
+            loss = update_q_network(
+                states, actions, rewards, next_states, dones
+            )
+
+        state = next_state</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning experience-replay replay-buffer EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            What is DQN (Deep Q-Network) and how does it differ from Q-learning?
+        </div>
+        <div class="back">
+            <strong>DQN:</strong> Use deep neural network to approximate Q-function instead of Q-table.
+
+            <p><strong>Why DQN?</strong></p>
+            <ul>
+                <li>Q-table doesn't scale to large/continuous state spaces</li>
+                <li>Neural network can generalize across similar states</li>
+                <li>Can handle high-dimensional inputs (images)</li>
+            </ul>
+
+            <p><strong>Key innovations:</strong></p>
+            <ol>
+                <li>Experience replay (break correlations)</li>
+                <li>Target network (stabilize training)</li>
+                <li>Reward clipping (normalize rewards)</li>
+            </ol>
+
+            <strong>Implementation:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
+
+class DQN(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.network = nn.Sequential(
+            nn.Linear(state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU(),
+            nn.Linear(128, action_dim)
+        )
+
+    def forward(self, state):
+        return self.network(state)
+
+# Create Q-network and target network
+q_network = DQN(state_dim, action_dim).to(device)
+target_network = DQN(state_dim, action_dim).to(device)
+target_network.load_state_dict(q_network.state_dict())
+
+optimizer = optim.Adam(q_network.parameters(), lr=1e-4)
+
+def update_q_network(batch):
+    states, actions, rewards, next_states, dones = batch
+
+    # Current Q values
+    current_q = q_network(states).gather(1, actions.unsqueeze(1))
+
+    # Target Q values (using target network)
+    with torch.no_grad():
+        next_q = target_network(next_states).max(1)[0]
+        target_q = rewards + gamma * next_q * (1 - dones)
+
+    # Loss
+    loss = F.mse_loss(current_q.squeeze(), target_q)
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    return loss.item()
+
+# Update target network periodically
+if step % target_update_freq == 0:
+    target_network.load_state_dict(q_network.state_dict())</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning dqn deep-q-network EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            What is a target network in DQN and why is it needed?
+        </div>
+        <div class="back">
+            <strong>Target Network:</strong> Separate network with frozen weights used to compute target Q-values.
+
+            <p><strong>Problem without target network:</strong></p>
+            <ul>
+                <li>Q-network chases a moving target (its own outputs)</li>
+                <li>Creates instability and divergence</li>
+                <li>Like "dog chasing its own tail"</li>
+            </ul>
+
+            <p><strong>Solution:</strong></p>
+            <ul>
+                <li>Keep target network frozen for N steps</li>
+                <li>Update it periodically by copying Q-network weights</li>
+                <li>Provides stable target for training</li>
+            </ul>
+
+            <strong>Implementation:</strong>
+            <pre><code># WITHOUT target network (unstable)
+# Both current and target from same network
+current_q = q_network(state)[action]
+target_q = reward + gamma * q_network(next_state).max()
+# ^^^^^^^ This changes every update!
+
+loss = (current_q - target_q) ** 2
+# Target keeps moving, hard to converge
+
+# WITH target network (stable)
+# Create target network (copy of Q-network)
+target_network = DQN(state_dim, action_dim)
+target_network.load_state_dict(q_network.state_dict())
+
+# Current Q from Q-network
+current_q = q_network(state)[action]
+
+# Target from frozen target network
+with torch.no_grad():
+    target_q = reward + gamma * target_network(next_state).max()
+# ^^^^^^^^^^^^^ Stays fixed for N steps
+
+loss = (current_q - target_q) ** 2
+
+# Update target network every C steps
+if step % target_update_freq == 0:
+    target_network.load_state_dict(
+        q_network.state_dict()
+    )
+
+# Typical values
+target_update_freq = 1000  # or 10000
+
+# Alternative: soft update (Polyak averaging)
+tau = 0.005  # soft update coefficient
+for target_param, param in zip(
+    target_network.parameters(),
+    q_network.parameters()
+):
+    target_param.data.copy_(
+        tau * param.data + (1 - tau) * target_param.data
+    )</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning dqn target-network EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            What is the difference between on-policy and off-policy learning?
+        </div>
+        <div class="back">
+            <strong>On-policy:</strong> Learn about and improve the policy being used to select actions.
+            <br>
+            <strong>Off-policy:</strong> Learn about one policy while following a different policy.
+
+            <p><strong>On-policy algorithms:</strong></p>
+            <ul>
+                <li>SARSA (State-Action-Reward-State-Action)</li>
+                <li>REINFORCE (policy gradient)</li>
+                <li>A3C (Asynchronous Advantage Actor-Critic)</li>
+                <li>PPO (Proximal Policy Optimization)</li>
+            </ul>
+
+            <p><strong>Off-policy algorithms:</strong></p>
+            <ul>
+                <li>Q-learning</li>
+                <li>DQN</li>
+                <li>DDPG (Deep Deterministic Policy Gradient)</li>
+                <li>SAC (Soft Actor-Critic)</li>
+            </ul>
+
+            <strong>Comparison:</strong>
+            <pre><code># ON-POLICY (SARSA)
+# Learn Q for policy being followed
+state = env.reset()
+action = epsilon_greedy(state)  # choose with ε-greedy
+
+next_state, reward, done = env.step(action)
+next_action = epsilon_greedy(next_state)  # ACTUAL next action
+
+# Update using actual next action
+Q[state, action] += alpha * (
+    reward + gamma * Q[next_state, next_action] - Q[state, action]
+)
+
+state, action = next_state, next_action
+
+# OFF-POLICY (Q-learning)
+# Learn optimal Q while exploring
+state = env.reset()
+action = epsilon_greedy(state)  # explore with ε-greedy
+
+next_state, reward, done = env.step(action)
+
+# Update using BEST next action (not actual)
+Q[state, action] += alpha * (
+    reward + gamma * max(Q[next_state]) - Q[state, action]
+)
+#                  ^^^^ optimal action, not what we'll actually do
+
+next_action = epsilon_greedy(next_state)
+state, action = next_state, next_action</code></pre>
+
+            <p><strong>Trade-offs:</strong></p>
+            <ul>
+                <li><strong>On-policy:</strong> More stable, safer, but less sample efficient</li>
+                <li><strong>Off-policy:</strong> More sample efficient (can reuse old data), but can be unstable</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning on-policy off-policy EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            What are policy gradients and how do they work?
+        </div>
+        <div class="back">
+            <strong>Policy Gradients:</strong> Directly optimize the policy π_θ using gradient ascent.
+
+            <p><strong>Key idea:</strong> Instead of learning Q-values, directly learn policy parameters θ</p>
+
+            <p><strong>Objective:</strong> Maximize expected return J(θ)</p>
+            <pre><code>J(θ) = E[R | π_θ]  # Expected total reward</code></pre>
+
+            <p><strong>Policy gradient theorem:</strong></p>
+            <pre><code>∇_θ J(θ) = E[∇_θ log π_θ(a|s) * Q(s,a)]
+# Gradient = expected gradient of log-prob weighted by Q-value</code></pre>
+
+            <strong>REINFORCE algorithm (basic policy gradient):</strong>
+            <pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
+
+class PolicyNetwork(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.network = nn.Sequential(
+            nn.Linear(state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, action_dim),
+            nn.Softmax(dim=-1)
+        )
+
+    def forward(self, state):
+        return self.network(state)
+
+policy = PolicyNetwork(state_dim, action_dim).to(device)
+optimizer = optim.Adam(policy.parameters(), lr=1e-3)
+
+# Collect episode
+def collect_episode():
+    states, actions, rewards = [], [], []
+    state = env.reset()
+    done = False
+
+    while not done:
+        state_tensor = torch.FloatTensor(state).to(device)
+
+        # Sample action from policy
+        action_probs = policy(state_tensor)
+        action_dist = torch.distributions.Categorical(action_probs)
+        action = action_dist.sample()
+
+        next_state, reward, done, _ = env.step(action.item())
+
+        states.append(state)
+        actions.append(action)
+        rewards.append(reward)
+
+        state = next_state
+
+    return states, actions, rewards
+
+# Training
+for episode in range(num_episodes):
+    states, actions, rewards = collect_episode()
+
+    # Compute returns (discounted cumulative rewards)
+    returns = []
+    G = 0
+    for r in reversed(rewards):
+        G = r + gamma * G
+        returns.insert(0, G)
+
+    returns = torch.FloatTensor(returns).to(device)
+
+    # Normalize returns (reduces variance)
+    returns = (returns - returns.mean()) / (returns.std() + 1e-9)
+
+    # Compute policy gradient loss
+    loss = 0
+    for state, action, G in zip(states, actions, returns):
+        state_tensor = torch.FloatTensor(state).to(device)
+        action_probs = policy(state_tensor)
+        action_dist = torch.distributions.Categorical(action_probs)
+
+        # Policy gradient: -log(π(a|s)) * G
+        log_prob = action_dist.log_prob(action)
+        loss += -log_prob * G
+
+    # Update policy
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()</code></pre>
+
+            <p><strong>Advantages:</strong></p>
+            <ul>
+                <li>Works with continuous action spaces</li>
+                <li>Can learn stochastic policies</li>
+                <li>Better convergence guarantees</li>
+            </ul>
+
+            <p><strong>Disadvantages:</strong></p>
+            <ul>
+                <li>High variance</li>
+                <li>Sample inefficient</li>
+                <li>Needs variance reduction (baselines, etc.)</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning policy-gradients reinforce EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">
+            What is the Actor-Critic algorithm?
+        </div>
+        <div class="back">
+            <strong>Actor-Critic:</strong> Combines policy gradients (actor) with value function (critic).
+
+            <p><strong>Components:</strong></p>
+            <ul>
+                <li><strong>Actor:</strong> Policy network π_θ(a|s) - decides actions</li>
+                <li><strong>Critic:</strong> Value network V_φ(s) - evaluates states</li>
+            </ul>
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>Lower variance than pure policy gradients</li>
+                <li>More sample efficient than REINFORCE</li>
+                <li>Critic provides baseline for variance reduction</li>
+            </ul>
+
+            <strong>Implementation:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
+
+class Actor(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.network = nn.Sequential(
+            nn.Linear(state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, action_dim),
+            nn.Softmax(dim=-1)
+        )
+
+    def forward(self, state):
+        return self.network(state)
+
+class Critic(nn.Module):
+    def __init__(self, state_dim):
+        super().__init__()
+        self.network = nn.Sequential(
+            nn.Linear(state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1)
+        )
+
+    def forward(self, state):
+        return self.network(state)
+
+actor = Actor(state_dim, action_dim).to(device)
+critic = Critic(state_dim).to(device)
+
+actor_optimizer = optim.Adam(actor.parameters(), lr=1e-3)
+critic_optimizer = optim.Adam(critic.parameters(), lr=1e-3)
+
+# Training step
+state = torch.FloatTensor(state).to(device)
+next_state = torch.FloatTensor(next_state).to(device)
+
+# Actor: select action
+action_probs = actor(state)
+action_dist = torch.distributions.Categorical(action_probs)
+action = action_dist.sample()
+log_prob = action_dist.log_prob(action)
+
+# Take action
+next_state_np, reward, done, _ = env.step(action.item())
+
+# Critic: compute TD error (advantage)
+value = critic(state)
+next_value = critic(next_state)
+
+# TD target and error
+td_target = reward + gamma * next_value * (1 - done)
+td_error = td_target - value  # advantage
+
+# Update critic (minimize TD error)
+critic_loss = td_error.pow(2)
+critic_optimizer.zero_grad()
+critic_loss.backward()
+critic_optimizer.step()
+
+# Update actor (policy gradient with advantage)
+actor_loss = -log_prob * td_error.detach()
+actor_optimizer.zero_grad()
+actor_loss.backward()
+actor_optimizer.step()</code></pre>
+
+            <strong>Advantage:</strong> Using TD error as advantage reduces variance vs using full returns
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning actor-critic EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">
+            What is the advantage function in RL?
+        </div>
+        <div class="back">
+            <strong>Advantage function A(s,a):</strong> How much better is action a compared to average in state s.
+
+            <p><strong>Definition:</strong></p>
+            <pre><code>A(s,a) = Q(s,a) - V(s)
+# Advantage = Q-value - state value
+# "How much better than average is this action?"</code></pre>
+
+            <p><strong>Interpretation:</strong></p>
+            <ul>
+                <li>A(s,a) > 0: Action is better than average</li>
+                <li>A(s,a) < 0: Action is worse than average</li>
+                <li>A(s,a) = 0: Action is average</li>
+            </ul>
+
+            <p><strong>Why use advantage?</strong></p>
+            <ul>
+                <li>Reduces variance in policy gradients</li>
+                <li>Centers gradients around zero</li>
+                <li>Only cares about relative quality of actions</li>
+            </ul>
+
+            <strong>Computing advantage:</strong>
+            <pre><code># 1. Simple advantage (requires Q and V)
+A = Q(s,a) - V(s)
+
+# 2. TD advantage (one-step)
+A = reward + gamma * V(next_state) - V(state)
+# = TD error
+
+# 3. N-step advantage
+A = r_t + γr_{t+1} + ... + γ^n*V(s_{t+n}) - V(s_t)
+
+# 4. GAE (Generalized Advantage Estimation)
+# Exponentially weighted average of n-step advantages
+δ_t = r_t + γV(s_{t+1}) - V(s_t)  # TD error
+A_t = δ_t + (γλ)δ_{t+1} + (γλ)^2δ_{t+2} + ...
+
+# Implementation
+def compute_gae(rewards, values, next_values,
+                dones, gamma=0.99, lambda_=0.95):
+    advantages = []
+    gae = 0
+
+    for t in reversed(range(len(rewards))):
+        delta = (rewards[t] +
+                gamma * next_values[t] * (1 - dones[t]) -
+                values[t])
+        gae = delta + gamma * lambda_ * (1 - dones[t]) * gae
+        advantages.insert(0, gae)
+
+    return torch.FloatTensor(advantages)
+
+# Use in policy gradient
+loss = -log_probs * advantages.detach()</code></pre>
+
+            <strong>GAE:</strong> Trades off bias vs variance with λ parameter (λ=0: high bias, λ=1: high variance)
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning advantage gae EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">
+            What is PPO (Proximal Policy Optimization)?
+        </div>
+        <div class="back">
+            <strong>PPO:</strong> State-of-the-art policy gradient algorithm with clipped objective.
+
+            <p><strong>Problem PPO solves:</strong></p>
+            <ul>
+                <li>Policy gradients can make too large updates</li>
+                <li>Large updates can destroy learned policy</li>
+                <li>Need to constrain policy changes</li>
+            </ul>
+
+            <p><strong>Key innovation:</strong> Clipped surrogate objective</p>
+
+            <strong>PPO-Clip algorithm:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
+
+class PPO:
+    def __init__(self, actor, critic, clip_epsilon=0.2):
+        self.actor = actor
+        self.critic = critic
+        self.clip_epsilon = clip_epsilon
+
+        self.actor_optimizer = optim.Adam(
+            actor.parameters(), lr=3e-4
+        )
+        self.critic_optimizer = optim.Adam(
+            critic.parameters(), lr=1e-3
+        )
+
+    def update(self, states, actions, old_log_probs,
+               returns, advantages):
+
+        # Multiple update epochs
+        for _ in range(10):  # K epochs
+            # Current policy
+            action_probs = self.actor(states)
+            dist = torch.distributions.Categorical(action_probs)
+            new_log_probs = dist.log_prob(actions)
+            entropy = dist.entropy().mean()
+
+            # Ratio of new to old policy
+            ratio = torch.exp(new_log_probs - old_log_probs)
+
+            # Clipped surrogate objective
+            surr1 = ratio * advantages
+            surr2 = torch.clamp(
+                ratio,
+                1 - self.clip_epsilon,
+                1 + self.clip_epsilon
+            ) * advantages
+
+            actor_loss = -torch.min(surr1, surr2).mean()
+
+            # Add entropy bonus for exploration
+            actor_loss = actor_loss - 0.01 * entropy
+
+            # Update actor
+            self.actor_optimizer.zero_grad()
+            actor_loss.backward()
+            nn.utils.clip_grad_norm_(self.actor.parameters(), 0.5)
+            self.actor_optimizer.step()
+
+            # Update critic
+            values = self.critic(states).squeeze()
+            critic_loss = nn.MSELoss()(values, returns)
+
+            self.critic_optimizer.zero_grad()
+            critic_loss.backward()
+            nn.utils.clip_grad_norm_(self.critic.parameters(), 0.5)
+            self.critic_optimizer.step()
+
+# Training loop
+ppo = PPO(actor, critic)
+
+for iteration in range(num_iterations):
+    # Collect rollouts
+    states, actions, rewards, log_probs = collect_rollouts()
+
+    # Compute returns and advantages
+    returns = compute_returns(rewards)
+    advantages = compute_advantages(rewards, values)
+
+    # Update
+    ppo.update(states, actions, log_probs, returns, advantages)</code></pre>
+
+            <p><strong>Why PPO is popular:</strong></p>
+            <ul>
+                <li>Simple to implement</li>
+                <li>Sample efficient</li>
+                <li>Stable training</li>
+                <li>Works well across many tasks</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning ppo EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">
+            How do you use OpenAI Gym/Gymnasium environments?
+        </div>
+        <div class="back">
+            <strong>Gym/Gymnasium:</strong> Standard API for RL environments.
+
+            <strong>Basic usage:</strong>
+            <pre><code>import gymnasium as gym
+
+# Create environment
+env = gym.make('CartPole-v1')
+
+# Reset environment (get initial state)
+state, info = env.reset(seed=42)
+
+# Run episode
+done = False
+total_reward = 0
+
+while not done:
+    # Render environment (optional)
+    env.render()
+
+    # Sample random action
+    action = env.action_space.sample()
+
+    # Take action
+    next_state, reward, terminated, truncated, info = env.step(action)
+
+    done = terminated or truncated
+    total_reward += reward
+    state = next_state
+
+print(f"Total reward: {total_reward}")
+
+# Close environment
+env.close()
+
+# Environment properties
+print(f"State space: {env.observation_space}")
+# Box(4,) - 4D continuous state
+
+print(f"Action space: {env.action_space}")
+# Discrete(2) - 2 discrete actions (0 or 1)
+
+# Common environments
+# Classic control
+env = gym.make('CartPole-v1')
+env = gym.make('MountainCar-v0')
+env = gym.make('Acrobot-v1')
+
+# Atari (requires: pip install gymnasium[atari])
+env = gym.make('ALE/Breakout-v5')
+
+# MuJoCo (requires: pip install gymnasium[mujoco])
+env = gym.make('HalfCheetah-v4')
+
+# Check state/action types
+if isinstance(env.observation_space, gym.spaces.Box):
+    print("Continuous state space")
+    print(f"Shape: {env.observation_space.shape}")
+    print(f"Low: {env.observation_space.low}")
+    print(f"High: {env.observation_space.high}")
+
+if isinstance(env.action_space, gym.spaces.Discrete):
+    print("Discrete action space")
+    print(f"Num actions: {env.action_space.n}")
+elif isinstance(env.action_space, gym.spaces.Box):
+    print("Continuous action space")
+    print(f"Shape: {env.action_space.shape}")</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning gym gymnasium environment EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">
+            What are environment wrappers and how do you use them?
+        </div>
+        <div class="back">
+            <strong>Wrappers:</strong> Modify environment behavior without changing core implementation.
+
+            <p><strong>Common use cases:</strong></p>
+            <ul>
+                <li>Preprocessing observations (normalize, resize)</li>
+                <li>Frame stacking (combine multiple frames)</li>
+                <li>Reward shaping</li>
+                <li>Time limits</li>
+            </ul>
+
+            <strong>Using built-in wrappers:</strong>
+            <pre><code>import gymnasium as gym
+from gymnasium.wrappers import (
+    NormalizeObservation,
+    NormalizeReward,
+    TimeLimit,
+    ClipAction,
+    FrameStack
+)
+
+# Chain multiple wrappers
+env = gym.make('CartPole-v1')
+env = NormalizeObservation(env)  # normalize states
+env = NormalizeReward(env)  # normalize rewards
+env = TimeLimit(env, max_episode_steps=500)
+
+# For Atari: common preprocessing
+from gymnasium.wrappers import (
+    GrayScaleObservation,
+    ResizeObservation,
+    FrameStack
+)
+
+env = gym.make('ALE/Breakout-v5')
+env = GrayScaleObservation(env)  # RGB to grayscale
+env = ResizeObservation(env, shape=(84, 84))  # resize
+env = FrameStack(env, num_stack=4)  # stack 4 frames</code></pre>
+
+            <strong>Custom wrapper:</strong>
+            <pre><code>class RewardShapingWrapper(gym.Wrapper):
+    """Add custom reward shaping"""
+
+    def __init__(self, env):
+        super().__init__(env)
+
+    def step(self, action):
+        state, reward, terminated, truncated, info = self.env.step(action)
+
+        # Add custom reward shaping
+        # E.g., penalize large actions
+        shaped_reward = reward - 0.01 * abs(action)
+
+        return state, shaped_reward, terminated, truncated, info
+
+# Usage
+env = gym.make('CartPole-v1')
+env = RewardShapingWrapper(env)
+
+# Another example: Clip rewards to [-1, 1]
+class RewardClipWrapper(gym.RewardWrapper):
+    def reward(self, reward):
+        return np.clip(reward, -1, 1)
+
+# Observation wrapper: normalize
+class NormalizeWrapper(gym.ObservationWrapper):
+    def observation(self, obs):
+        return (obs - obs.mean()) / (obs.std() + 1e-8)</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning gym wrappers preprocessing EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">
+            What is reward shaping and what are the risks?
+        </div>
+        <div class="back">
+            <strong>Reward shaping:</strong> Modifying reward function to make learning easier.
+
+            <p><strong>Why use it:</strong></p>
+            <ul>
+                <li>Sparse rewards make learning slow</li>
+                <li>Want to provide intermediate feedback</li>
+                <li>Guide agent toward desired behavior</li>
+            </ul>
+
+            <p><strong>Techniques:</strong></p>
+            <ul>
+                <li>Add auxiliary rewards for progress</li>
+                <li>Penalize undesired behaviors</li>
+                <li>Potential-based shaping (preserves optimal policy)</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># Original sparse reward (reaching goal)
+def sparse_reward(state, goal):
+    if state == goal:
+        return 100
+    else:
+        return 0  # no signal during exploration!
+
+# Shaped reward (distance to goal)
+def shaped_reward(state, goal):
+    base_reward = sparse_reward(state, goal)
+
+    # Add progress reward
+    distance = np.linalg.norm(state - goal)
+    progress_reward = -distance
+
+    return base_reward + progress_reward
+
+# Potential-based shaping (safe)
+def potential_based_reward(state, next_state, reward, gamma=0.99):
+    # Define potential function (e.g., distance to goal)
+    potential = lambda s: -np.linalg.norm(s - goal)
+
+    # Shaped reward
+    shaped_reward = (
+        reward +
+        gamma * potential(next_state) -
+        potential(state)
+    )
+    return shaped_reward
+# Preserves optimal policy!</code></pre>
+
+            <p><strong>Risks:</strong></p>
+            <ul>
+                <li><strong>Reward hacking:</strong> Agent exploits shaped reward instead of solving task</li>
+                <li><strong>Suboptimal policy:</strong> Shaped reward may change optimal behavior</li>
+                <li><strong>Hard to design:</strong> Requires domain knowledge</li>
+            </ul>
+
+            <strong>Example of reward hacking:</strong>
+            <pre><code># Task: clean room
+# Bad shaping: reward for moving objects
+# Result: agent moves objects back and forth
+# without actually cleaning!
+
+# Better: potential-based shaping
+# (provably preserves optimal policy)</code></pre>
+
+            <strong>Best practice:</strong> Use potential-based shaping when possible, test thoroughly
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning reward-shaping EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">
+            What is the discount factor (gamma) and how do you choose it?
+        </div>
+        <div class="back">
+            <strong>Discount factor γ (gamma):</strong> Controls how much future rewards matter.
+
+            <p><strong>Return with discount:</strong></p>
+            <pre><code>G_t = r_t + γ*r_{t+1} + γ²*r_{t+2} + γ³*r_{t+3} + ...
+    = Σ(γ^k * r_{t+k}) for k=0 to infinity
+
+# Example: rewards = [1, 2, 3], γ=0.9
+G = 1 + 0.9*2 + 0.81*3 = 5.23
+
+# With γ=0.5
+G = 1 + 0.5*2 + 0.25*3 = 2.75  # less focus on future</code></pre>
+
+            <p><strong>Interpretation:</strong></p>
+            <ul>
+                <li><strong>γ = 0:</strong> Only immediate reward (myopic)</li>
+                <li><strong>γ = 0.9:</strong> Moderate future planning</li>
+                <li><strong>γ = 0.99:</strong> Strong future planning (typical)</li>
+                <li><strong>γ = 1:</strong> All future rewards equal (can diverge)</li>
+            </ul>
+
+            <strong>How to choose γ:</strong>
+            <pre><code># Short episodes (100 steps)
+gamma = 0.95  # or 0.9
+
+# Long episodes (1000+ steps)
+gamma = 0.99  # or 0.995
+
+# Infinite horizon
+gamma < 1  # required for convergence
+
+# Effective horizon (how far agent looks)
+effective_horizon = 1 / (1 - gamma)
+# γ=0.9  → ~10 steps
+# γ=0.99 → ~100 steps
+# γ=0.999 → ~1000 steps</code></pre>
+
+            <p><strong>Effects of γ:</strong></p>
+            <ul>
+                <li><strong>Low γ (0.5-0.8):</strong> Short-sighted, faster learning, less optimal</li>
+                <li><strong>Medium γ (0.9-0.95):</strong> Balanced, good default</li>
+                <li><strong>High γ (0.99+):</strong> Far-sighted, slower learning, more optimal</li>
+            </ul>
+
+            <strong>Implementation:</strong>
+            <pre><code>def compute_returns(rewards, gamma=0.99):
+    """Compute discounted returns"""
+    returns = []
+    G = 0
+    for r in reversed(rewards):
+        G = r + gamma * G
+        returns.insert(0, G)
+    return returns
+
+# Example
+rewards = [1, 1, 1, 10]
+returns = compute_returns(rewards, gamma=0.9)
+# [13.439, 13.82, 14.2, 10.0]
+#  ^^^^^^ includes all future discounted rewards</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning discount-factor gamma EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between an episode and a timestep?
+        </div>
+        <div class="back">
+            <strong>Episode:</strong> One complete run from start to terminal state.
+            <br>
+            <strong>Timestep:</strong> One interaction (state, action, reward, next state).
+
+            <strong>Example:</strong>
+            <pre><code># Episode = full game
+episode_num = 0
+
+while episode_num < num_episodes:
+    state = env.reset()  # start new episode
+    episode_reward = 0
+    timestep = 0
+
+    done = False
+    while not done:
+        # One timestep
+        action = agent.select_action(state)
+        next_state, reward, done, _ = env.step(action)
+
+        episode_reward += reward
+        timestep += 1
+
+        state = next_state
+
+    print(f"Episode {episode_num}: "
+          f"Reward={episode_reward}, "
+          f"Steps={timestep}")
+
+    episode_num += 1
+
+# Episode examples:
+# - CartPole: ends when pole falls or 500 steps
+# - Atari Breakout: ends when lose all lives
+# - Chess: ends in checkmate or draw</code></pre>
+
+            <p><strong>Episodic vs Continuing tasks:</strong></p>
+            <ul>
+                <li><strong>Episodic:</strong> Natural terminal state (games, robotics tasks)</li>
+                <li><strong>Continuing:</strong> No natural end (process control, trading)</li>
+            </ul>
+
+            <strong>Handling in code:</strong>
+            <pre><code># Episodic task
+for episode in range(num_episodes):
+    state = env.reset()
+    done = False
+
+    while not done:
+        action = select_action(state)
+        next_state, reward, done, _ = env.step(action)
+
+        # Update Q-value
+        if done:
+            # Terminal state: no future reward
+            target = reward
+        else:
+            # Non-terminal: include future
+            target = reward + gamma * max(Q[next_state])
+
+        Q[state, action] += alpha * (target - Q[state, action])
+
+        state = next_state
+
+# Continuing task (with max_steps)
+for timestep in range(total_timesteps):
+    action = select_action(state)
+    next_state, reward, done, _ = env.step(action)
+
+    # Update
+    update_agent(...)
+
+    if done:
+        state = env.reset()  # restart
+    else:
+        state = next_state</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning episode timestep EN</div>
+    </div>
+
+    <!-- Card 19 -->
+    <div class="card">
+        <div class="front">
+            What are common bugs in RL implementations?
+        </div>
+        <div class="back">
+            <strong>Top RL bugs to watch for:</strong>
+
+            <p><strong>1. Not handling terminal states correctly:</strong></p>
+            <pre><code># WRONG: includes future reward when done
+target = reward + gamma * max(Q[next_state])
+
+# CORRECT: check if terminal
+if done:
+    target = reward  # no future
+else:
+    target = reward + gamma * max(Q[next_state])</code></pre>
+
+            <p><strong>2. Updating target network too often/rarely:</strong></p>
+            <pre><code># Too often (unstable)
+target_net.load_state_dict(q_net.state_dict())  # every step
+
+# Too rarely (slow learning)
+if step % 100000 == 0:  # every 100k steps
+
+# CORRECT: typical range
+if step % 1000 == 0:  # every 1000 steps
+    target_net.load_state_dict(q_net.state_dict())</code></pre>
+
+            <p><strong>3. Not normalizing inputs/rewards:</strong></p>
+            <pre><code># WRONG: raw pixel values [0, 255]
+state = env.reset()
+
+# CORRECT: normalize to [0, 1]
+state = env.reset() / 255.0
+
+# Reward normalization
+rewards = (rewards - rewards.mean()) / (rewards.std() + 1e-8)</code></pre>
+
+            <p><strong>4. Wrong batch dimension ordering:</strong></p>
+            <pre><code># WRONG: (features, batch)
+states = torch.FloatTensor(batch).t()
+
+# CORRECT: (batch, features)
+states = torch.FloatTensor(batch)</code></pre>
+
+            <p><strong>5. Forgetting to detach targets:</strong></p>
+            <pre><code># WRONG: gradients flow through target
+loss = (q_values - target_q_values) ** 2
+
+# CORRECT: detach target
+loss = (q_values - target_q_values.detach()) ** 2</code></pre>
+
+            <p><strong>6. Using wrong action in Q-update:</strong></p>
+            <pre><code># DQN (off-policy): use max action
+target = reward + gamma * target_net(next_state).max()
+
+# SARSA (on-policy): use actual next action
+target = reward + gamma * Q[next_state, next_action]</code></pre>
+
+            <p><strong>7. Not setting model.eval() for inference:</strong></p>
+            <pre><code># During episode collection
+model.eval()  # disable dropout/batchnorm
+with torch.no_grad():
+    action = model(state).argmax()</code></pre>
+
+            <p><strong>Debugging tips:</strong></p>
+            <pre><code># Sanity checks
+assert Q_values.shape == (batch_size, num_actions)
+assert not torch.isnan(loss).any()
+assert rewards.min() >= -1 and rewards.max() <= 1  # if clipped
+
+# Overfit single episode
+# If agent can't overfit 1 episode, something's broken!</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning debugging bugs EN</div>
+    </div>
+
+    <!-- Card 20 -->
+    <div class="card">
+        <div class="front">
+            How do you implement a complete DQN training loop?
+        </div>
+        <div class="back">
+            <strong>Complete DQN implementation:</strong>
+
+            <pre><code>import torch
+import torch.nn as nn
+import gymnasium as gym
+from collections import deque
+import random
+import numpy as np
+
+class DQN(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU(),
+            nn.Linear(128, action_dim)
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+class ReplayBuffer:
+    def __init__(self, capacity):
+        self.buffer = deque(maxlen=capacity)
+
+    def push(self, state, action, reward, next_state, done):
+        self.buffer.append((state, action, reward, next_state, done))
+
+    def sample(self, batch_size):
+        batch = random.sample(self.buffer, batch_size)
+        states, actions, rewards, next_states, dones = zip(*batch)
+        return (np.array(states), np.array(actions),
+                np.array(rewards), np.array(next_states),
+                np.array(dones))
+
+    def __len__(self):
+        return len(self.buffer)
+
+# Hyperparameters
+env = gym.make('CartPole-v1')
+state_dim = env.observation_space.shape[0]
+action_dim = env.action_space.n
+
+q_network = DQN(state_dim, action_dim)
+target_network = DQN(state_dim, action_dim)
+target_network.load_state_dict(q_network.state_dict())
+
+optimizer = torch.optim.Adam(q_network.parameters(), lr=1e-3)
+replay_buffer = ReplayBuffer(10000)
+
+gamma = 0.99
+epsilon = 1.0
+epsilon_min = 0.01
+epsilon_decay = 0.995
+batch_size = 64
+target_update = 10
+
+# Training loop
+num_episodes = 500
+for episode in range(num_episodes):
+    state = env.reset()[0]
+    episode_reward = 0
+
+    done = False
+    while not done:
+        # Epsilon-greedy action selection
+        if random.random() < epsilon:
+            action = env.action_space.sample()
+        else:
+            with torch.no_grad():
+                state_tensor = torch.FloatTensor(state).unsqueeze(0)
+                q_values = q_network(state_tensor)
+                action = q_values.argmax().item()
+
+        # Take action
+        next_state, reward, terminated, truncated, _ = env.step(action)
+        done = terminated or truncated
+
+        # Store transition
+        replay_buffer.push(state, action, reward, next_state, done)
+
+        episode_reward += reward
+        state = next_state
+
+        # Train if enough samples
+        if len(replay_buffer) > batch_size:
+            # Sample batch
+            states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
+
+            states = torch.FloatTensor(states)
+            actions = torch.LongTensor(actions)
+            rewards = torch.FloatTensor(rewards)
+            next_states = torch.FloatTensor(next_states)
+            dones = torch.FloatTensor(dones)
+
+            # Current Q values
+            current_q = q_network(states).gather(1, actions.unsqueeze(1)).squeeze()
+
+            # Target Q values
+            with torch.no_grad():
+                max_next_q = target_network(next_states).max(1)[0]
+                target_q = rewards + gamma * max_next_q * (1 - dones)
+
+            # Compute loss and update
+            loss = nn.MSELoss()(current_q, target_q)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+    # Decay epsilon
+    epsilon = max(epsilon_min, epsilon * epsilon_decay)
+
+    # Update target network
+    if episode % target_update == 0:
+        target_network.load_state_dict(q_network.state_dict())
+
+    print(f"Episode {episode}: Reward={episode_reward:.2f}, Epsilon={epsilon:.3f}")</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning dqn implementation EN</div>
+    </div>
+
+    <!-- Card 21 -->
+    <div class="card">
+        <div class="front">
+            What is Double DQN and why is it better than DQN?
+        </div>
+        <div class="back">
+            <strong>Double DQN:</strong> Addresses overestimation bias in DQN.
+
+            <p><strong>Problem with DQN:</strong></p>
+            <ul>
+                <li>Uses same network to select AND evaluate actions</li>
+                <li>Leads to overestimation of Q-values</li>
+                <li>Max operator picks highest (possibly noisy) Q-value</li>
+            </ul>
+
+            <p><strong>Standard DQN target:</strong></p>
+            <pre><code># Same network selects and evaluates
+target = reward + gamma * target_net(next_state).max()
+#                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+#                         select best action AND get its value</code></pre>
+
+            <p><strong>Double DQN solution:</strong></p>
+            <ul>
+                <li>Use Q-network to SELECT action</li>
+                <li>Use target network to EVALUATE action</li>
+                <li>Decouples selection and evaluation</li>
+            </ul>
+
+            <strong>Implementation:</strong>
+            <pre><code># Standard DQN
+with torch.no_grad():
+    max_next_q = target_network(next_states).max(1)[0]
+    target_q = rewards + gamma * max_next_q * (1 - dones)
+
+# Double DQN
+with torch.no_grad():
+    # Use Q-network to select best action
+    next_actions = q_network(next_states).argmax(1)
+
+    # Use target network to evaluate that action
+    next_q_values = target_network(next_states)
+    max_next_q = next_q_values.gather(1, next_actions.unsqueeze(1)).squeeze()
+
+    target_q = rewards + gamma * max_next_q * (1 - dones)
+
+# That's it! Just change target computation</code></pre>
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>Reduces overestimation bias</li>
+                <li>More stable learning</li>
+                <li>Better final performance</li>
+                <li>Minimal code change from DQN</li>
+            </ul>
+
+            <strong>Complete update comparison:</strong>
+            <pre><code># DQN
+target = r + γ * max_a' Q_target(s', a')
+
+# Double DQN
+a_max = argmax_a' Q(s', a')  # Q-net selects
+target = r + γ * Q_target(s', a_max)  # target evaluates</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning double-dqn EN</div>
+    </div>
+
+    <!-- Card 22 -->
+    <div class="card">
+        <div class="front">
+            What is prioritized experience replay?
+        </div>
+        <div class="back">
+            <strong>Prioritized Experience Replay (PER):</strong> Sample important transitions more frequently.
+
+            <p><strong>Key idea:</strong></p>
+            <ul>
+                <li>Not all experiences equally useful</li>
+                <li>Sample transitions with high TD error more often</li>
+                <li>Learn faster from surprising experiences</li>
+            </ul>
+
+            <p><strong>Priority calculation:</strong></p>
+            <pre><code># Priority based on TD error
+priority = |TD_error| + ε
+        = |reward + γ*Q(s',a') - Q(s,a)| + ε
+# ε (small constant) ensures all samples have non-zero probability</code></pre>
+
+            <strong>Implementation:</strong>
+            <pre><code>import numpy as np
+
+class PrioritizedReplayBuffer:
+    def __init__(self, capacity, alpha=0.6):
+        self.capacity = capacity
+        self.alpha = alpha  # priority exponent
+        self.buffer = []
+        self.priorities = np.zeros(capacity)
+        self.pos = 0
+
+    def push(self, state, action, reward, next_state, done):
+        max_priority = self.priorities.max() if self.buffer else 1.0
+
+        if len(self.buffer) < self.capacity:
+            self.buffer.append((state, action, reward, next_state, done))
+        else:
+            self.buffer[self.pos] = (state, action, reward, next_state, done)
+
+        self.priorities[self.pos] = max_priority
+        self.pos = (self.pos + 1) % self.capacity
+
+    def sample(self, batch_size, beta=0.4):
+        # Sample with priorities
+        priorities = self.priorities[:len(self.buffer)]
+        probs = priorities ** self.alpha
+        probs /= probs.sum()
+
+        indices = np.random.choice(len(self.buffer), batch_size, p=probs)
+        samples = [self.buffer[idx] for idx in indices]
+
+        # Importance sampling weights
+        total = len(self.buffer)
+        weights = (total * probs[indices]) ** (-beta)
+        weights /= weights.max()  # normalize
+
+        batch = list(zip(*samples))
+        states = np.array(batch[0])
+        actions = np.array(batch[1])
+        rewards = np.array(batch[2])
+        next_states = np.array(batch[3])
+        dones = np.array(batch[4])
+
+        return states, actions, rewards, next_states, dones, indices, weights
+
+    def update_priorities(self, indices, td_errors):
+        for idx, td_error in zip(indices, td_errors):
+            self.priorities[idx] = abs(td_error) + 1e-6
+
+# In training loop
+states, actions, rewards, next_states, dones, indices, weights = replay_buffer.sample(batch_size, beta)
+
+# Compute TD errors
+current_q = q_network(states).gather(1, actions.unsqueeze(1))
+target_q = compute_target_q(...)
+
+td_errors = (current_q - target_q).detach().cpu().numpy()
+
+# Weighted loss (importance sampling)
+loss = (weights * (current_q - target_q) ** 2).mean()
+
+# Update priorities
+replay_buffer.update_priorities(indices, td_errors)</code></pre>
+
+            <p><strong>Hyperparameters:</strong></p>
+            <ul>
+                <li><strong>α:</strong> How much to use priorities (0=uniform, 1=full priority)</li>
+                <li><strong>β:</strong> Importance sampling correction (0=no correction, 1=full correction)</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning prioritized-replay PER EN</div>
+    </div>
+
+    <!-- Card 23 -->
+    <div class="card">
+        <div class="front">
+            How do you handle continuous action spaces in RL?
+        </div>
+        <div class="back">
+            <strong>Continuous actions:</strong> Actions are real-valued (e.g., steering angle, motor torque).
+
+            <p><strong>Problem:</strong></p>
+            <ul>
+                <li>Can't enumerate all actions (infinite)</li>
+                <li>Can't use argmax over Q-values</li>
+                <li>Need different algorithms</li>
+            </ul>
+
+            <p><strong>Approaches:</strong></p>
+
+            <p><strong>1. Discretize actions (simple but limited):</strong></p>
+            <pre><code># Continuous: steering ∈ [-1, 1]
+# Discretize to: [-1, -0.5, 0, 0.5, 1]
+discrete_actions = [-1.0, -0.5, 0.0, 0.5, 1.0]
+action_idx = q_network(state).argmax()
+continuous_action = discrete_actions[action_idx]</code></pre>
+
+            <p><strong>2. Policy gradients (learn policy directly):</strong></p>
+            <pre><code>class ContinuousPolicy(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, action_dim * 2)  # mean and std
+        )
+
+    def forward(self, state):
+        x = self.fc(state)
+        mean = x[:, :action_dim]
+        log_std = x[:, action_dim:]
+        std = torch.exp(log_std)
+        return mean, std
+
+# Sample action from Gaussian
+mean, std = policy(state)
+dist = torch.distributions.Normal(mean, std)
+action = dist.sample()
+action = torch.tanh(action)  # bound to [-1, 1]</code></pre>
+
+            <p><strong>3. DDPG (Deep Deterministic Policy Gradient):</strong></p>
+            <pre><code>class Actor(nn.Module):
+    """Outputs deterministic action"""
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, action_dim),
+            nn.Tanh()  # bound to [-1, 1]
+        )
+
+    def forward(self, state):
+        return self.net(state)
+
+class Critic(nn.Module):
+    """Q(s, a) for continuous actions"""
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_dim + action_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1)
+        )
+
+    def forward(self, state, action):
+        x = torch.cat([state, action], dim=1)
+        return self.net(x)
+
+# Training
+actor = Actor(state_dim, action_dim)
+critic = Critic(state_dim, action_dim)
+
+# Actor loss: maximize Q
+action = actor(state)
+actor_loss = -critic(state, action).mean()
+
+# Critic loss: TD error
+current_q = critic(state, action)
+target_q = reward + gamma * target_critic(next_state, target_actor(next_state))
+critic_loss = (current_q - target_q) ** 2</code></pre>
+
+            <p><strong>4. SAC (Soft Actor-Critic) - current state-of-the-art for continuous control</strong></p>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning continuous-actions ddpg EN</div>
+    </div>
+
+    <!-- Card 24 -->
+    <div class="card">
+        <div class="front">
+            How do you debug and monitor RL training?
+        </div>
+        <div class="back">
+            <strong>Key metrics to track:</strong>
+
+            <p><strong>1. Episode metrics:</strong></p>
+            <pre><code># Track during training
+episode_rewards = []
+episode_lengths = []
+
+for episode in range(num_episodes):
+    state = env.reset()
+    episode_reward = 0
+    steps = 0
+
+    while not done:
+        # ... training step
+        episode_reward += reward
+        steps += 1
+
+    episode_rewards.append(episode_reward)
+    episode_lengths.append(steps)
+
+    # Log statistics
+    if episode % 10 == 0:
+        avg_reward = np.mean(episode_rewards[-100:])
+        print(f"Episode {episode}")
+        print(f"  Avg Reward (100 ep): {avg_reward:.2f}")
+        print(f"  Epsilon: {epsilon:.3f}")
+        print(f"  Buffer size: {len(replay_buffer)}")</code></pre>
+
+            <p><strong>2. Learning metrics:</strong></p>
+            <pre><code># Track Q-values
+q_values_history = []
+
+# During training
+with torch.no_grad():
+    q_vals = q_network(states).mean().item()
+    q_values_history.append(q_vals)
+
+# Track loss
+losses = []
+losses.append(loss.item())
+
+# Track TD errors
+td_errors = abs(current_q - target_q).mean().item()
+
+# Log to TensorBoard
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
+
+writer.add_scalar('Reward/Episode', episode_reward, episode)
+writer.add_scalar('Loss/Train', loss.item(), step)
+writer.add_scalar('Q-values/Mean', q_vals, step)
+writer.add_scalar('Exploration/Epsilon', epsilon, step)</code></pre>
+
+            <p><strong>3. Diagnostic checks:</strong></p>
+            <pre><code># Check if learning at all
+# - Avg reward should increase over time
+# - If flat, check: LR, reward scale, network size
+
+# Check if overfitting to one strategy
+# - Evaluate with different random seeds
+# - High variance = not generalizing
+
+# Check replay buffer diversity
+# - Visualize state distribution
+# - Check action distribution
+
+# Sanity checks
+def sanity_checks(q_network, replay_buffer):
+    # Can agent overfit single batch?
+    batch = replay_buffer.sample(64)
+    for i in range(1000):
+        loss = train_step(q_network, batch)
+        if i % 100 == 0:
+            print(f"Iter {i}: Loss {loss:.4f}")
+    # Loss should go to ~0
+
+    # Check gradient flow
+    for name, param in q_network.named_parameters():
+        if param.grad is not None:
+            print(f"{name}: grad norm {param.grad.norm():.4f}")
+        else:
+            print(f"{name}: NO GRADIENT!")  # problem!
+
+    # Check Q-value scale
+    states = torch.FloatTensor(sample_states)
+    q_vals = q_network(states)
+    print(f"Q-values: min={q_vals.min():.2f}, "
+          f"max={q_vals.max():.2f}, "
+          f"mean={q_vals.mean():.2f}")
+    # Should be in reasonable range based on rewards</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning debugging monitoring EN</div>
+    </div>
+
+    <!-- Card 25 -->
+    <div class="card">
+        <div class="front">
+            What are the key hyperparameters in RL and how do you tune them?
+        </div>
+        <div class="back">
+            <strong>Critical hyperparameters:</strong>
+
+            <p><strong>1. Learning rate (α):</strong></p>
+            <ul>
+                <li>DQN: 1e-4 to 1e-3</li>
+                <li>Policy gradients: 3e-4 to 1e-3</li>
+                <li>Too high: unstable, diverges</li>
+                <li>Too low: slow learning</li>
+            </ul>
+
+            <p><strong>2. Discount factor (γ):</strong></p>
+            <ul>
+                <li>Typical: 0.99 (or 0.95, 0.999)</li>
+                <li>Higher = more farsighted</li>
+                <li>Lower = more myopic, faster learning</li>
+            </ul>
+
+            <p><strong>3. Exploration (ε):</strong></p>
+            <pre><code># Epsilon schedule
+epsilon_start = 1.0
+epsilon_end = 0.01
+epsilon_decay = 0.995
+
+# Decay over episodes
+epsilon = max(epsilon_end, epsilon * epsilon_decay)
+
+# Or linear decay
+epsilon = epsilon_start - (epsilon_start - epsilon_end) * (step / total_steps)</code></pre>
+
+            <p><strong>4. Batch size:</strong></p>
+            <ul>
+                <li>Typical: 32, 64, 128</li>
+                <li>Larger = more stable but slower</li>
+                <li>Smaller = faster but noisier</li>
+            </ul>
+
+            <p><strong>5. Replay buffer size:</strong></p>
+            <ul>
+                <li>Typical: 10k to 1M</li>
+                <li>Larger = more diverse, but slower sampling</li>
+                <li>Should be much larger than batch size</li>
+            </ul>
+
+            <p><strong>6. Target network update frequency:</strong></p>
+            <ul>
+                <li>Hard update: every 1k-10k steps</li>
+                <li>Soft update (τ=0.005): every step</li>
+            </ul>
+
+            <p><strong>7. Network architecture:</strong></p>
+            <pre><code># Typical DQN
+[state_dim] → [128] → [128] → [action_dim]
+
+# Deeper for complex tasks
+[state_dim] → [256] → [256] → [128] → [action_dim]
+
+# CNN for images
+Conv(32, 8×8, stride=4) → Conv(64, 4×4, stride=2) →
+Conv(64, 3×3, stride=1) → Flatten → [512] → [action_dim]</code></pre>
+
+            <strong>Tuning strategy:</strong>
+            <pre><code># 1. Start with known good values
+defaults = {
+    'lr': 1e-3,
+    'gamma': 0.99,
+    'epsilon_decay': 0.995,
+    'batch_size': 64,
+    'buffer_size': 100000,
+    'target_update': 1000
+}
+
+# 2. Tune one at a time
+# - Start with learning rate
+# - Then epsilon schedule
+# - Then batch size
+# - Then buffer size
+
+# 3. Grid search critical params
+for lr in [1e-4, 3e-4, 1e-3]:
+    for gamma in [0.95, 0.99, 0.999]:
+        train(lr=lr, gamma=gamma)
+
+# 4. Use automatic tuning (Optuna, Ray Tune)
+import optuna
+
+def objective(trial):
+    lr = trial.suggest_loguniform('lr', 1e-5, 1e-2)
+    gamma = trial.suggest_categorical('gamma', [0.95, 0.99, 0.999])
+    return train_and_evaluate(lr=lr, gamma=gamma)
+
+study = optuna.create_study(direction='maximize')
+study.optimize(objective, n_trials=100)</code></pre>
+        </div>
+        <div class="tags">cs pythonML rl reinforcement-learning hyperparameters tuning EN</div>
+    </div>
+
+</body>
+</html>

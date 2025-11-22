@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CI/Continuous Integration Flashcards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background: rgba(245, 245, 245, 0.95);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(221, 221, 221, 0.9);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgba(51, 51, 51, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        .back {
+            color: rgba(68, 68, 68, 0.95);
+        }
+        .back code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: rgba(197, 34, 31, 0.95);
+        }
+        .back pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+        }
+        .back pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(238, 238, 238, 0.9);
+            font-size: 12px;
+            color: rgba(128, 128, 128, 0.95);
+        }
+        ol, ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        strong {
+            color: rgba(76, 175, 80, 0.95);
+        }
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>CI/Continuous Integration Flashcards</h1>
+
+    <div class="card">
+        <div class="front">
+            Your team merges code weekly into a shared branch, then spends days fixing integration issues. What practice would prevent this?
+        </div>
+        <div class="back">
+            <strong>Continuous Integration (CI) - Integrate frequently:</strong>
+            <p><strong>What CI is:</strong> The practice of automatically building and testing code every time someone commits to the shared repository (usually main/master).</p>
+
+            <p><strong>Core principles:</strong></p>
+            <ul>
+                <li>Commit to mainline (main/master) at least daily</li>
+                <li>Every commit triggers automated build + tests</li>
+                <li>Keep builds fast (under 10 minutes ideally)</li>
+                <li>Fix broken builds immediately (highest priority)</li>
+                <li>Everyone sees build status in real-time</li>
+            </ul>
+
+            <p><strong>Why it works:</strong></p>
+            <ul>
+                <li>Integration problems are detected within hours, not weeks</li>
+                <li>Small changes are easier to debug than large merges</li>
+                <li>Reduces "integration hell" at release time</li>
+                <li>Keeps codebase always in deployable state</li>
+                <li>Enables faster delivery and deployment</li>
+            </ul>
+
+            <p><strong>Weekly integration problems vs CI:</strong></p>
+            <pre><code># Weekly integration (BAD):
+Week 1: Everyone works in isolation
+Week 2: Still isolated, code diverges
+Week 3: Attempt to merge = 100+ conflicts
+Week 4: Spend entire week fixing integration issues
+
+# CI approach (GOOD):
+Day 1: Commit small change, tests pass ✓
+Day 2: Commit another change, tests pass ✓
+Day 3: Minor conflict, fixed in 10 minutes ✓
+Week end: Code is integrated and working ✓</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>CI requires automated tests - you can't manually test every commit</li>
+                <li>Start with basic tests, expand coverage over time</li>
+                <li>"Continuous Integration" doesn't mean "Continuously Broken" - fix builds fast</li>
+                <li>Use feature flags for incomplete features on main branch</li>
+                <li>CI is a practice first, tools second (GitHub Actions, Jenkins, etc. enable it)</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci continuous-integration devops best-practices EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's the difference between Continuous Integration (CI), Continuous Delivery (CD), and Continuous Deployment (CD)?
+        </div>
+        <div class="back">
+            <strong>Three related but distinct practices:</strong>
+
+            <p><strong>1. Continuous Integration (CI):</strong></p>
+            <ul>
+                <li>Automatically build and test every commit</li>
+                <li>Merge to main branch frequently (at least daily)</li>
+                <li>Goal: Catch integration issues early</li>
+                <li>Output: Tested, integrated code in main branch</li>
+            </ul>
+
+            <p><strong>2. Continuous Delivery (CD):</strong></p>
+            <ul>
+                <li>Extends CI to also prepare releases automatically</li>
+                <li>Code is always in deployable state</li>
+                <li>Deployment to production requires manual approval</li>
+                <li>Goal: Make releases low-risk, routine events</li>
+                <li>Output: Release-ready artifacts (but not auto-deployed)</li>
+            </ul>
+
+            <p><strong>3. Continuous Deployment (CD):</strong></p>
+            <ul>
+                <li>Extends Continuous Delivery further</li>
+                <li>Every change that passes tests automatically deploys to production</li>
+                <li>No manual approval needed</li>
+                <li>Goal: Minimize time from commit to production</li>
+                <li>Output: Code in production within minutes/hours</li>
+            </ul>
+
+            <p><strong>Visual progression:</strong></p>
+            <pre><code>Manual Integration:
+Code → Manual Merge → Manual Build → Manual Test → Manual Deploy
+
+CI (Continuous Integration):
+Code → Auto Build → Auto Test
+         ↓
+      [Stops here - integrated code in repo]
+
+Continuous Delivery:
+Code → Auto Build → Auto Test → Auto Staging Deploy → Manual Prod Deploy
+                                                            ↑
+                                                    [Human clicks button]
+
+Continuous Deployment:
+Code → Auto Build → Auto Test → Auto Staging → Auto Production
+         ↓
+    [Fully automated - in production within minutes]</code></pre>
+
+            <p><strong>Which to choose:</strong></p>
+            <ul>
+                <li><strong>CI alone:</strong> Good starting point, low risk</li>
+                <li><strong>Continuous Delivery:</strong> Most common, balances automation and control</li>
+                <li><strong>Continuous Deployment:</strong> Requires excellent tests and monitoring, high maturity</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Both Continuous Delivery and Deployment use "CD" abbreviation</li>
+                <li>You can't do CD without CI - they build on each other</li>
+                <li>Most companies do Continuous Delivery, not full Deployment</li>
+                <li>Continuous Deployment requires strong rollback mechanisms</li>
+                <li>Start with CI, add Delivery, consider Deployment when mature</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci cd continuous-integration continuous-delivery continuous-deployment EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Your CI builds take 45 minutes to run. Developers stop running tests locally because "CI will catch it". How do you fix this?
+        </div>
+        <div class="back">
+            <strong>Make CI fast - target under 10 minutes:</strong>
+
+            <p><strong>Why speed matters:</strong></p>
+            <ul>
+                <li>Fast feedback prevents context switching</li>
+                <li>Developers wait for results before next commit</li>
+                <li>Slow CI trains people to ignore it</li>
+                <li>Batching commits = larger, harder-to-debug failures</li>
+                <li>Rule of thumb: Build time under 10 min, ideally under 5 min</li>
+            </ul>
+
+            <p><strong>Strategies to speed up CI:</strong></p>
+            <pre><code># 1. Parallelize tests
+name: CI
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    # ...
+  integration-tests:
+    runs-on: ubuntu-latest
+    # Runs in parallel with unit tests
+    # ...
+
+# 2. Use build matrix for parallel execution
+strategy:
+  matrix:
+    node: [14, 16, 18]
+    os: [ubuntu, macos, windows]
+# Runs 9 jobs in parallel
+
+# 3. Cache dependencies
+- uses: actions/cache@v3
+  with:
+    path: ~/.npm
+    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+# 4. Split fast and slow tests
+jobs:
+  fast-tests:  # Under 2 min - runs always
+  slow-tests:  # Only on main branch or nightly</code></pre>
+
+            <p><strong>Test pyramid for speed:</strong></p>
+            <pre><code>        /\
+       /E2E\      ← Few, slow (run nightly or on-demand)
+      /------\
+     /Integr.\   ← Some, medium speed
+    /----------\
+   /Unit Tests \ ← Many, fast (run on every commit)
+  /--------------\
+
+Unit tests: Milliseconds each, run thousands
+Integration: Seconds each, run dozens
+E2E/UI: Minutes each, run critical paths only</code></pre>
+
+            <p><strong>Additional optimizations:</strong></p>
+            <ul>
+                <li>Run linting/formatting checks before tests (fail fast)</li>
+                <li>Use Docker layer caching for builds</li>
+                <li>Skip tests for docs-only changes (with path filters)</li>
+                <li>Incremental builds (only rebuild changed modules)</li>
+                <li>Use faster test runners (vitest vs jest, etc.)</li>
+                <li>Run expensive tests only on main branch, not PRs</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>If CI is slow, developers bypass it - speed is critical</li>
+                <li>10-minute rule: If over 10 min, investigate optimizations</li>
+                <li>Monitor CI duration over time - it tends to grow</li>
+                <li>Consider: Do you need full test suite on every commit?</li>
+                <li>Fast unit tests on every commit, full suite nightly</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci speed performance testing EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Your CI build is broken on main branch for 2 days. Team keeps committing anyway. What's wrong with this picture?
+        </div>
+        <div class="back">
+            <strong>Fix broken builds immediately - highest priority:</strong>
+
+            <p><strong>The "stop the line" principle:</strong></p>
+            <ul>
+                <li>When main build breaks, fixing it is the #1 priority</li>
+                <li>Don't commit new features while build is red</li>
+                <li>Either fix forward or revert the breaking commit</li>
+                <li>Time to fix: Minutes to hours, not days</li>
+                <li>Inspired by Toyota's manufacturing: stop production line to fix defects</li>
+            </ul>
+
+            <p><strong>Why broken builds are toxic:</strong></p>
+            <pre><code># Day 1: Build breaks
+Developer A: Commits feature X (breaks tests)
+Developer B: "Build is red, but I'll commit anyway"
+Developer C: "Build was already broken, not my problem"
+
+# Day 2: Compound failures
+- Now have 10+ commits since break
+- Don't know which commit(s) caused which failures
+- Can't deploy anything to production
+- Team loses trust in CI
+- "Boy who cried wolf" - ignore all failures
+
+# Result: CI becomes useless</code></pre>
+
+            <p><strong>Broken build protocol:</strong></p>
+            <ol>
+                <li><strong>Detect:</strong> Build notifications to team chat/email</li>
+                <li><strong>Claim:</strong> Someone takes ownership immediately</li>
+                <li><strong>Triage:</strong> Can it be fixed in 10 minutes?
+                    <ul>
+                        <li>Yes → Fix forward</li>
+                        <li>No → Revert and fix offline</li>
+                    </ul>
+                </li>
+                <li><strong>Communicate:</strong> Let team know status</li>
+                <li><strong>Verify:</strong> Green build before resuming normal work</li>
+            </ol>
+
+            <p><strong>Prevention strategies:</strong></p>
+            <pre><code># 1. Branch protection - require CI to pass
+# (GitHub Settings → Branches → Branch protection rules)
+☑ Require status checks to pass before merging
+☑ Require branches to be up to date before merging
+
+# 2. Pre-commit hooks (run tests locally)
+# .git/hooks/pre-commit
+npm test
+
+# 3. Pre-push hooks
+# .git/hooks/pre-push
+git push origin main && echo "Running CI tests locally first..."
+npm test
+
+# 4. Make reverting easy
+git revert HEAD --no-edit
+git push</code></pre>
+
+            <p><strong>Cultural aspects:</strong></p>
+            <ul>
+                <li>Breaking the build is normal - happens to everyone</li>
+                <li>NOT fixing it quickly is the problem</li>
+                <li>Blameless: Focus on fixing, not blaming</li>
+                <li>Celebrate fast fixes, not "never breaking"</li>
+                <li>Metrics: Track "time to green" not "who broke it"</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Red build = production outage mentality</li>
+                <li>If you break it, you fix it (or revert)</li>
+                <li>Revert first, debug later if fix isn't obvious</li>
+                <li>Use branch protection to prevent force-pushing broken code</li>
+                <li>Visible build status: Dashboard, chat bot, lava lamp, etc.</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci broken-builds best-practices culture EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You need to set up CI for a new project. What's a minimal but effective GitHub Actions workflow?
+        </div>
+        <div class="back">
+            <strong>Basic GitHub Actions CI workflow:</strong>
+            <pre><code># .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linter
+      run: npm run lint
+
+    - name: Run tests
+      run: npm test
+
+    - name: Build
+      run: npm run build</code></pre>
+
+            <p><strong>What this does:</strong></p>
+            <ul>
+                <li><strong>Triggers:</strong> Runs on pushes to main and on all pull requests</li>
+                <li><strong>Checkout:</strong> Gets your code from the repository</li>
+                <li><strong>Setup:</strong> Installs Node.js with npm caching for speed</li>
+                <li><strong>Install:</strong> <code>npm ci</code> (clean install, faster than npm install)</li>
+                <li><strong>Lint:</strong> Check code style first (fails fast)</li>
+                <li><strong>Test:</strong> Run your test suite</li>
+                <li><strong>Build:</strong> Ensure code compiles/builds successfully</li>
+            </ul>
+
+            <p><strong>Key improvements to add:</strong></p>
+            <pre><code># Add test matrix for multiple versions
+strategy:
+  matrix:
+    node-version: [16, 18, 20]
+    os: [ubuntu-latest, macos-latest, windows-latest]
+
+# Add code coverage
+- name: Run tests with coverage
+  run: npm test -- --coverage
+
+- name: Upload coverage to Codecov
+  uses: codecov/codecov-action@v3
+
+# Add timeout to prevent hanging builds
+jobs:
+  test:
+    timeout-minutes: 10
+
+# Fail fast if one matrix job fails
+strategy:
+  fail-fast: true</code></pre>
+
+            <p><strong>For other languages:</strong></p>
+            <pre><code># Python
+- uses: actions/setup-python@v4
+  with:
+    python-version: '3.11'
+- run: pip install -r requirements.txt
+- run: pytest
+
+# Go
+- uses: actions/setup-go@v4
+  with:
+    go-version: '1.21'
+- run: go test ./...
+
+# Rust
+- uses: actions-rs/toolchain@v1
+- run: cargo test</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Use <code>npm ci</code> not <code>npm install</code> in CI (faster, more reliable)</li>
+                <li>Always cache dependencies to speed up builds</li>
+                <li>Lint before testing (fail fast on style issues)</li>
+                <li>Set timeouts to catch infinite loops</li>
+                <li>Start simple, add complexity as needed</li>
+                <li>Test the workflow in a PR before merging to main</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci github-actions workflow yaml EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Your team uses long-lived feature branches (weeks/months). How does this conflict with CI principles, and what's the alternative?
+        </div>
+        <div class="back">
+            <strong>Trunk-based development - integrate frequently:</strong>
+
+            <p><strong>Problem with long-lived branches:</strong></p>
+            <ul>
+                <li>Feature branch diverges from main over time</li>
+                <li>Integration issues compound with each day</li>
+                <li>Merge conflicts become massive</li>
+                <li>Code review of 1000+ line changes is ineffective</li>
+                <li>Testing happens late, bugs found late</li>
+                <li>Defeats the purpose of "continuous" integration</li>
+            </ul>
+
+            <p><strong>Trunk-based development approach:</strong></p>
+            <pre><code># Traditional feature branches (BAD for CI):
+main      ─────────────────────────────────
+           \                              /
+feature-x   ──────────────────────────────
+             [3 weeks of work, 1000+ lines]
+             [Merge causes conflicts, bugs]
+
+# Trunk-based (GOOD for CI):
+main      ─┬─┬─┬─┬─┬─┬─┬─┬─┬─
+           │ │ │ │ │ │ │ │ │ │
+           └─┘ └─┘ └─┘ └─┘ └─┘
+           [Small commits, hours not weeks]
+           [Always integrated, always tested]</code></pre>
+
+            <p><strong>Core principles:</strong></p>
+            <ul>
+                <li>All developers commit to main/master (the "trunk")</li>
+                <li>Very short-lived branches (hours to 1-2 days max)</li>
+                <li>Commit at least daily to main</li>
+                <li>Use feature flags for incomplete features</li>
+                <li>Small, incremental changes that don't break main</li>
+            </ul>
+
+            <p><strong>Handling incomplete features:</strong></p>
+            <pre><code># Use feature flags to hide incomplete work:
+if (featureFlags.newCheckout) {
+  // New checkout flow (incomplete, but on main)
+  return <NewCheckout />;
+} else {
+  // Old checkout flow (stable)
+  return <OldCheckout />;
+}
+
+// Deploy to production with flag OFF
+// Enable for testing: ?enableNewCheckout=true
+// Gradual rollout: 1% → 10% → 50% → 100%
+// If bugs found: Turn flag OFF (instant rollback)</code></pre>
+
+            <p><strong>Short-lived branches workflow:</strong></p>
+            <pre><code># Day 1: Create small feature branch
+git checkout -b add-user-avatar
+# Make small change (1-3 hours of work)
+git commit -m "Add avatar field to user model"
+git push
+
+# Same day: Create PR, get reviewed, merge
+# Total branch lifetime: 4-8 hours
+
+# Day 2: Next small piece
+git checkout -b display-user-avatar
+# Another small change
+# Merge same day</code></pre>
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>Always integrating = true continuous integration</li>
+                <li>Small changes are easier to review</li>
+                <li>Merge conflicts are rare and small</li>
+                <li>Bugs are caught within hours, not weeks</li>
+                <li>Can deploy main at any time</li>
+                <li>Reduces "merge day" stress</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>GitHub/GitLab support trunk-based: Require CI before merge</li>
+                <li>Feature flags libraries: LaunchDarkly, Unleash, or simple env vars</li>
+                <li>Break features into mergeable increments</li>
+                <li>Old way: "Merge when feature is done" → New way: "Merge daily, hide with flags"</li>
+                <li>Google, Facebook use trunk-based development at scale</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci trunk-based-development feature-branches git EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            How do you securely use API keys, passwords, and secrets in CI without hardcoding them in your repository?
+        </div>
+        <div class="back">
+            <strong>Use CI secrets management - never commit secrets:</strong>
+
+            <p><strong>GitHub Actions secrets:</strong></p>
+            <pre><code># 1. Add secret via GitHub UI:
+# Settings → Secrets and variables → Actions → New repository secret
+# Name: API_KEY
+# Value: sk-abc123...
+
+# 2. Use in workflow:
+# .github/workflows/deploy.yml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to production
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          ./deploy.sh
+
+# 3. Access in scripts:
+# deploy.sh
+curl -H "Authorization: Bearer $API_KEY" https://api.example.com</code></pre>
+
+            <p><strong>Why this is secure:</strong></p>
+            <ul>
+                <li>Secrets are encrypted at rest in GitHub</li>
+                <li>Never appear in logs (automatically redacted)</li>
+                <li>Not accessible in PRs from forks (security!)</li>
+                <li>Each environment can have different secrets</li>
+                <li>Can be rotated without changing code</li>
+            </ul>
+
+            <p><strong>Common mistakes to avoid:</strong></p>
+            <pre><code># ❌ DON'T: Hardcode in repo
+API_KEY="sk-abc123..."  # NEVER DO THIS!
+
+# ❌ DON'T: Echo secrets (exposes in logs)
+echo "API key is: ${{ secrets.API_KEY }}"
+
+# ❌ DON'T: Put in environment files committed to git
+# .env (committed to git)
+API_KEY=sk-abc123...
+
+# ✓ DO: Use secrets
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+
+# ✓ DO: Use .env.example (template without real values)
+# .env.example (committed to git)
+API_KEY=your_api_key_here
+
+# ✓ DO: Add .env to .gitignore
+# .gitignore
+.env</code></pre>
+
+            <p><strong>Different secret scopes:</strong></p>
+            <pre><code># Repository secrets: Available to all workflows in one repo
+${{ secrets.API_KEY }}
+
+# Environment secrets: Specific to deployment environments
+# Settings → Environments → production → Add secret
+jobs:
+  deploy:
+    environment: production  # Uses production secrets
+    steps:
+      - run: deploy.sh
+        env:
+          PROD_API_KEY: ${{ secrets.PROD_API_KEY }}
+
+# Organization secrets: Shared across all repos in org
+# Useful for: NPM tokens, Docker Hub, cloud provider credentials</code></pre>
+
+            <p><strong>Other CI platforms:</strong></p>
+            <pre><code># GitLab CI: Settings → CI/CD → Variables
+# .gitlab-ci.yml
+deploy:
+  script:
+    - echo $API_KEY  # GitLab auto-masks in logs
+
+# CircleCI: Project Settings → Environment Variables
+# .circleci/config.yml
+- run: echo $API_KEY
+
+# Jenkins: Credentials Plugin
+withCredentials([string(credentialsId: 'api-key', variable: 'API_KEY')]) {
+  sh 'echo $API_KEY'
+}</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Use different secrets for dev/staging/prod</li>
+                <li>Rotate secrets regularly (especially if developers leave)</li>
+                <li>Use least-privilege: CI only needs deploy permissions, not admin</li>
+                <li>For AWS: Use OIDC/federated identity instead of long-lived keys</li>
+                <li>Audit secret access in CI logs</li>
+                <li>Never debug by printing secrets to logs</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci secrets security github-actions EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Your monorepo has 10 services. Every commit triggers tests for all services, wasting time. How do you optimize this?
+        </div>
+        <div class="back">
+            <strong>Use path filters to run jobs only when relevant files change:</strong>
+
+            <p><strong>GitHub Actions path filters:</strong></p>
+            <pre><code># .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    paths:
+      - 'services/api/**'
+      - 'shared/**'
+
+# Only runs when files in services/api/ or shared/ change
+
+# Multiple jobs for different services:
+jobs:
+  test-api:
+    if: contains(github.event.head_commit.modified, 'services/api')
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm test --prefix services/api
+
+  test-frontend:
+    if: contains(github.event.head_commit.modified, 'services/frontend')
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm test --prefix services/frontend</code></pre>
+
+            <p><strong>Better approach with path filtering:</strong></p>
+            <pre><code># .github/workflows/api-ci.yml
+name: API CI
+on:
+  push:
+    paths:
+      - 'services/api/**'
+      - 'shared/utils/**'
+      - '.github/workflows/api-ci.yml'  # Re-run if workflow changes
+
+jobs:
+  test-api:
+    # Only runs when API or shared code changes
+    # ...
+
+# .github/workflows/frontend-ci.yml
+name: Frontend CI
+on:
+  push:
+    paths:
+      - 'services/frontend/**'
+      - 'shared/components/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  test-frontend:
+    # Only runs when frontend code changes
+    # ...</code></pre>
+
+            <p><strong>Monorepo CI strategies:</strong></p>
+            <pre><code># Strategy 1: Path filters (shown above)
+# Pro: Simple, works in GitHub/GitLab
+# Con: Manual maintenance of dependencies
+
+# Strategy 2: Dependency graph (nx, turborepo, bazel)
+# Automatically detect what changed and what depends on it
+npx nx affected:test
+# Only tests services affected by changes
+
+# Strategy 3: Changed files detection
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'services/api/**'
+            frontend:
+              - 'services/frontend/**'
+
+  test-api:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api == 'true'
+    # Only runs if API changed</code></pre>
+
+            <p><strong>When to run full suite:</strong></p>
+            <pre><code># Run all tests on main branch (catch integration issues)
+on:
+  push:
+    branches:
+      - main  # Full suite on main
+  pull_request:
+    # Only changed services on PRs (faster)
+
+# Or schedule full tests nightly
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM daily
+  push:
+    paths:
+      - 'services/api/**'  # Individual service on push</code></pre>
+
+            <p><strong>Shared code considerations:</strong></p>
+            <pre><code># If shared/ changes, test everything that depends on it
+on:
+  push:
+    paths:
+      - 'shared/**'
+# Trigger all service tests
+
+# Better: Maintain dependency manifest
+# dependencies.json
+{
+  "shared/auth": ["services/api", "services/admin"],
+  "shared/ui": ["services/frontend", "services/mobile"]
+}
+# When shared/auth changes → test api + admin only</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Don't over-optimize: PRs should be confident, not fastest</li>
+                <li>Always run full suite on main branch merges</li>
+                <li>Use monorepo tools (Nx, Turborepo) for smart caching</li>
+                <li>Document dependencies between services</li>
+                <li>Consider: Is monorepo the right choice? Multiple repos can be simpler</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci monorepo optimization path-filters EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What are CI anti-patterns that teams should avoid?
+        </div>
+        <div class="back">
+            <strong>Common CI anti-patterns to avoid:</strong>
+
+            <p><strong>1. "CI will catch it" syndrome:</strong></p>
+            <ul>
+                <li>Developers don't run tests locally</li>
+                <li>Push broken code, rely on CI to find issues</li>
+                <li><strong>Fix:</strong> Fast local tests, pre-commit hooks, make CI a safety net not first line</li>
+            </ul>
+
+            <p><strong>2. Flaky tests:</strong></p>
+            <ul>
+                <li>Tests pass/fail randomly without code changes</li>
+                <li>Team learns to ignore failures ("just re-run")</li>
+                <li>Real bugs get missed</li>
+                <li><strong>Fix:</strong> Quarantine flaky tests, fix or delete them, never ignore</li>
+            </ul>
+
+            <p><strong>3. Slow builds that nobody waits for:</strong></p>
+            <ul>
+                <li>45-minute CI runs, developers move on to next task</li>
+                <li>Context switching when failure detected hours later</li>
+                <li><strong>Fix:</strong> Speed up CI, parallelize, split fast/slow tests</li>
+            </ul>
+
+            <p><strong>4. Testing in production:</strong></p>
+            <ul>
+                <li>"We don't need CI, we'll test in production"</li>
+                <li>Users become QA team</li>
+                <li><strong>Fix:</strong> Automated tests, staging environment</li>
+            </ul>
+
+            <p><strong>5. Manual steps in "automated" pipeline:</strong></p>
+            <pre><code># Anti-pattern:
+1. CI runs tests ✓
+2. "Now manually SSH to server and run deploy.sh"
+3. "Manually update database schema"
+4. "Manually restart services"
+
+# Better: Fully automated
+1. CI runs tests ✓
+2. CI deploys to staging automatically ✓
+3. CI runs DB migrations ✓
+4. Manual approval for production
+5. CI deploys to production ✓</code></pre>
+
+            <p><strong>6. "Works on my machine":</strong></p>
+            <ul>
+                <li>Tests pass locally, fail in CI (or vice versa)</li>
+                <li>Different versions, missing dependencies</li>
+                <li><strong>Fix:</strong> Use Docker for consistent environments, lock dependency versions</li>
+            </ul>
+
+            <p><strong>7. No branch protection:</strong></p>
+            <ul>
+                <li>Can push directly to main without CI</li>
+                <li>Can merge PRs with failing tests</li>
+                <li><strong>Fix:</strong> Require CI to pass, require code review</li>
+            </ul>
+
+            <p><strong>8. Testing only happy paths:</strong></p>
+            <ul>
+                <li>All tests assume perfect inputs, working services</li>
+                <li>Real-world errors not tested</li>
+                <li><strong>Fix:</strong> Test error cases, edge cases, failure scenarios</li>
+            </ul>
+
+            <p><strong>9. Ignoring CI failures:</strong></p>
+            <pre><code># Anti-pattern:
+"Build failed? Just merge anyway, we'll fix it later"
+
+# Leads to:
+- Main branch always broken
+- Don't know which commit caused issues
+- Team loses trust in CI
+- CI becomes useless decoration</code></pre>
+
+            <p><strong>10. Secrets in code:</strong></p>
+            <ul>
+                <li>API keys, passwords committed to repo</li>
+                <li>Exposed in public repos or to ex-employees</li>
+                <li><strong>Fix:</strong> Use CI secrets, environment variables, never commit credentials</li>
+            </ul>
+
+            <p><strong>11. Build-specific tests:</strong></p>
+            <ul>
+                <li>Tests that only work in CI environment</li>
+                <li>Can't reproduce failures locally</li>
+                <li><strong>Fix:</strong> Tests should work anywhere, use env vars for differences</li>
+            </ul>
+
+            <p><strong>12. No visibility:</strong></p>
+            <ul>
+                <li>CI runs quietly, no one knows status</li>
+                <li>Broken builds go unnoticed</li>
+                <li><strong>Fix:</strong> Slack/Teams notifications, status badges, dashboards</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>If you find yourself saying "CI is annoying", investigate why</li>
+                <li>Good CI is fast, reliable, and trusted</li>
+                <li>Bad CI gets bypassed, ignored, or disabled</li>
+                <li>Fix anti-patterns early before they become culture</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci anti-patterns best-practices mistakes EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            How do you handle CI for a project with multiple programming languages or frameworks?
+        </div>
+        <div class="back">
+            <strong>Use build matrix or multiple jobs:</strong>
+
+            <p><strong>Approach 1: Matrix strategy (parallel execution):</strong></p>
+            <pre><code># .github/workflows/ci.yml
+name: Multi-language CI
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          # Frontend
+          - language: node
+            version: '18'
+            test-command: 'cd frontend && npm test'
+
+          # Backend API
+          - language: python
+            version: '3.11'
+            test-command: 'cd backend && pytest'
+
+          # Mobile app
+          - language: java
+            version: '17'
+            test-command: 'cd mobile && ./gradlew test'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup ${{ matrix.language }}
+        uses: actions/setup-${{ matrix.language }}@v3
+        with:
+          ${{ matrix.language }}-version: ${{ matrix.version }}
+
+      - name: Run tests
+        run: ${{ matrix.test-command }}</code></pre>
+
+            <p><strong>Approach 2: Separate jobs (more control):</strong></p>
+            <pre><code>jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - run: pytest
+      - run: mypy .
+
+  integration:
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Start services
+        run: docker-compose up -d
+      - name: Run integration tests
+        run: ./run-integration-tests.sh
+      - name: Cleanup
+        run: docker-compose down</code></pre>
+
+            <p><strong>Monorepo with multiple stacks:</strong></p>
+            <pre><code># Full-stack project structure:
+project/
+├── frontend/          (React + TypeScript)
+├── backend/           (Python + FastAPI)
+├── mobile/            (React Native)
+├── infrastructure/    (Terraform)
+└── .github/workflows/
+    ├── frontend-ci.yml
+    ├── backend-ci.yml
+    ├── mobile-ci.yml
+    └── integration-ci.yml
+
+# Each workflow runs independently
+# Triggered by path filters (only run if that part changed)</code></pre>
+
+            <p><strong>Docker approach (language-agnostic):</strong></p>
+            <pre><code># Use Docker for consistent multi-language builds
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build all services
+        run: docker-compose build
+
+      - name: Run all tests
+        run: docker-compose run --rm test-all
+
+# docker-compose.yml handles all language-specific setup
+services:
+  frontend:
+    build: ./frontend
+    command: npm test
+
+  backend:
+    build: ./backend
+    command: pytest
+
+  mobile:
+    build: ./mobile
+    command: ./gradlew test</code></pre>
+
+            <p><strong>Caching for multiple languages:</strong></p>
+            <pre><code># Cache each language's dependencies separately
+- name: Cache Node modules
+  uses: actions/cache@v3
+  with:
+    path: ~/.npm
+    key: node-${{ hashFiles('**/package-lock.json') }}
+
+- name: Cache Python packages
+  uses: actions/cache@v3
+  with:
+    path: ~/.cache/pip
+    key: pip-${{ hashFiles('**/requirements.txt') }}
+
+- name: Cache Gradle dependencies
+  uses: actions/cache@v3
+  with:
+    path: ~/.gradle/caches
+    key: gradle-${{ hashFiles('**/*.gradle*') }}</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Parallel jobs finish faster than sequential</li>
+                <li>Use path filters to only test changed components</li>
+                <li>Integration tests run after all unit tests pass</li>
+                <li>Docker can simplify multi-language CI (one build tool to rule them all)</li>
+                <li>Each job should be independent (no shared state)</li>
+                <li>Consider: Do all languages need to run on every commit?</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci multi-language monorepo matrix EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Your CI job fails, but the logs are unclear. What debugging strategies help you identify the issue?
+        </div>
+        <div class="back">
+            <strong>CI debugging strategies:</strong>
+
+            <p><strong>1. Add debug logging:</strong></p>
+            <pre><code># GitHub Actions: Enable debug logs
+- name: Debug - Show environment
+  run: |
+    echo "Node version: $(node --version)"
+    echo "NPM version: $(npm --version)"
+    echo "Working directory: $(pwd)"
+    echo "Files: $(ls -la)"
+    env | sort  # Show all environment variables
+
+# Enable step debugging
+- name: Install dependencies
+  run: npm ci
+  env:
+    ACTIONS_STEP_DEBUG: true</code></pre>
+
+            <p><strong>2. Re-run with SSH access (for GitHub Actions):</strong></p>
+            <pre><code># Add this step to your workflow:
+- name: Setup tmate session
+  if: failure()  # Only on failure
+  uses: mxschmitt/action-tmate@v3
+  timeout-minutes: 30
+
+# When job fails:
+# 1. GitHub provides SSH command in logs
+# 2. SSH into the CI environment
+# 3. Investigate interactively
+# 4. Kill SSH session when done (auto-continues workflow)</code></pre>
+
+            <p><strong>3. Reproduce locally with act (GitHub Actions):</strong></p>
+            <pre><code># Install act: https://github.com/nektos/act
+brew install act
+
+# Run workflow locally in Docker
+act -j test
+
+# Debug specific job
+act -j test --verbose
+
+# Simulate GitHub environment
+act -j deploy \
+  --secret GITHUB_TOKEN=your_token \
+  --env ENVIRONMENT=staging</code></pre>
+
+            <p><strong>4. Increase verbosity:</strong></p>
+            <pre><code># Add verbose flags to commands
+- run: npm test --verbose
+- run: pytest -vv  # Very verbose
+- run: cargo test --verbose
+- run: go test -v ./...
+
+# For shell scripts
+- run: bash -x ./deploy.sh  # Print each command
+
+# Set GitHub Actions debug mode
+# Repository Settings → Secrets → Add secret:
+# ACTIONS_RUNNER_DEBUG=true
+# ACTIONS_STEP_DEBUG=true</code></pre>
+
+            <p><strong>5. Check common issues:</strong></p>
+            <pre><code># File permissions
+- run: ls -la script.sh
+- run: chmod +x script.sh
+
+# Dependency versions
+- run: npm list
+- run: pip freeze
+- run: go mod graph
+
+# Network/connectivity
+- run: curl -v https://api.example.com
+- run: ping -c 3 database.internal
+
+# Disk space
+- run: df -h
+
+# Environment differences
+- run: echo "Node: $(node -v), Platform: $RUNNER_OS"</code></pre>
+
+            <p><strong>6. Isolate the failure:</strong></p>
+            <pre><code># Comment out steps to find which one fails
+jobs:
+  test:
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      # - run: npm test        # Temporarily disabled
+      # - run: npm run build   # Temporarily disabled
+
+# Or use continue-on-error to see all failures
+- run: npm test
+  continue-on-error: true
+- run: npm run build
+  continue-on-error: true</code></pre>
+
+            <p><strong>7. Compare with successful runs:</strong></p>
+            <pre><code># On GitHub:
+# 1. Go to Actions tab
+# 2. Find last successful run
+# 3. Compare environment, dependencies, timing
+# 4. Look for changes between success and failure
+
+# Check dependency changes
+- run: git diff HEAD~1 package-lock.json</code></pre>
+
+            <p><strong>8. Capture artifacts:</strong></p>
+            <pre><code># Save logs, screenshots, test output
+- name: Upload test results
+  if: always()  # Even on failure
+  uses: actions/upload-artifact@v3
+  with:
+    name: test-results
+    path: |
+      test-results/
+      screenshots/
+      *.log
+
+# Download from GitHub Actions UI to analyze</code></pre>
+
+            <p><strong>9. Test matrix for environment issues:</strong></p>
+            <pre><code># If fails on one OS but not others:
+strategy:
+  matrix:
+    os: [ubuntu-latest, macos-latest, windows-latest]
+    node: [16, 18, 20]
+# Helps identify: "Only fails on Windows with Node 20"</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Most failures: dependency issues, environment differences, or flaky tests</li>
+                <li>Always check: What changed since last successful run?</li>
+                <li>Use <code>if: always()</code> for debug steps that should run on failure</li>
+                <li>GitHub Actions logs persist for 90 days</li>
+                <li>Consider: Can you reproduce failure in Docker locally?</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci debugging troubleshooting github-actions EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's the testing pyramid, and how does it guide your CI testing strategy?
+        </div>
+        <div class="back">
+            <strong>Testing pyramid - more small tests, fewer large tests:</strong>
+
+            <p><strong>The pyramid structure:</strong></p>
+            <pre><code>           /\
+          /UI\ ← Few, slow (10s)
+         /E2E \   Hours to write, minutes to run
+        /------\
+       / API  \  ← Some, medium (100s)
+      /Integr.\   1hr to write, seconds to run
+     /--------\
+    /  Unit   \ ← Many, fast (1000s)
+   /  Tests   \   Minutes to write, milliseconds to run
+  /-----------\</code></pre>
+
+            <p><strong>Why this shape:</strong></p>
+            <ul>
+                <li><strong>Unit tests:</strong> Fast, reliable, cheap to write and run</li>
+                <li><strong>Integration:</strong> Test module interactions, slower but necessary</li>
+                <li><strong>E2E/UI:</strong> Slow, flaky, expensive - use sparingly for critical paths</li>
+            </ul>
+
+            <p><strong>Practical breakdown:</strong></p>
+            <pre><code># Unit Tests (70% of tests)
+# - Test single functions/classes in isolation
+# - Mock all dependencies
+# - Run in milliseconds
+
+describe('calculateTotal', () => {
+  it('sums item prices', () => {
+    expect(calculateTotal([1, 2, 3])).toBe(6);
+  });
+  it('applies discount', () => {
+    expect(calculateTotal([10, 10], 0.5)).toBe(10);
+  });
+});
+
+# Integration Tests (20% of tests)
+# - Test multiple modules working together
+# - Real database, mocked external APIs
+# - Run in seconds
+
+test('User checkout flow', async () => {
+  const order = await createOrder(userId, items);
+  const payment = await processPayment(order.id);
+  expect(payment.status).toBe('success');
+});
+
+# E2E Tests (10% of tests)
+# - Test full user workflows
+# - Real browser, real database, real services
+# - Run in minutes
+
+test('Complete purchase', async ({ page }) => {
+  await page.goto('/products');
+  await page.click('Add to cart');
+  await page.fill('input[name=email]', 'test@example.com');
+  await page.click('Checkout');
+  expect(await page.textContent('.confirmation')).toContain('Thank you');
+});</code></pre>
+
+            <p><strong>CI strategy based on pyramid:</strong></p>
+            <pre><code># GitHub Actions workflow
+jobs:
+  unit-tests:
+    # Fast, run on every commit
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm test:unit  # 2 minutes
+      # 1000s of tests, all must pass
+
+  integration-tests:
+    # Medium, run on every commit
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - run: docker-compose up -d database
+      - run: npm test:integration  # 5 minutes
+      # 100s of tests
+
+  e2e-tests:
+    # Slow, run strategically
+    needs: [unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  # Only on main
+    steps:
+      - run: npm test:e2e  # 20 minutes
+      # 10-20 critical path tests only
+
+  e2e-full:
+    # Very slow, run nightly
+    if: github.event.schedule  # Cron only
+    steps:
+      - run: npm test:e2e:full  # 2 hours
+      # Complete E2E suite</code></pre>
+
+            <p><strong>Anti-pattern: Inverted pyramid:</strong></p>
+            <pre><code>  /-----------\
+ / E2E/UI   \ ← Many, slow (BAD!)
+/-------------\
+ \Integration/  ← Some
+  \----------/
+   \  Unit  /   ← Few
+    \------/
+
+Problems:
+- CI takes hours
+- Tests are flaky
+- Hard to debug failures
+- Expensive to maintain
+- Slow feedback loop</code></pre>
+
+            <p><strong>What to test at each level:</strong></p>
+            <ul>
+                <li><strong>Unit:</strong> Business logic, calculations, validations, edge cases</li>
+                <li><strong>Integration:</strong> Database queries, API contracts, module boundaries</li>
+                <li><strong>E2E:</strong> Critical user journeys (signup, checkout, core features)</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>If a test is slow, move it down the pyramid (unit test the logic, E2E test the flow)</li>
+                <li>100% coverage via unit tests is better than 50% coverage via E2E</li>
+                <li>E2E tests should be smoke tests, not exhaustive</li>
+                <li>Run fast tests first (fail fast), slow tests later</li>
+                <li>Use test pyramid to guide effort: More time on unit tests</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci testing testing-pyramid unit-tests integration-tests e2e EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            How do you deploy to production with confidence using CI/CD?
+        </div>
+        <div class="back">
+            <strong>Production deployment best practices:</strong>
+
+            <p><strong>1. Progressive deployment strategies:</strong></p>
+            <pre><code># Blue-Green Deployment
+┌─────────────┐
+│   Users     │
+└──────┬──────┘
+       │ Switch traffic instantly
+   ┌───┴────┐
+   │  LB    │ ← Load balancer
+   └───┬────┘
+       ├─────────┬─────────┐
+   ┌───▼───┐ ┌───▼───┐
+   │ Blue  │ │ Green │
+   │ (old) │ │ (new) │
+   └───────┘ └───────┘
+   Active     Standby
+
+# Switch → Test → If issues, switch back (instant rollback)
+
+# Canary Deployment
+Users
+  ↓
+Load Balancer
+  ├─→ 95% → Old version (stable)
+  └─→  5% → New version (canary)
+
+# Monitor canary for errors
+# If good: 10% → 25% → 50% → 100%
+# If bad: Route 100% back to old version
+
+# Rolling Deployment
+Server 1: v1.0 → v2.0 ✓
+Server 2: v1.0 → v2.0 ✓
+Server 3: v1.0 → v2.0 ✓
+Server 4: v1.0 → deploying...
+
+# One at a time, always some servers available</code></pre>
+
+            <p><strong>2. Deployment pipeline with gates:</strong></p>
+            <pre><code># .github/workflows/deploy.yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm test
+      # Gate 1: All tests must pass
+
+  deploy-staging:
+    needs: test
+    environment: staging
+    steps:
+      - run: ./deploy.sh staging
+      - run: ./smoke-tests.sh
+      # Gate 2: Staging deployment succeeds
+
+  deploy-production:
+    needs: deploy-staging
+    environment: production  # Requires approval
+    steps:
+      - name: Deploy to production
+        run: ./deploy.sh production
+
+      - name: Smoke tests
+        run: ./smoke-tests.sh production
+
+      - name: Monitor for errors
+        run: ./check-error-rates.sh
+        # Gate 3: Production health check
+
+# GitHub Environment protection:
+# Settings → Environments → production
+# ☑ Required reviewers (2 approvers)
+# ☑ Wait timer (10 minutes)
+# ☑ Branch restrictions (only main)</code></pre>
+
+            <p><strong>3. Automated rollback on failure:</strong></p>
+            <pre><code># Monitor and auto-rollback
+- name: Deploy new version
+  id: deploy
+  run: |
+    kubectl set image deployment/app app=app:${{ github.sha }}
+    kubectl rollout status deployment/app
+
+- name: Monitor error rate
+  run: |
+    # Check error rate for 5 minutes
+    ERROR_RATE=$(./check-errors.sh)
+    if [ $ERROR_RATE -gt 5 ]; then
+      echo "Error rate too high: $ERROR_RATE%"
+      exit 1
+    fi
+
+- name: Rollback on failure
+  if: failure()
+  run: |
+    kubectl rollout undo deployment/app
+    echo "Automatically rolled back due to high error rate"</code></pre>
+
+            <p><strong>4. Feature flags for risk mitigation:</strong></p>
+            <pre><code># Deploy code to production with features OFF
+if (featureFlags.get('new-payment-flow')) {
+  return <NewPaymentFlow />;
+} else {
+  return <OldPaymentFlow />;
+}
+
+# Deployment process:
+1. Deploy with flag OFF ✓ (no risk)
+2. Enable for internal users ✓
+3. Enable for 1% of users ✓
+4. Monitor metrics ✓
+5. Gradually increase: 5% → 10% → 50% → 100%
+6. If issues: Turn flag OFF (instant rollback, no redeployment)</code></pre>
+
+            <p><strong>5. Observability and monitoring:</strong></p>
+            <pre><code># Must-have metrics:
+- Error rate (errors per minute)
+- Response time (p50, p95, p99)
+- Request rate (requests per minute)
+- Availability (uptime %)
+
+# Set up alerts
+- name: Check production health
+  run: |
+    # Query metrics from last 5 minutes
+    ERROR_RATE=$(curl -s "https://metrics.example.com/api/errors")
+
+    if [ $ERROR_RATE -gt 1 ]; then
+      echo "🚨 High error rate detected: $ERROR_RATE%"
+      curl -X POST $SLACK_WEBHOOK -d '{"text":"Production error spike!"}'
+      exit 1
+    fi
+
+# Use: Datadog, New Relic, Prometheus, CloudWatch</code></pre>
+
+            <p><strong>6. Database migrations in CI/CD:</strong></p>
+            <pre><code># Safe migration strategy
+jobs:
+  migrate:
+    environment: production
+    steps:
+      # 1. Backward-compatible migration
+      - run: ./migrate.sh up
+
+      # 2. Deploy new code (works with old & new schema)
+      - run: ./deploy.sh
+
+      # 3. Monitor for issues
+      - run: sleep 300  # Wait 5 minutes
+      - run: ./check-health.sh
+
+      # 4. Clean up old schema (after code deployed)
+      - run: ./migrate.sh cleanup
+
+# Never: Drop columns or tables before code deployment!</code></pre>
+
+            <p><strong>7. Production deployment checklist:</strong></p>
+            <ul>
+                <li>✓ All tests pass (unit, integration, E2E)</li>
+                <li>✓ Code reviewed and approved</li>
+                <li>✓ Deployed to staging successfully</li>
+                <li>✓ Smoke tests pass on staging</li>
+                <li>✓ Database migrations tested</li>
+                <li>✓ Rollback plan documented</li>
+                <li>✓ Monitoring alerts configured</li>
+                <li>✓ On-call engineer available</li>
+                <li>✓ Deploy during business hours (not Friday 5pm!)</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Never deploy directly to production - always staging first</li>
+                <li>Make deployments boring and frequent (daily is safer than monthly)</li>
+                <li>Automate everything except the "deploy to prod" button</li>
+                <li>Monitor intensely for first hour after deployment</li>
+                <li>Small, frequent deploys are safer than large, rare ones</li>
+            </ul>
+        </div>
+        <div class="tags">cs ci cd deployment production rollback monitoring EN</div>
+    </div>
+
+</body>
+</html>

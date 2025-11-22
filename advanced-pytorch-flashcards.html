@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced PyTorch Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(249, 250, 251, 0.95);
+        }
+        h1 {
+            color: rgba(31, 41, 55, 0.95);
+            border-bottom: 3px solid rgba(76, 175, 80, 0.8);
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(31, 41, 55, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+        }
+        .back {
+            color: rgba(55, 65, 81, 0.95);
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(229, 231, 235, 0.95);
+            font-size: 12px;
+            color: rgba(107, 114, 128, 0.95);
+        }
+        code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            color: rgba(197, 34, 31, 0.95);
+            font-size: 0.9em;
+        }
+        pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+        pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        strong {
+            color: rgba(31, 41, 55, 0.95);
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Advanced PyTorch Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            How do you create custom PyTorch layers/modules?
+        </div>
+        <div class="back">
+            <strong>Custom Module:</strong> Inherit from <code>nn.Module</code> and implement <code>__init__</code> and <code>forward</code>.
+
+            <strong>Example:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+class CustomLinear(nn.Module):
+    def __init__(self, in_features, out_features):
+        super().__init__()
+        # Initialize parameters
+        self.weight = nn.Parameter(torch.randn(out_features, in_features))
+        self.bias = nn.Parameter(torch.zeros(out_features))
+
+    def forward(self, x):
+        # x: (batch, in_features)
+        return x @ self.weight.t() + self.bias
+
+# Usage
+layer = CustomLinear(10, 5)
+x = torch.randn(32, 10)
+output = layer(x)  # (32, 5)
+
+# Parameters automatically registered
+for name, param in layer.named_parameters():
+    print(name, param.shape)
+# weight torch.Size([5, 10])
+# bias torch.Size([5])</code></pre>
+
+            <strong>Complex example with sub-modules:</strong>
+            <pre><code>class ResidualBlock(nn.Module):
+    def __init__(self, channels):
+        super().__init__()
+        self.conv1 = nn.Conv2d(channels, channels, 3, padding=1)
+        self.bn1 = nn.BatchNorm2d(channels)
+        self.conv2 = nn.Conv2d(channels, channels, 3, padding=1)
+        self.bn2 = nn.BatchNorm2d(channels)
+
+    def forward(self, x):
+        residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = torch.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        out += residual  # Skip connection
+        out = torch.relu(out)
+
+        return out
+
+# Module with dynamic behavior
+class DynamicNet(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super().__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.fc3 = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x, num_layers=2):
+        x = torch.relu(self.fc1(x))
+
+        # Dynamic number of hidden layers
+        for _ in range(num_layers):
+            x = torch.relu(self.fc2(x))
+
+        x = self.fc3(x)
+        return x
+
+# Usage
+model = DynamicNet(10, 20, 5)
+out = model(x, num_layers=3)  # 3 hidden layers this time</code></pre>
+
+            <strong>Module with buffers (non-trainable state):</strong>
+            <pre><code>class BatchNormManual(nn.Module):
+    def __init__(self, num_features):
+        super().__init__()
+        # Parameters (trainable)
+        self.gamma = nn.Parameter(torch.ones(num_features))
+        self.beta = nn.Parameter(torch.zeros(num_features))
+
+        # Buffers (not trainable, but saved with model)
+        self.register_buffer('running_mean', torch.zeros(num_features))
+        self.register_buffer('running_var', torch.ones(num_features))
+
+    def forward(self, x):
+        if self.training:
+            # Update running statistics
+            batch_mean = x.mean(dim=0)
+            batch_var = x.var(dim=0, unbiased=False)
+
+            self.running_mean = 0.9 * self.running_mean + 0.1 * batch_mean
+            self.running_var = 0.9 * self.running_var + 0.1 * batch_var
+
+            # Normalize using batch stats
+            x_norm = (x - batch_mean) / torch.sqrt(batch_var + 1e-5)
+        else:
+            # Use running stats
+            x_norm = (x - self.running_mean) / torch.sqrt(self.running_var + 1e-5)
+
+        return self.gamma * x_norm + self.beta</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch advanced custom-modules EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            How do you use forward and backward hooks in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Hooks:</strong> Functions that run during forward/backward pass without modifying the model.
+
+            <p><strong>Use cases:</strong></p>
+            <ul>
+                <li>Inspect intermediate activations</li>
+                <li>Debug gradient flow</li>
+                <li>Extract features from specific layers</li>
+                <li>Modify gradients during backprop</li>
+            </ul>
+
+            <strong>Forward hook:</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+model = nn.Sequential(
+    nn.Linear(10, 20),
+    nn.ReLU(),
+    nn.Linear(20, 5)
+)
+
+# Store activations
+activations = {}
+
+def forward_hook(module, input, output):
+    """Called after forward pass of module"""
+    activations[module] = output.detach()
+    print(f"Forward hook: {module.__class__.__name__}")
+    print(f"  Input shape: {input[0].shape}")
+    print(f"  Output shape: {output.shape}")
+
+# Register hook on specific layer
+handle = model[0].register_forward_hook(forward_hook)
+
+# Forward pass
+x = torch.randn(32, 10)
+y = model(x)
+
+# Access stored activations
+layer1_output = activations[model[0]]
+print(f"Layer 1 output: {layer1_output.shape}")
+
+# Remove hook
+handle.remove()</code></pre>
+
+            <strong>Backward hook (for gradients):</strong>
+            <pre><code>gradients = {}
+
+def backward_hook(module, grad_input, grad_output):
+    """Called during backward pass"""
+    # grad_input: gradients w.r.t. inputs
+    # grad_output: gradients w.r.t. outputs
+    gradients[module] = grad_output[0].detach()
+    print(f"Backward hook: {module.__class__.__name__}")
+    print(f"  Grad output shape: {grad_output[0].shape}")
+
+handle = model[0].register_backward_hook(backward_hook)
+
+# Forward and backward
+x = torch.randn(32, 10, requires_grad=True)
+y = model(x)
+loss = y.sum()
+loss.backward()
+
+# Access gradients
+layer1_grad = gradients[model[0]]
+print(f"Layer 1 gradient: {layer1_grad.shape}")
+
+handle.remove()</code></pre>
+
+            <strong>Tensor hook (for specific tensors):</strong>
+            <pre><code>x = torch.randn(10, requires_grad=True)
+
+def tensor_hook(grad):
+    """Called when .backward() is called on tensor"""
+    print(f"Gradient: {grad}")
+    # Can modify gradient here
+    return grad * 2  # Double the gradient!
+
+x.register_hook(tensor_hook)
+
+y = x.pow(2).sum()
+y.backward()  # tensor_hook will be called</code></pre>
+
+            <strong>Practical: Feature extraction:</strong>
+            <pre><code>class FeatureExtractor:
+    def __init__(self, model, layers):
+        self.model = model
+        self.layers = layers
+        self.features = {}
+        self.hooks = []
+
+        for name, layer in model.named_modules():
+            if name in layers:
+                hook = layer.register_forward_hook(
+                    self.save_features(name)
+                )
+                self.hooks.append(hook)
+
+    def save_features(self, name):
+        def hook(module, input, output):
+            self.features[name] = output.detach()
+        return hook
+
+    def remove(self):
+        for hook in self.hooks:
+            hook.remove()
+
+# Usage
+from torchvision.models import resnet18
+
+model = resnet18(pretrained=True)
+extractor = FeatureExtractor(model, ['layer1', 'layer2', 'layer4'])
+
+x = torch.randn(1, 3, 224, 224)
+_ = model(x)
+
+print("Extracted features:")
+for name, feat in extractor.features.items():
+    print(f"  {name}: {feat.shape}")
+
+extractor.remove()</code></pre>
+
+            <strong>Gradient clipping with hooks:</strong>
+            <pre><code>def gradient_clipping_hook(grad, max_norm=1.0):
+    """Clip gradients by norm"""
+    norm = grad.norm()
+    if norm > max_norm:
+        return grad * (max_norm / norm)
+    return grad
+
+# Register on all parameters
+for param in model.parameters():
+    if param.requires_grad:
+        param.register_hook(
+            lambda grad: gradient_clipping_hook(grad, max_norm=1.0)
+        )</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch advanced hooks EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            How do you create custom autograd functions?
+        </div>
+        <div class="back">
+            <strong>Custom Autograd Function:</strong> Define custom forward and backward passes.
+
+            <p><strong>When to use:</strong></p>
+            <ul>
+                <li>Implement operations not in PyTorch</li>
+                <li>Optimize performance-critical operations</li>
+                <li>Custom gradient behavior</li>
+                <li>Non-differentiable operations with custom gradients</li>
+            </ul>
+
+            <strong>Basic example:</strong>
+            <pre><code>import torch
+
+class MultiplyAdd(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, y, z):
+        """
+        Compute: x * y + z
+        ctx: context object to save info for backward
+        """
+        ctx.save_for_backward(x, y)
+        return x * y + z
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        """
+        Compute gradients
+        grad_output: gradient of loss w.r.t. output
+        Return: gradients w.r.t. each input (x, y, z)
+        """
+        x, y = ctx.saved_tensors
+
+        grad_x = grad_output * y
+        grad_y = grad_output * x
+        grad_z = grad_output  # derivative w.r.t z is 1
+
+        return grad_x, grad_y, grad_z
+
+# Usage
+x = torch.tensor([2.0], requires_grad=True)
+y = torch.tensor([3.0], requires_grad=True)
+z = torch.tensor([4.0], requires_grad=True)
+
+output = MultiplyAdd.apply(x, y, z)
+print(f"Output: {output}")  # 2*3 + 4 = 10
+
+output.backward()
+print(f"dx: {x.grad}")  # dy/dx = y = 3
+print(f"dy: {y.grad}")  # dy/dy = x = 2
+print(f"dz: {z.grad}")  # dy/dz = 1 = 1</code></pre>
+
+            <strong>ReLU with custom backward:</strong>
+            <pre><code>class CustomReLU(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        ctx.save_for_backward(input)
+        return input.clamp(min=0)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        input, = ctx.saved_tensors
+        grad_input = grad_output.clone()
+        grad_input[input < 0] = 0
+        return grad_input
+
+# Usage
+relu = CustomReLU.apply
+
+x = torch.randn(10, requires_grad=True)
+y = relu(x)
+loss = y.sum()
+loss.backward()</code></pre>
+
+            <strong>Straight-through estimator (for non-differentiable ops):</strong>
+            <pre><code>class Binarize(torch.autograd.Function):
+    """
+    Forward: binarize to {0, 1}
+    Backward: straight-through (pass gradient unchanged)
+    """
+    @staticmethod
+    def forward(ctx, input):
+        return (input > 0).float()
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # Pass gradient through unchanged
+        return grad_output
+
+binary = Binarize.apply
+
+x = torch.randn(10, requires_grad=True)
+y = binary(x)  # {0, 1}
+# Gradient flows back even though forward is non-differentiable</code></pre>
+
+            <strong>Custom gradient with multiple outputs:</strong>
+            <pre><code>class SplitFunction(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x):
+        ctx.save_for_backward(x)
+        return x * 2, x * 3
+
+    @staticmethod
+    def backward(ctx, grad_output1, grad_output2):
+        x, = ctx.saved_tensors
+        # Combine gradients from both outputs
+        grad_input = grad_output1 * 2 + grad_output2 * 3
+        return grad_input
+
+split = SplitFunction.apply
+
+x = torch.tensor([1.0], requires_grad=True)
+y1, y2 = split(x)
+loss = y1 + y2
+loss.backward()
+print(x.grad)  # 2 + 3 = 5</code></pre>
+
+            <strong>Mark non-differentiable inputs:</strong>
+            <pre><code>class CustomOp(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, y):
+        ctx.save_for_backward(x)
+        # y doesn't need gradient
+        ctx.mark_non_differentiable(y)
+        return x * y
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        x, = ctx.saved_tensors
+        # Only return gradient for x, None for y
+        return grad_output * ctx.saved_tensors[0], None</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch advanced autograd custom-functions EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            How do you implement custom loss functions in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Custom Loss Function:</strong> Combine existing operations or create fully custom autograd function.
+
+            <strong>Simple custom loss (using existing ops):</strong>
+            <pre><code>import torch
+import torch.nn as nn
+
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.25, gamma=2):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+
+    def forward(self, inputs, targets):
+        # inputs: (batch, num_classes) logits
+        # targets: (batch,) class indices
+
+        ce_loss = nn.functional.cross_entropy(
+            inputs, targets, reduction='none'
+        )
+
+        # Focal loss: down-weight easy examples
+        pt = torch.exp(-ce_loss)
+        focal_loss = self.alpha * (1 - pt) ** self.gamma * ce_loss
+
+        return focal_loss.mean()
+
+# Usage
+criterion = FocalLoss(alpha=0.25, gamma=2)
+logits = model(x)
+loss = criterion(logits, targets)</code></pre>
+
+            <strong>Dice Loss (for segmentation):</strong>
+            <pre><code>class DiceLoss(nn.Module):
+    def __init__(self, smooth=1.0):
+        super().__init__()
+        self.smooth = smooth
+
+    def forward(self, predictions, targets):
+        # predictions: (batch, num_classes, H, W)
+        # targets: (batch, H, W)
+
+        predictions = torch.softmax(predictions, dim=1)
+
+        # One-hot encode targets
+        targets_one_hot = nn.functional.one_hot(
+            targets, num_classes=predictions.shape[1]
+        ).permute(0, 3, 1, 2).float()
+
+        # Flatten
+        predictions = predictions.view(-1)
+        targets_one_hot = targets_one_hot.view(-1)
+
+        # Dice coefficient
+        intersection = (predictions * targets_one_hot).sum()
+        dice = (2. * intersection + self.smooth) / (
+            predictions.sum() + targets_one_hot.sum() + self.smooth
+        )
+
+        return 1 - dice  # Dice loss</code></pre>
+
+            <strong>Contrastive Loss:</strong>
+            <pre><code>class ContrastiveLoss(nn.Module):
+    def __init__(self, margin=1.0):
+        super().__init__()
+        self.margin = margin
+
+    def forward(self, embedding1, embedding2, label):
+        # embedding1, embedding2: (batch, embedding_dim)
+        # label: (batch,) 1 if similar, 0 if dissimilar
+
+        distance = torch.nn.functional.pairwise_distance(
+            embedding1, embedding2
+        )
+
+        loss_similar = label * distance.pow(2)
+        loss_dissimilar = (1 - label) * torch.clamp(
+            self.margin - distance, min=0
+        ).pow(2)
+
+        return (loss_similar + loss_dissimilar).mean()</code></pre>
+
+            <strong>Weighted combination of losses:</strong>
+            <pre><code>class CombinedLoss(nn.Module):
+    def __init__(self, alpha=0.5):
+        super().__init__()
+        self.alpha = alpha
+        self.ce_loss = nn.CrossEntropyLoss()
+        self.focal_loss = FocalLoss()
+
+    def forward(self, predictions, targets):
+        ce = self.ce_loss(predictions, targets)
+        focal = self.focal_loss(predictions, targets)
+
+        return self.alpha * ce + (1 - self.alpha) * focal</code></pre>
+
+            <strong>Custom loss with custom backward:</strong>
+            <pre><code>class CustomLossFunction(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, predictions, targets):
+        ctx.save_for_backward(predictions, targets)
+
+        # Custom loss computation
+        loss = ((predictions - targets) ** 2).mean()
+
+        return loss
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        predictions, targets = ctx.saved_tensors
+
+        # Custom gradient
+        grad_predictions = 2 * (predictions - targets) / predictions.numel()
+        grad_predictions = grad_predictions * grad_output
+
+        return grad_predictions, None  # No gradient for targets
+
+class CustomLoss(nn.Module):
+    def forward(self, predictions, targets):
+        return CustomLossFunction.apply(predictions, targets)</code></pre>
+
+            <strong>Regularization in loss:</strong>
+            <pre><code>class L1RegularizedLoss(nn.Module):
+    def __init__(self, base_criterion, l1_lambda=0.001):
+        super().__init__()
+        self.base_criterion = base_criterion
+        self.l1_lambda = l1_lambda
+
+    def forward(self, predictions, targets, model):
+        # Base loss
+        base_loss = self.base_criterion(predictions, targets)
+
+        # L1 regularization on weights
+        l1_reg = sum(p.abs().sum() for p in model.parameters())
+
+        return base_loss + self.l1_lambda * l1_reg
+
+# Usage
+criterion = L1RegularizedLoss(nn.CrossEntropyLoss(), l1_lambda=0.001)
+loss = criterion(predictions, targets, model)</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch advanced custom-loss EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            How do you use DistributedDataParallel (DDP) for multi-GPU training?
+        </div>
+        <div class="back">
+            <strong>DDP:</strong> Recommended way to do multi-GPU training in PyTorch.
+
+            <p><strong>Key concepts:</strong></p>
+            <ul>
+                <li>Each GPU runs a separate process</li>
+                <li>Gradients are synchronized across GPUs</li>
+                <li>More efficient than DataParallel</li>
+            </ul>
+
+            <strong>Basic DDP setup:</strong>
+            <pre><code>import torch
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data.distributed import DistributedSampler
+
+def setup(rank, world_size):
+    """Initialize distributed training"""
+    dist.init_process_group(
+        backend='nccl',  # Use 'gloo' for CPU
+        init_method='env://',  # or 'tcp://localhost:12355'
+        rank=rank,
+        world_size=world_size
+    )
+
+def cleanup():
+    dist.destroy_process_group()
+
+def train(rank, world_size):
+    setup(rank, world_size)
+
+    # Create model and move to GPU
+    model = MyModel().to(rank)
+
+    # Wrap with DDP
+    model = DDP(model, device_ids=[rank])
+
+    # Create distributed sampler
+    train_sampler = DistributedSampler(
+        train_dataset,
+        num_replicas=world_size,
+        rank=rank,
+        shuffle=True
+    )
+
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=32,
+        sampler=train_sampler,  # Use sampler, not shuffle!
+        num_workers=4,
+        pin_memory=True
+    )
+
+    optimizer = torch.optim.Adam(model.parameters())
+
+    for epoch in range(num_epochs):
+        # IMPORTANT: set epoch for shuffling
+        train_sampler.set_epoch(epoch)
+
+        model.train()
+        for batch_x, batch_y in train_loader:
+            batch_x = batch_x.to(rank)
+            batch_y = batch_y.to(rank)
+
+            optimizer.zero_grad()
+            outputs = model(batch_x)
+            loss = criterion(outputs, batch_y)
+
+            loss.backward()  # Gradients auto-synchronized!
+            optimizer.step()
+
+        # Only save on rank 0
+        if rank == 0:
+            torch.save(model.state_dict(), f'checkpoint_{epoch}.pt')
+
+    cleanup()
+
+# Launch with torch.multiprocessing
+import torch.multiprocessing as mp
+
+if __name__ == '__main__':
+    world_size = torch.cuda.device_count()
+    mp.spawn(train, args=(world_size,), nprocs=world_size, join=True)</code></pre>
+
+            <strong>Using torchrun (recommended):</strong>
+            <pre><code># train.py
+import os
+import torch
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+def setup():
+    dist.init_process_group(backend='nccl')
+    torch.cuda.set_device(int(os.environ['LOCAL_RANK']))
+
+def main():
+    setup()
+
+    local_rank = int(os.environ['LOCAL_RANK'])
+
+    model = MyModel().to(local_rank)
+    model = DDP(model, device_ids=[local_rank])
+
+    # Training loop...
+
+    dist.destroy_process_group()
+
+if __name__ == '__main__':
+    main()
+
+# Run with:
+# torchrun --nproc_per_node=4 train.py</code></pre>
+
+            <strong>Gradient accumulation with DDP:</strong>
+            <pre><code>accumulation_steps = 4
+
+model.zero_grad()  # Use model.zero_grad() or optimizer.zero_grad()
+
+for i, (batch_x, batch_y) in enumerate(train_loader):
+    outputs = model(batch_x)
+    loss = criterion(outputs, batch_y)
+    loss = loss / accumulation_steps
+
+    loss.backward()
+
+    if (i + 1) % accumulation_steps == 0:
+        optimizer.step()
+        model.zero_grad()</code></pre>
+
+            <strong>Synchronization and communication:</strong>
+            <pre><code># Reduce (sum, average, etc.) across all processes
+def reduce_value(value, average=True):
+    world_size = dist.get_world_size()
+    if world_size < 2:
+        return value
+
+    with torch.no_grad():
+        dist.all_reduce(value)
+        if average:
+            value /= world_size
+
+    return value
+
+# Average loss across GPUs
+loss_tensor = torch.tensor(loss.item()).to(rank)
+avg_loss = reduce_value(loss_tensor, average=True)
+
+# Barrier (wait for all processes)
+dist.barrier()
+
+# Broadcast (send from one process to all)
+if rank == 0:
+    tensor = torch.randn(10).to(rank)
+else:
+    tensor = torch.empty(10).to(rank)
+
+dist.broadcast(tensor, src=0)  # All ranks now have same tensor</code></pre>
+
+            <strong>Best practices:</strong>
+            <ul>
+                <li>Use torchrun instead of mp.spawn</li>
+                <li>Always use DistributedSampler</li>
+                <li>Set sampler.set_epoch(epoch) for proper shuffling</li>
+                <li>Only save checkpoints on rank 0</li>
+                <li>Synchronize metrics before logging</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML pytorch advanced ddp distributed multi-gpu EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            How do you implement learning rate finding and schedulers?
+        </div>
+        <div class="back">
+            <strong>Learning Rate Finder:</strong> Find optimal LR by gradually increasing it and tracking loss.
+
+            <strong>Implementation:</strong>
+            <pre><code>import torch
+import matplotlib.pyplot as plt
+
+class LRFinder:
+    def __init__(self, model, optimizer, criterion, device):
+        self.model = model
+        self.optimizer = optimizer
+        self.criterion = criterion
+        self.device = device
+
+        # Save initial state
+        self.model_state = model.state_dict()
+        self.optimizer_state = optimizer.state_dict()
+
+    def range_test(self, train_loader, start_lr=1e-7, end_lr=10, num_iter=100):
+        lrs = []
+        losses = []
+
+        # Set initial LR
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = start_lr
+
+        # LR multiplier
+        lr_mult = (end_lr / start_lr) ** (1 / num_iter)
+
+        self.model.train()
+        batch_iter = iter(train_loader)
+
+        for iteration in range(num_iter):
+            try:
+                batch_x, batch_y = next(batch_iter)
+            except StopIteration:
+                batch_iter = iter(train_loader)
+                batch_x, batch_y = next(batch_iter)
+
+            batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
+
+            # Forward pass
+            self.optimizer.zero_grad()
+            outputs = self.model(batch_x)
+            loss = self.criterion(outputs, batch_y)
+
+            # Backward pass
+            loss.backward()
+            self.optimizer.step()
+
+            # Record
+            current_lr = self.optimizer.param_groups[0]['lr']
+            lrs.append(current_lr)
+            losses.append(loss.item())
+
+            # Update LR
+            for param_group in self.optimizer.param_groups:
+                param_group['lr'] *= lr_mult
+
+            # Stop if loss explodes
+            if iteration > 10 and loss.item() > 10 * min(losses):
+                break
+
+        # Restore model state
+        self.model.load_state_dict(self.model_state)
+        self.optimizer.load_state_dict(self.optimizer_state)
+
+        return lrs, losses
+
+    def plot(self, lrs, losses, skip_start=10, skip_end=5):
+        """Plot LR vs Loss"""
+        if skip_start:
+            lrs = lrs[skip_start:-skip_end] if skip_end else lrs[skip_start:]
+            losses = losses[skip_start:-skip_end] if skip_end else losses[skip_start:]
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(lrs, losses)
+        plt.xscale('log')
+        plt.xlabel('Learning Rate')
+        plt.ylabel('Loss')
+        plt.title('Learning Rate Finder')
+        plt.grid(True)
+        plt.show()
+
+        # Find steepest descent
+        gradients = [losses[i] - losses[i-1] for i in range(1, len(losses))]
+        min_gradient_idx = gradients.index(min(gradients))
+        suggested_lr = lrs[min_gradient_idx]
+
+        print(f"Suggested LR: {suggested_lr:.2e}")
+        return suggested_lr
+
+# Usage
+lr_finder = LRFinder(model, optimizer, criterion, device)
+lrs, losses = lr_finder.range_test(train_loader, start_lr=1e-7, end_lr=1)
+suggested_lr = lr_finder.plot(lrs, losses)</code></pre>
+
+            <strong>Custom LR scheduler:</strong>
+            <pre><code>class WarmupCosineScheduler:
+    def __init__(self, optimizer, warmup_steps, total_steps, min_lr=0):
+        self.optimizer = optimizer
+        self.warmup_steps = warmup_steps
+        self.total_steps = total_steps
+        self.min_lr = min_lr
+        self.base_lrs = [group['lr'] for group in optimizer.param_groups]
+        self.current_step = 0
+
+    def step(self):
+        self.current_step += 1
+
+        if self.current_step < self.warmup_steps:
+            # Linear warmup
+            lr_mult = self.current_step / self.warmup_steps
+        else:
+            # Cosine annealing
+            progress = (self.current_step - self.warmup_steps) / (self.total_steps - self.warmup_steps)
+            lr_mult = 0.5 * (1 + torch.cos(torch.tensor(progress * 3.14159)))
+
+        for i, param_group in enumerate(self.optimizer.param_groups):
+            param_group['lr'] = self.min_lr + (self.base_lrs[i] - self.min_lr) * lr_mult
+
+# Usage
+total_steps = len(train_loader) * num_epochs
+warmup_steps = len(train_loader) * 5
+
+scheduler = WarmupCosineScheduler(optimizer, warmup_steps, total_steps)
+
+for epoch in range(num_epochs):
+    for batch in train_loader:
+        # Training step
+        optimizer.step()
+        scheduler.step()  # Step per batch, not per epoch!</code></pre>
+
+            <strong>Cyclical LR with custom logic:</strong>
+            <pre><code>class OneCyclePolicy:
+    def __init__(self, optimizer, max_lr, total_steps, pct_start=0.3):
+        self.optimizer = optimizer
+        self.max_lr = max_lr
+        self.total_steps = total_steps
+        self.pct_start = pct_start
+        self.step_count = 0
+
+    def step(self):
+        self.step_count += 1
+        progress = self.step_count / self.total_steps
+
+        if progress < self.pct_start:
+            # Increase phase
+            lr = self.max_lr * (progress / self.pct_start)
+        else:
+            # Decrease phase
+            remaining = (progress - self.pct_start) / (1 - self.pct_start)
+            lr = self.max_lr * (1 - remaining)
+
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = lr
+
+# Chain schedulers
+from torch.optim.lr_scheduler import SequentialLR, LinearLR, CosineAnnealingLR
+
+scheduler1 = LinearLR(optimizer, start_factor=0.1, total_iters=1000)
+scheduler2 = CosineAnnealingLR(optimizer, T_max=9000)
+
+scheduler = SequentialLR(optimizer, schedulers=[scheduler1, scheduler2], milestones=[1000])
+
+for epoch in range(num_epochs):
+    train(...)
+    scheduler.step()</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch advanced lr-finder scheduler EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            How do you implement model quantization in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Quantization:</strong> Convert FP32 weights/activations to INT8 for faster inference and smaller models.
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>4x smaller model size</li>
+                <li>2-4x faster inference</li>
+                <li>Lower memory bandwidth</li>
+                <li>Minimal accuracy loss (~1%)</li>
+            </ul>
+
+            <strong>1. Dynamic Quantization (easiest):</strong>
+            <pre><code>import torch
+
+model = MyModel()
+model.eval()
+
+# Quantize only weights (activations stay FP32)
+quantized_model = torch.quantization.quantize_dynamic(
+    model,
+    {torch.nn.Linear, torch.nn.LSTM},  # Layers to quantize
+    dtype=torch.qint8
+)
+
+# Model is now smaller and faster
+torch.save(quantized_model.state_dict(), 'quantized_model.pth')
+
+# Use normally
+output = quantized_model(input)
+
+# Check size reduction
+def print_model_size(model, name):
+    torch.save(model.state_dict(), 'temp.pth')
+    size = os.path.getsize('temp.pth') / 1e6
+    print(f'{name}: {size:.2f} MB')
+    os.remove('temp.pth')
+
+print_model_size(model, 'FP32')
+print_model_size(quantized_model, 'INT8')</code></pre>
+
+            <strong>2. Static Quantization (best accuracy):</strong>
+            <pre><code># Requires calibration data
+
+# Step 1: Fuse operations
+model = MyModel()
+model.eval()
+
+# Fuse Conv+BN+ReLU
+model_fused = torch.quantization.fuse_modules(
+    model,
+    [['conv', 'bn', 'relu']]  # Specify modules to fuse
+)
+
+# Step 2: Specify quantization config
+model_fused.qconfig = torch.quantization.get_default_qconfig('fbgemm')
+
+# Step 3: Prepare for quantization
+model_prepared = torch.quantization.prepare(model_fused)
+
+# Step 4: Calibrate with representative data
+with torch.no_grad():
+    for data, _ in calibration_loader:
+        model_prepared(data)
+
+# Step 5: Convert to quantized model
+model_quantized = torch.quantization.convert(model_prepared)
+
+# Use quantized model
+output = model_quantized(input)</code></pre>
+
+            <strong>3. Quantization-Aware Training (QAT - best for accuracy):</strong>
+            <pre><code># Simulate quantization during training
+
+model = MyModel()
+model.train()
+
+# Set QAT config
+model.qconfig = torch.quantization.get_default_qat_qconfig('fbgemm')
+
+# Prepare for QAT
+model_prepared = torch.quantization.prepare_qat(model)
+
+# Train normally
+for epoch in range(num_epochs):
+    for batch in train_loader:
+        optimizer.zero_grad()
+        output = model_prepared(batch_x)
+        loss = criterion(output, batch_y)
+        loss.backward()
+        optimizer.step()
+
+# Convert to quantized model after training
+model_prepared.eval()
+model_quantized = torch.quantization.convert(model_prepared)
+
+# Now model is quantized
+torch.save(model_quantized.state_dict(), 'qat_model.pth')</code></pre>
+
+            <strong>Custom quantization config:</strong>
+            <pre><code>from torch.quantization import QConfig, MinMaxObserver, PerChannelMinMaxObserver
+
+# Custom quantization config
+custom_qconfig = QConfig(
+    activation=MinMaxObserver.with_args(dtype=torch.quint8),
+    weight=PerChannelMinMaxObserver.with_args(dtype=torch.qint8)
+)
+
+model.qconfig = custom_qconfig</code></pre>
+
+            <strong>Per-layer quantization:</strong>
+            <pre><code># Quantize specific layers only
+model = MyModel()
+
+# Don't quantize first and last layers (preserve accuracy)
+model.fc1.qconfig = None  # Skip
+model.fc2.qconfig = torch.quantization.get_default_qconfig('fbgemm')  # Quantize
+model.fc3.qconfig = None  # Skip
+
+model_prepared = torch.quantization.prepare(model)
+# ... calibrate ...
+model_quantized = torch.quantization.convert(model_prepared)</code></pre>
+
+            <strong>Benchmark quantized model:</strong>
+            <pre><code>import time
+
+def benchmark(model, input, num_runs=100):
+    # Warmup
+    for _ in range(10):
+        _ = model(input)
+
+    start = time.time()
+    for _ in range(num_runs):
+        _ = model(input)
+    end = time.time()
+
+    avg_time = (end - start) / num_runs * 1000
+    return avg_time
+
+input_tensor = torch.randn(1, 3, 224, 224)
+
+fp32_time = benchmark(model, input_tensor)
+int8_time = benchmark(quantized_model, input_tensor)
+
+print(f"FP32: {fp32_time:.2f} ms")
+print(f"INT8: {int8_time:.2f} ms")
+print(f"Speedup: {fp32_time / int8_time:.2f}x")</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch advanced quantization EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            How do you implement gradient checkpointing to save memory?
+        </div>
+        <div class="back">
+            <strong>Gradient Checkpointing:</strong> Trade compute for memory by not storing all intermediate activations.
+
+            <p><strong>How it works:</strong></p>
+            <ul>
+                <li>During forward: Don't save all activations</li>
+                <li>During backward: Recompute activations as needed</li>
+                <li>~50% memory reduction for ~20% speed cost</li>
+            </ul>
+
+            <strong>Basic usage:</strong>
+            <pre><code>import torch
+from torch.utils.checkpoint import checkpoint
+
+class MyModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer1 = nn.Linear(1000, 1000)
+        self.layer2 = nn.Linear(1000, 1000)
+        self.layer3 = nn.Linear(1000, 1000)
+        self.layer4 = nn.Linear(1000, 10)
+
+    def forward(self, x):
+        # Checkpoint expensive layers
+        x = checkpoint(self.layer1, x)
+        x = torch.relu(x)
+        x = checkpoint(self.layer2, x)
+        x = torch.relu(x)
+        x = checkpoint(self.layer3, x)
+        x = torch.relu(x)
+
+        # Don't checkpoint last layer
+        x = self.layer4(x)
+        return x
+
+model = MyModel()
+x = torch.randn(128, 1000, requires_grad=True)
+output = model(x)
+loss = output.sum()
+loss.backward()  # Activations recomputed during backward</code></pre>
+
+            <strong>Checkpoint sequential blocks:</strong>
+            <pre><code>def checkpoint_sequential(functions, segments, *inputs):
+    """
+    Divide sequential functions into segments and checkpoint each
+    """
+    def run_segment(start, end, input):
+        for func in functions[start:end]:
+            input = func(input)
+        return input
+
+    seg_size = len(functions) // segments
+    result = inputs[0]
+
+    for i in range(segments):
+        start = i * seg_size
+        end = (i + 1) * seg_size if i < segments - 1 else len(functions)
+        result = checkpoint(run_segment, start, end, result)
+
+    return result
+
+# Usage
+layers = [layer1, layer2, layer3, layer4, layer5]
+output = checkpoint_sequential(layers, segments=2, x)</code></pre>
+
+            <strong>Automatic checkpointing for transformers:</strong>
+            <pre><code>from transformers import BertModel
+
+model = BertModel.from_pretrained('bert-base-uncased')
+
+# Enable gradient checkpointing
+model.gradient_checkpointing_enable()
+
+# Train as normal - memory usage reduced
+for batch in train_loader:
+    outputs = model(**batch)
+    loss = outputs.loss
+    loss.backward()</code></pre>
+
+            <strong>Custom checkpointed module:</strong>
+            <pre><code>class CheckpointedResBlock(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.conv1 = nn.Conv2d(dim, dim, 3, padding=1)
+        self.bn1 = nn.BatchNorm2d(dim)
+        self.conv2 = nn.Conv2d(dim, dim, 3, padding=1)
+        self.bn2 = nn.BatchNorm2d(dim)
+
+    def forward(self, x):
+        def _forward(x):
+            residual = x
+            out = self.conv1(x)
+            out = self.bn1(out)
+            out = torch.relu(out)
+            out = self.conv2(out)
+            out = self.bn2(out)
+            out += residual
+            return torch.relu(out)
+
+        return checkpoint(_forward, x)
+
+# Stack many blocks without OOM
+model = nn.Sequential(*[CheckpointedResBlock(256) for _ in range(100)])</code></pre>
+
+            <strong>Selective checkpointing:</strong>
+            <pre><code>class AdaptiveCheckpointModel(nn.Module):
+    def __init__(self, use_checkpoint=True):
+        super().__init__()
+        self.use_checkpoint = use_checkpoint
+        self.layers = nn.ModuleList([
+            nn.Linear(1000, 1000) for _ in range(10)
+        ])
+
+    def forward(self, x):
+        for i, layer in enumerate(self.layers):
+            # Only checkpoint middle layers
+            if self.use_checkpoint and 2 <= i <= 7:
+                x = checkpoint(layer, x)
+            else:
+                x = layer(x)
+            x = torch.relu(x)
+        return x
+
+# Enable during training, disable during inference
+model.train()
+model.use_checkpoint = True  # Save memory
+
+model.eval()
+model.use_checkpoint = False  # Faster inference</code></pre>
+
+            <strong>Memory comparison:</strong>
+            <pre><code>import torch.cuda as cuda
+
+def measure_memory(model, input):
+    cuda.reset_peak_memory_stats()
+    cuda.empty_cache()
+
+    output = model(input)
+    loss = output.sum()
+    loss.backward()
+
+    peak_mem = cuda.max_memory_allocated() / 1024**2  # MB
+    return peak_mem
+
+# Without checkpointing
+model_regular = MyModel()
+mem_regular = measure_memory(model_regular, x)
+
+# With checkpointing
+model_checkpoint = MyCheckpointedModel()
+mem_checkpoint = measure_memory(model_checkpoint, x)
+
+print(f"Regular: {mem_regular:.2f} MB")
+print(f"Checkpoint: {mem_checkpoint:.2f} MB")
+print(f"Savings: {(1 - mem_checkpoint/mem_regular)*100:.1f}%")</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch advanced gradient-checkpointing memory EN</div>
+    </div>
+
+</body>
+</html>

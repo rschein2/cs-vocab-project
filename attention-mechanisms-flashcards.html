@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attention Mechanisms - CS Vocab Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .front {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .back {
+            line-height: 1.6;
+            color: #34495e;
+        }
+
+        .tags {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        code {
+            background-color: rgba(127, 127, 127, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: rgba(127, 127, 127, 0.15);
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .cloze {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>Attention Mechanisms Flashcards</h1>
+    <p>Practical PyTorch implementations and ML concepts for attention mechanisms</p>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">How do you implement basic scaled dot-product attention in PyTorch?</div>
+        <div class="back">
+            <strong>Basic scaled dot-product attention:</strong>
+            <pre><code>import torch
+import torch.nn.functional as F
+
+def scaled_dot_product_attention(Q, K, V, mask=None):
+    """
+    Q, K, V: (batch, seq_len, d_k)
+    Returns: (batch, seq_len, d_k)
+    """
+    d_k = Q.size(-1)
+
+    # Compute attention scores
+    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
+
+    # Apply mask if provided (for padding or causal)
+    if mask is not None:
+        scores = scores.masked_fill(mask == 0, float('-inf'))
+
+    # Softmax to get attention weights
+    attn_weights = F.softmax(scores, dim=-1)
+
+    # Apply attention to values
+    output = torch.matmul(attn_weights, V)
+
+    return output, attn_weights</code></pre>
+            <p>Key points: Scale by sqrt(d_k) for stable gradients, mask before softmax, return weights for visualization.</p>
+        </div>
+        <div class="tags">cs pythonML attention pytorch implementation EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">CLOZE: In scaled dot-product attention, we divide the scores by <span class="cloze">sqrt(d_k)</span> to prevent gradients from vanishing when d_k is large.</div>
+        <div class="back">
+            <strong>Answer: sqrt(d_k) (square root of key dimension)</strong>
+            <p>Why: As d_k grows, dot products grow in magnitude, pushing softmax into regions with small gradients. Scaling by √d_k keeps values in a reasonable range.</p>
+            <pre><code>scores = Q @ K.T / math.sqrt(d_k)  # Scaled
+# vs
+scores = Q @ K.T  # Unscaled - bad for large d_k</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention cloze EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">How do you implement multi-head attention with n heads in PyTorch?</div>
+        <div class="back">
+            <strong>Multi-head attention implementation:</strong>
+            <pre><code>import torch.nn as nn
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        assert d_model % num_heads == 0
+
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads
+
+        # Linear layers for Q, K, V projections
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+
+    def forward(self, query, key, value, mask=None):
+        batch_size = query.size(0)
+
+        # Linear projections and split into heads
+        # (batch, seq_len, d_model) -> (batch, num_heads, seq_len, d_k)
+        Q = self.W_q(query).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(key).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(value).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+
+        # Scaled dot-product attention
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        attn = F.softmax(scores, dim=-1)
+        output = torch.matmul(attn, V)
+
+        # Concatenate heads and project
+        # (batch, num_heads, seq_len, d_k) -> (batch, seq_len, d_model)
+        output = output.transpose(1, 2).contiguous().view(batch_size, -1, self.d_model)
+        return self.W_o(output)</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention multi-head pytorch EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">What's the difference between self-attention and cross-attention in implementation?</div>
+        <div class="back">
+            <strong>Self-attention:</strong> Q, K, V all come from the same input
+            <pre><code># Self-attention: all from same source
+output = attention(query=x, key=x, value=x)</code></pre>
+
+            <strong>Cross-attention:</strong> Q comes from one source, K and V from another
+            <pre><code># Cross-attention: Q from decoder, K/V from encoder
+output = attention(query=decoder_hidden, key=encoder_output, value=encoder_output)
+
+# Example: Decoder attending to encoder in Transformer
+class DecoderLayer(nn.Module):
+    def forward(self, x, encoder_output, src_mask, tgt_mask):
+        # Self-attention on decoder input
+        x = x + self.self_attn(query=x, key=x, value=x, mask=tgt_mask)
+
+        # Cross-attention: decoder queries encoder
+        x = x + self.cross_attn(query=x, key=encoder_output,
+                                 value=encoder_output, mask=src_mask)
+
+        x = x + self.ffn(x)
+        return x</code></pre>
+            <p>Use case: Machine translation (decoder attends to source sentence), image captioning (text attends to image features).</p>
+        </div>
+        <div class="tags">cs pythonML attention cross-attention self-attention EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">How do you implement KV caching for efficient autoregressive generation?</div>
+        <div class="back">
+            <strong>KV caching avoids recomputing keys and values for previous tokens:</strong>
+            <pre><code>class MultiHeadAttentionWithCache(nn.Module):
+    def forward(self, query, key, value, cache=None, mask=None):
+        batch_size = query.size(0)
+
+        # Project Q, K, V
+        Q = self.W_q(query).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(key).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(value).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+
+        # Use cache if provided
+        if cache is not None:
+            K = torch.cat([cache['K'], K], dim=2)  # Concatenate along seq_len
+            V = torch.cat([cache['V'], V], dim=2)
+
+        # Store K, V for next step
+        new_cache = {'K': K, 'V': V}
+
+        # Compute attention (Q is only for new token)
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        attn = F.softmax(scores, dim=-1)
+        output = torch.matmul(attn, V)
+
+        output = output.transpose(1, 2).contiguous().view(batch_size, -1, self.d_model)
+        return self.W_o(output), new_cache
+
+# Usage during generation:
+cache = None
+for step in range(max_length):
+    output, cache = model(new_token, cache=cache)
+    new_token = output.argmax(dim=-1)</code></pre>
+            <p>Benefit: O(n) instead of O(n²) for generating n tokens.</p>
+        </div>
+        <div class="tags">cs pythonML attention kv-cache inference optimization EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">CLOZE: KV caching reduces autoregressive generation from <span class="cloze">O(n²)</span> to <span class="cloze">O(n)</span> complexity by storing previously computed keys and values.</div>
+        <div class="back">
+            <strong>Answer: O(n²) → O(n)</strong>
+            <p>Without caching: Each of n tokens requires attention over all previous tokens → 1+2+3+...+n = O(n²)</p>
+            <p>With caching: Each new token only computes its own K,V, reuses previous → n steps of O(1) = O(n)</p>
+            <pre><code># Step 1: attend to 1 token (self)
+# Step 2: attend to 2 tokens (cached + new)
+# Step 3: attend to 3 tokens (cached + new)
+# ...
+# Total: O(n) with caching vs O(n²) without</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention kv-cache cloze complexity EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">How do you create a causal (autoregressive) attention mask in PyTorch?</div>
+        <div class="back">
+            <strong>Causal mask prevents attending to future positions:</strong>
+            <pre><code>def create_causal_mask(seq_len, device='cpu'):
+    """
+    Creates a lower triangular mask.
+    Returns: (seq_len, seq_len) with 1s below diagonal, 0s above
+    """
+    mask = torch.tril(torch.ones(seq_len, seq_len, device=device))
+    return mask  # or mask.bool()
+
+# Usage:
+seq_len = 5
+mask = create_causal_mask(seq_len)
+# tensor([[1, 0, 0, 0, 0],
+#         [1, 1, 0, 0, 0],
+#         [1, 1, 1, 0, 0],
+#         [1, 1, 1, 1, 0],
+#         [1, 1, 1, 1, 1]])
+
+# In attention:
+scores = scores.masked_fill(mask == 0, float('-inf'))
+attn_weights = F.softmax(scores, dim=-1)
+# Now position i can only attend to positions ≤ i
+
+# For batch processing with padding mask:
+def create_combined_mask(causal_mask, padding_mask):
+    """
+    causal_mask: (seq_len, seq_len)
+    padding_mask: (batch, seq_len) - 1 for real tokens, 0 for padding
+    """
+    # Expand to (batch, 1, seq_len, seq_len)
+    causal = causal_mask.unsqueeze(0).unsqueeze(0)
+    padding = padding_mask.unsqueeze(1).unsqueeze(2)
+    combined = causal & padding
+    return combined</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention causal-mask autoregressive EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">How do you implement local (windowed) attention for sparse attention patterns?</div>
+        <div class="back">
+            <strong>Local attention only attends to nearby tokens within a window:</strong>
+            <pre><code>def local_attention_mask(seq_len, window_size, device='cpu'):
+    """
+    Creates mask where each position attends to window_size tokens
+    on each side (plus itself).
+    """
+    mask = torch.zeros(seq_len, seq_len, device=device)
+
+    for i in range(seq_len):
+        start = max(0, i - window_size)
+        end = min(seq_len, i + window_size + 1)
+        mask[i, start:end] = 1
+
+    return mask
+
+# Example: window_size=2, seq_len=5
+mask = local_attention_mask(5, window_size=2)
+# tensor([[1, 1, 1, 0, 0],  # pos 0 attends to [0,1,2]
+#         [1, 1, 1, 1, 0],  # pos 1 attends to [0,1,2,3]
+#         [1, 1, 1, 1, 1],  # pos 2 attends to [0,1,2,3,4]
+#         [0, 1, 1, 1, 1],  # pos 3 attends to [1,2,3,4]
+#         [0, 0, 1, 1, 1]]) # pos 4 attends to [2,3,4]
+
+# Efficient implementation with strided operations:
+def efficient_local_attention(Q, K, V, window_size):
+    """Memory-efficient local attention using sliding windows."""
+    batch, heads, seq_len, d_k = Q.shape
+
+    # Pad K, V for boundary handling
+    K_padded = F.pad(K, (0, 0, window_size, window_size))
+    V_padded = F.pad(V, (0, 0, window_size, window_size))
+
+    # Create sliding windows
+    K_windows = K_padded.unfold(2, 2*window_size+1, 1)
+    V_windows = V_padded.unfold(2, 2*window_size+1, 1)
+
+    # Compute local attention
+    scores = torch.matmul(Q.unsqueeze(-2), K_windows.transpose(-2, -1))
+    scores = scores / math.sqrt(d_k)
+    attn = F.softmax(scores, dim=-1)
+    output = torch.matmul(attn, V_windows).squeeze(-2)
+
+    return output</code></pre>
+            <p>Complexity: O(n × w) where w is window size, vs O(n²) for full attention.</p>
+        </div>
+        <div class="tags">cs pythonML attention sparse local-attention efficient EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">CLOZE: In Grouped Query Attention (GQA), we use <span class="cloze">fewer KV heads than Q heads</span>, sharing each KV head across multiple query heads to reduce memory usage.</div>
+        <div class="back">
+            <strong>Answer: fewer KV heads than Q heads</strong>
+            <p>GQA is a compromise between Multi-Head Attention (MHA) and Multi-Query Attention (MQA):</p>
+            <ul>
+                <li><strong>MHA:</strong> num_q_heads = num_kv_heads (e.g., 32 = 32)</li>
+                <li><strong>GQA:</strong> num_q_heads > num_kv_heads (e.g., 32 q heads, 8 kv heads, 4:1 ratio)</li>
+                <li><strong>MQA:</strong> num_kv_heads = 1 (all Q heads share one KV head)</li>
+            </ul>
+            <pre><code>class GroupedQueryAttention(nn.Module):
+    def __init__(self, d_model, num_q_heads, num_kv_heads):
+        super().__init__()
+        self.num_q_heads = num_q_heads  # e.g., 32
+        self.num_kv_heads = num_kv_heads  # e.g., 8
+        self.num_queries_per_kv = num_q_heads // num_kv_heads  # e.g., 4
+
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model * num_kv_heads // num_q_heads)
+        self.W_v = nn.Linear(d_model, d_model * num_kv_heads // num_q_heads)</code></pre>
+            <p>Used in: Llama 2, Mistral models. Reduces KV cache size by 4-8x with minimal quality loss.</p>
+        </div>
+        <div class="tags">cs pythonML attention gqa grouped-query cloze EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">How do you implement Rotary Position Embeddings (RoPE) in attention?</div>
+        <div class="back">
+            <strong>RoPE applies rotation to Q and K based on position:</strong>
+            <pre><code>def rotate_half(x):
+    """Rotate half the hidden dims of the input."""
+    x1, x2 = x.chunk(2, dim=-1)
+    return torch.cat((-x2, x1), dim=-1)
+
+def apply_rotary_pos_emb(q, k, cos, sin):
+    """
+    Apply rotary position embeddings to Q and K.
+    q, k: (batch, num_heads, seq_len, head_dim)
+    cos, sin: (seq_len, head_dim)
+    """
+    # Rotate Q and K
+    q_embed = (q * cos) + (rotate_half(q) * sin)
+    k_embed = (k * cos) + (rotate_half(k) * sin)
+    return q_embed, k_embed
+
+class RotaryPositionEmbedding(nn.Module):
+    def __init__(self, dim, max_seq_len=2048, base=10000):
+        super().__init__()
+        # Compute frequencies
+        inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
+        self.register_buffer('inv_freq', inv_freq)
+
+        # Precompute for max_seq_len
+        t = torch.arange(max_seq_len).type_as(self.inv_freq)
+        freqs = torch.einsum('i,j->ij', t, self.inv_freq)
+        emb = torch.cat((freqs, freqs), dim=-1)
+        self.register_buffer('cos_cached', emb.cos())
+        self.register_buffer('sin_cached', emb.sin())
+
+    def forward(self, q, k):
+        seq_len = q.shape[2]
+        cos = self.cos_cached[:seq_len, ...]
+        sin = self.sin_cached[:seq_len, ...]
+        return apply_rotary_pos_emb(q, k, cos, sin)</code></pre>
+            <p>Benefits: Relative position encoding without learned parameters, works well for long sequences.</p>
+        </div>
+        <div class="tags">cs pythonML attention rope positional-encoding EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">What is Flash Attention and what problem does it solve?</div>
+        <div class="back">
+            <strong>Flash Attention is an IO-aware exact attention algorithm that reduces memory reads/writes.</strong>
+
+            <p><strong>Problem:</strong> Standard attention requires O(N²) memory for storing attention matrix, causing HBM (GPU memory) bottleneck.</p>
+
+            <p><strong>Solution:</strong> Flash Attention uses tiling and recomputation:</p>
+            <ul>
+                <li>Splits Q, K, V into blocks that fit in SRAM (fast on-chip memory)</li>
+                <li>Computes attention in blocks without materializing full N×N matrix</li>
+                <li>Uses online softmax algorithm to avoid storing intermediate scores</li>
+                <li>Recomputes attention in backward pass instead of storing</li>
+            </ul>
+
+            <pre><code># Using Flash Attention in PyTorch 2.0+:
+from torch.nn.functional import scaled_dot_product_attention
+
+# Automatically uses Flash Attention if available
+output = scaled_dot_product_attention(
+    query, key, value,
+    attn_mask=mask,
+    dropout_p=0.1,
+    is_causal=True  # Enables causal masking
+)
+
+# Benefits:
+# - 2-4x speedup for training
+# - 10-20x memory reduction for long sequences
+# - Exact attention (not approximate)
+# - Enables longer context windows (e.g., 8K → 32K tokens)</code></pre>
+
+            <p><strong>Key insight:</strong> IO (memory transfers) is the bottleneck, not compute. Flash Attention minimizes HBM accesses.</p>
+        </div>
+        <div class="tags">cs pythonML attention flash-attention optimization memory EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">CLOZE: The attention mechanism outputs a weighted sum where the weights sum to <span class="cloze">1</span> due to the <span class="cloze">softmax</span> operation.</div>
+        <div class="back">
+            <strong>Answer: 1 (one), softmax</strong>
+            <p>Softmax converts scores to a probability distribution:</p>
+            <pre><code># Attention weights are normalized
+scores = Q @ K.T / sqrt(d_k)  # Raw scores (can be any value)
+attn_weights = softmax(scores, dim=-1)  # Now sum to 1 along last dim
+
+# Each row sums to 1:
+assert attn_weights.sum(dim=-1).allclose(torch.ones(seq_len))
+
+# Output is weighted average of values:
+output = attn_weights @ V
+# output[i] = Σ(attn_weights[i,j] * V[j]) where Σ attn_weights[i,j] = 1</code></pre>
+            <p>This makes attention interpretable: weights show "how much" each position contributes.</p>
+        </div>
+        <div class="tags">cs pythonML attention softmax cloze EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">How do you implement strided (dilated) sparse attention?</div>
+        <div class="back">
+            <strong>Strided attention attends to every k-th position:</strong>
+            <pre><code>def strided_attention_mask(seq_len, stride, device='cpu'):
+    """
+    Create mask where each position attends to every stride-th position.
+    Also includes self-attention.
+    """
+    mask = torch.zeros(seq_len, seq_len, device=device)
+
+    for i in range(seq_len):
+        # Attend to self
+        mask[i, i] = 1
+        # Attend to strided positions
+        for j in range(0, seq_len, stride):
+            mask[i, j] = 1
+
+    return mask
+
+# Example: stride=2, seq_len=8
+mask = strided_attention_mask(8, stride=2)
+# Each position attends to: [0, 2, 4, 6, ...] plus itself
+
+# Longformer-style pattern: local + strided + global
+def longformer_attention_mask(seq_len, window_size, stride, global_tokens=1):
+    """
+    Combines:
+    - Local window attention
+    - Strided attention for long-range
+    - Global attention for special tokens (e.g., [CLS])
+    """
+    # Start with local attention
+    mask = local_attention_mask(seq_len, window_size)
+
+    # Add strided attention
+    for i in range(seq_len):
+        for j in range(0, seq_len, stride):
+            mask[i, j] = 1
+
+    # Add global attention for first N tokens
+    mask[:global_tokens, :] = 1  # Global tokens attend to all
+    mask[:, :global_tokens] = 1  # All tokens attend to global
+
+    return mask
+
+# Usage:
+mask = longformer_attention_mask(512, window_size=64, stride=128, global_tokens=1)
+# Complexity: O(n×w + n×(n/stride) + n×g) ≈ O(n) for fixed w, stride, g</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention sparse strided longformer EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">How do you implement attention with ALiBi (Attention with Linear Biases) instead of positional embeddings?</div>
+        <div class="back">
+            <strong>ALiBi adds position-dependent biases directly to attention scores:</strong>
+            <pre><code>def get_alibi_slopes(num_heads):
+    """
+    Compute ALiBi slopes for each attention head.
+    Slopes are geometric sequence: [2^(-8/n), 2^(-16/n), ..., 2^(-8)]
+    """
+    def get_slopes_power_of_2(n):
+        start = 2 ** (-2 ** -(math.log2(n) - 3))
+        ratio = start
+        return [start * (ratio ** i) for i in range(n)]
+
+    if math.log2(num_heads).is_integer():
+        return get_slopes_power_of_2(num_heads)
+    else:
+        # Handle non-power-of-2 num_heads
+        closest_power = 2 ** math.floor(math.log2(num_heads))
+        slopes = get_slopes_power_of_2(closest_power)
+        extra = get_slopes_power_of_2(2 * closest_power)[::2][:num_heads - closest_power]
+        return slopes + extra
+
+def alibi_attention(Q, K, V, num_heads):
+    """
+    Attention with ALiBi biases.
+    Q, K, V: (batch, num_heads, seq_len, d_k)
+    """
+    batch, heads, seq_len, d_k = Q.shape
+
+    # Compute attention scores
+    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
+
+    # Create ALiBi bias matrix
+    # bias[i,j] = -slope * |i - j|
+    slopes = torch.tensor(get_alibi_slopes(num_heads)).to(Q.device)
+    slopes = slopes.view(1, num_heads, 1, 1)
+
+    # Position differences
+    positions = torch.arange(seq_len, device=Q.device)
+    position_diff = positions.unsqueeze(0) - positions.unsqueeze(1)
+    position_diff = position_diff.abs().unsqueeze(0).unsqueeze(0)
+
+    # Apply bias
+    alibi_bias = -slopes * position_diff
+    scores = scores + alibi_bias
+
+    # Standard attention
+    attn_weights = F.softmax(scores, dim=-1)
+    output = torch.matmul(attn_weights, V)
+
+    return output
+
+# Benefits:
+# - No learned positional embeddings
+# - Extrapolates better to longer sequences
+# - Each head learns different distance sensitivity</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention alibi positional-encoding EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">CLOZE: In cross-attention, the queries come from the <span class="cloze">decoder/target</span> while keys and values come from the <span class="cloze">encoder/source</span>.</div>
+        <div class="back">
+            <strong>Answer: decoder/target, encoder/source</strong>
+            <p>Information flow in cross-attention:</p>
+            <pre><code># Example: Machine translation (English → French)
+encoder_output = encoder(english_sentence)  # Source
+decoder_hidden = decoder_self_attn(french_tokens)  # Target
+
+# Cross-attention: French (decoder) queries English (encoder)
+cross_attn_output = cross_attention(
+    query=decoder_hidden,      # "What French word am I generating?"
+    key=encoder_output,        # "What English words are available?"
+    value=encoder_output       # "What are their representations?"
+)
+
+# Shape check:
+# Q: (batch, french_len, d_model)  - from decoder
+# K: (batch, english_len, d_model) - from encoder
+# V: (batch, english_len, d_model) - from encoder
+# Output: (batch, french_len, d_model) - same as Q
+
+# Attention matrix shape: (batch, num_heads, french_len, english_len)
+# Shows which English words each French word attends to</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention cross-attention cloze EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">How do you implement attention dropout correctly?</div>
+        <div class="back">
+            <strong>Apply dropout to attention weights AFTER softmax, before multiplying with values:</strong>
+            <pre><code>def attention_with_dropout(Q, K, V, dropout_p=0.1, training=True):
+    """
+    Correct placement: dropout on attention weights.
+    """
+    d_k = Q.size(-1)
+
+    # Compute scores
+    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
+
+    # Softmax to get attention weights
+    attn_weights = F.softmax(scores, dim=-1)
+
+    # DROPOUT HERE - randomly zero out some attention connections
+    if training:
+        attn_weights = F.dropout(attn_weights, p=dropout_p, training=True)
+
+    # Apply to values
+    output = torch.matmul(attn_weights, V)
+
+    return output, attn_weights
+
+# WHY AFTER SOFTMAX?
+# 1. Regularization: Randomly prevents attending to some positions
+# 2. Forces model to not rely too heavily on specific tokens
+# 3. Maintains probability distribution properties (weights still sum ≈ 1)
+
+# Common mistakes:
+# ❌ Dropout before softmax: scores = F.dropout(scores)
+#    Problem: Breaks softmax normalization
+# ❌ Dropout on output: output = F.dropout(output)
+#    Problem: Different kind of regularization, less effective
+# ✓ Dropout after softmax: attn_weights = F.dropout(attn_weights)
+
+# In PyTorch 2.0 SDPA:
+output = F.scaled_dot_product_attention(
+    Q, K, V,
+    dropout_p=0.1 if training else 0.0  # Automatically applies correctly
+)</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention dropout regularization EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">How do you compute memory requirements for attention and KV cache?</div>
+        <div class="back">
+            <strong>Memory formulas for attention:</strong>
+            <pre><code># Standard attention memory (per layer):
+# Activations: O(batch × seq_len × d_model)
+# Attention matrix: O(batch × num_heads × seq_len²)
+
+def compute_attention_memory(batch_size, seq_len, d_model, num_heads, num_layers):
+    """Compute memory in bytes (assuming fp16)."""
+    bytes_per_param = 2  # fp16
+
+    # QKV projections per layer
+    qkv_memory = 3 * batch_size * seq_len * d_model * bytes_per_param
+
+    # Attention matrix per layer
+    attn_matrix = batch_size * num_heads * seq_len * seq_len * bytes_per_param
+
+    # Output per layer
+    output_memory = batch_size * seq_len * d_model * bytes_per_param
+
+    # Total per layer
+    per_layer = qkv_memory + attn_matrix + output_memory
+
+    return per_layer * num_layers
+
+# KV cache memory for inference:
+def compute_kv_cache_memory(batch_size, seq_len, d_model, num_kv_heads, num_layers):
+    """
+    KV cache stores K and V for all layers.
+    For GQA: use num_kv_heads instead of num_q_heads
+    """
+    bytes_per_param = 2  # fp16
+    d_k = d_model // num_kv_heads
+
+    # K and V for each layer: (batch, num_kv_heads, seq_len, d_k)
+    kv_per_layer = 2 * batch_size * num_kv_heads * seq_len * d_k * bytes_per_param
+
+    return kv_per_layer * num_layers
+
+# Example: Llama 2 7B with 4K context
+memory_gb = compute_kv_cache_memory(
+    batch_size=1,
+    seq_len=4096,
+    d_model=4096,
+    num_kv_heads=32,  # For GQA in Llama 2
+    num_layers=32
+) / 1e9
+
+print(f"KV cache: {memory_gb:.2f} GB")  # ~1 GB
+
+# With GQA (num_kv_heads=8 instead of 32):
+# Memory reduced by 4x: ~0.25 GB</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention memory optimization kv-cache EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">CLOZE: Multi-Query Attention (MQA) uses <span class="cloze">1</span> key-value head shared across all query heads, reducing KV cache by <span class="cloze">num_heads</span> times.</div>
+        <div class="back">
+            <strong>Answer: 1, num_heads</strong>
+            <pre><code>class MultiQueryAttention(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads
+
+        # Multiple query heads
+        self.W_q = nn.Linear(d_model, d_model)
+
+        # Single key and value head (shared across all queries)
+        self.W_k = nn.Linear(d_model, self.d_k)  # Only d_k dims!
+        self.W_v = nn.Linear(d_model, self.d_k)
+
+        self.W_o = nn.Linear(d_model, d_model)
+
+    def forward(self, x):
+        batch, seq_len, _ = x.shape
+
+        # Q: (batch, num_heads, seq_len, d_k) - multi-head
+        Q = self.W_q(x).view(batch, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+
+        # K, V: (batch, 1, seq_len, d_k) - single head, broadcasted
+        K = self.W_k(x).view(batch, seq_len, 1, self.d_k).transpose(1, 2)
+        V = self.W_v(x).view(batch, seq_len, 1, self.d_k).transpose(1, 2)
+
+        # K and V broadcast to all query heads
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        attn = F.softmax(scores, dim=-1)
+        output = torch.matmul(attn, V)
+
+        # Concatenate and project
+        output = output.transpose(1, 2).contiguous().view(batch, seq_len, -1)
+        return self.W_o(output)</code></pre>
+            <p>Trade-off: Lower memory usage but slightly reduced quality vs MHA. Used in: PaLM, Falcon.</p>
+        </div>
+        <div class="tags">cs pythonML attention mqa multi-query cloze EN</div>
+    </div>
+
+    <!-- Card 19 -->
+    <div class="card">
+        <div class="front">How do you implement sliding window attention efficiently for long sequences?</div>
+        <div class="back">
+            <strong>Sliding window attention with efficient indexing:</strong>
+            <pre><code>import torch
+from torch.nn.functional import pad
+
+def sliding_window_attention(Q, K, V, window_size):
+    """
+    Each token attends only to window_size tokens before and after.
+    Q, K, V: (batch, num_heads, seq_len, d_k)
+    """
+    batch, heads, seq_len, d_k = Q.shape
+
+    # Pad K and V on both sides
+    K_padded = pad(K, (0, 0, window_size, window_size), value=0)
+    V_padded = pad(V, (0, 0, window_size, window_size), value=0)
+
+    # Use unfold to create sliding windows
+    # unfold(dimension, size, step)
+    K_windows = K_padded.unfold(2, 2 * window_size + 1, 1)
+    # Shape: (batch, heads, seq_len, d_k, 2*window_size+1)
+
+    V_windows = V_padded.unfold(2, 2 * window_size + 1, 1)
+
+    # Reshape for batch matrix multiply
+    K_windows = K_windows.transpose(-2, -1)  # (batch, heads, seq_len, 2w+1, d_k)
+
+    # Compute local attention
+    # Q: (batch, heads, seq_len, d_k)
+    # K_windows: (batch, heads, seq_len, 2w+1, d_k)
+    scores = torch.einsum('bhqd,bhqkd->bhqk', Q, K_windows) / math.sqrt(d_k)
+
+    attn = F.softmax(scores, dim=-1)  # (batch, heads, seq_len, 2w+1)
+
+    # Apply attention to value windows
+    output = torch.einsum('bhqk,bhqkd->bhqd', attn, V_windows)
+
+    return output
+
+# Alternative: Use torch's native SDPA with sliding window (PyTorch 2.1+)
+from torch.nn.attention import SDPBackend
+
+with torch.backends.cuda.sdp_kernel(
+    enable_flash=True,
+    enable_math=False,
+    enable_mem_efficient=False
+):
+    # Flash Attention 2 supports native sliding window
+    output = F.scaled_dot_product_attention(
+        Q, K, V,
+        is_causal=True,
+        # Note: sliding_window support varies by PyTorch version
+    )
+
+# Memory: O(n × w) instead of O(n²)
+# Speed: ~2-4x faster for long sequences (n > 4096)</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention sliding-window efficient long-context EN</div>
+    </div>
+
+    <!-- Card 20 -->
+    <div class="card">
+        <div class="front">How do you debug attention weights to find common issues?</div>
+        <div class="back">
+            <strong>Common attention debugging checks:</strong>
+            <pre><code>def debug_attention(Q, K, V, attn_weights, output):
+    """Check for common attention issues."""
+
+    # 1. Check shapes
+    print("Shapes:")
+    print(f"  Q: {Q.shape}, K: {K.shape}, V: {V.shape}")
+    print(f"  attn_weights: {attn_weights.shape}, output: {output.shape}")
+    assert Q.shape[-1] == K.shape[-1], "Q and K must have same d_k"
+    assert attn_weights.shape[-1] == K.shape[-2], "attn cols must match K rows"
+
+    # 2. Check attention weights sum to 1 (probability distribution)
+    attn_sums = attn_weights.sum(dim=-1)
+    print(f"\n✓ Attention sums: min={attn_sums.min():.4f}, max={attn_sums.max():.4f}")
+    if not torch.allclose(attn_sums, torch.ones_like(attn_sums), atol=1e-5):
+        print("  ⚠️  WARNING: Attention weights don't sum to 1!")
+
+    # 3. Check for NaN/Inf
+    if torch.isnan(attn_weights).any():
+        print("  ❌ ERROR: NaN in attention weights!")
+        print("     → Check for NaN in Q, K, or V")
+        print("     → Check mask (shouldn't mask everything)")
+
+    if torch.isinf(attn_weights).any():
+        print("  ❌ ERROR: Inf in attention weights!")
+        print("     → Check scaling factor (sqrt(d_k))")
+
+    # 4. Check attention entropy (concentration)
+    entropy = -(attn_weights * torch.log(attn_weights + 1e-9)).sum(dim=-1)
+    max_entropy = math.log(attn_weights.shape[-1])
+    normalized_entropy = entropy / max_entropy
+    print(f"\n  Attention entropy: {normalized_entropy.mean():.4f}")
+    print(f"    (0=focused on one token, 1=uniform across all tokens)")
+
+    if normalized_entropy.mean() > 0.95:
+        print("  ⚠️  WARNING: Attention is too uniform (not learning)")
+    if normalized_entropy.mean() < 0.05:
+        print("  ⚠️  WARNING: Attention too peaked (might be overconfident)")
+
+    # 5. Check gradient flow
+    if Q.requires_grad:
+        print(f"\n✓ Gradients enabled: Q={Q.requires_grad}, K={K.requires_grad}, V={V.requires_grad}")
+
+    # 6. Visualize attention pattern (for debugging)
+    import matplotlib.pyplot as plt
+    plt.figure(figsize=(10, 8))
+    plt.imshow(attn_weights[0, 0].detach().cpu(), cmap='viridis', aspect='auto')
+    plt.colorbar()
+    plt.title('Attention Pattern (Head 0)')
+    plt.xlabel('Key position')
+    plt.ylabel('Query position')
+    plt.savefig('attention_pattern.png')
+    print("\n  Saved attention_pattern.png")
+
+# Usage during training:
+output, attn_weights = attention(Q, K, V)
+if step % 100 == 0:  # Periodically check
+    debug_attention(Q, K, V, attn_weights, output)</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention debugging visualization EN</div>
+    </div>
+
+    <!-- Card 21 -->
+    <div class="card">
+        <div class="front">What causes NaN in attention and how do you fix it?</div>
+        <div class="back">
+            <strong>Common causes and fixes for NaN in attention:</strong>
+
+            <p><strong>1. All positions masked → softmax([-inf, -inf, ...]) → NaN</strong></p>
+            <pre><code># Problem:
+scores = scores.masked_fill(mask == 0, float('-inf'))
+attn = F.softmax(scores, dim=-1)  # NaN if entire row is -inf
+
+# Fix: Check mask validity
+assert not (mask.sum(dim=-1) == 0).any(), "Some queries have no valid keys!"
+
+# Or handle in softmax:
+def safe_softmax(scores, mask):
+    scores = scores.masked_fill(mask == 0, -1e9)  # Large negative, not -inf
+    return F.softmax(scores, dim=-1)</code></pre>
+
+            <p><strong>2. Overflow in dot product before scaling</strong></p>
+            <pre><code># Problem:
+scores = Q @ K.T  # Can be very large if Q, K not normalized
+attn = F.softmax(scores / sqrt(d_k), dim=-1)
+
+# Fix: Scale BEFORE computing dot product or normalize Q, K
+scores = (Q @ K.T) / sqrt(d_k)  # Scale immediately
+# Or use layer norm on Q and K:
+Q = layer_norm(Q)
+K = layer_norm(K)</code></pre>
+
+            <p><strong>3. NaN in input (Q, K, or V)</strong></p>
+            <pre><code># Add assertions:
+assert not torch.isnan(Q).any(), "NaN in Q"
+assert not torch.isnan(K).any(), "NaN in K"
+assert not torch.isnan(V).any(), "NaN in V"
+
+# Check backward:
+torch.autograd.set_detect_anomaly(True)  # Enables anomaly detection</code></pre>
+
+            <p><strong>4. Mixed precision instability</strong></p>
+            <pre><code># Problem: fp16 can overflow
+with torch.cuda.amp.autocast():
+    attn = attention(Q, K, V)  # Might overflow in fp16
+
+# Fix: Use bf16 or compute attention in fp32
+with torch.cuda.amp.autocast(dtype=torch.bfloat16):  # bf16 more stable
+    attn = attention(Q, K, V)
+
+# Or force fp32 for attention:
+with torch.cuda.amp.autocast(enabled=False):
+    attn = attention(Q.float(), K.float(), V.float())</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention debugging nan numerical-stability EN</div>
+    </div>
+
+    <!-- Card 22 -->
+    <div class="card">
+        <div class="front">CLOZE: In Flash Attention, the attention matrix is computed in <span class="cloze">blocks/tiles</span> and stored in <span class="cloze">SRAM (on-chip memory)</span> to avoid the HBM bottleneck.</div>
+        <div class="back">
+            <strong>Answer: blocks/tiles, SRAM (on-chip memory)</strong>
+
+            <p>Memory hierarchy on GPU:</p>
+            <ul>
+                <li><strong>HBM (High Bandwidth Memory):</strong> Large (~40GB) but SLOW (600 GB/s)</li>
+                <li><strong>SRAM (on-chip):</strong> Small (~20MB) but FAST (19 TB/s) - 30x faster!</li>
+            </ul>
+
+            <pre><code># Standard attention: O(N²) HBM reads/writes
+# 1. Load Q, K from HBM → compute scores → store to HBM
+# 2. Load scores from HBM → softmax → store to HBM
+# 3. Load attn weights, V from HBM → compute output → store to HBM
+# Total: 4N² HBM accesses
+
+# Flash Attention: O(N²/M) HBM reads/writes
+# 1. Load blocks of Q, K into SRAM (fits: M × d)
+# 2. Compute attention in SRAM (never writes intermediate to HBM)
+# 3. Only write final output to HBM
+# Total: O(N²/M) HBM accesses where M = SRAM_size / d
+
+# Speedup comes from reducing slow HBM accesses, not compute</code></pre>
+
+            <p>Key insight: Modern GPUs are memory-bound, not compute-bound for attention.</p>
+        </div>
+        <div class="tags">cs pythonML attention flash-attention cloze memory-hierarchy EN</div>
+    </div>
+
+    <!-- Card 23 -->
+    <div class="card">
+        <div class="front">How do you implement cross-attention with different sequence lengths for query and key?</div>
+        <div class="back">
+            <strong>Cross-attention naturally handles different sequence lengths:</strong>
+            <pre><code>def cross_attention(query, key, value, mask=None):
+    """
+    query: (batch, tgt_len, d_model) - target/decoder sequence
+    key:   (batch, src_len, d_model) - source/encoder sequence
+    value: (batch, src_len, d_model) - source/encoder sequence
+
+    Output: (batch, tgt_len, d_model) - same shape as query
+    """
+    batch_size, tgt_len, d_model = query.shape
+    _, src_len, _ = key.shape
+
+    # Project to Q, K, V
+    Q = W_q(query)  # (batch, tgt_len, d_model)
+    K = W_k(key)    # (batch, src_len, d_model)
+    V = W_v(value)  # (batch, src_len, d_model)
+
+    # Split into heads and transpose
+    # Q: (batch, num_heads, tgt_len, d_k)
+    # K: (batch, num_heads, src_len, d_k)
+    # V: (batch, num_heads, src_len, d_k)
+
+    # Attention scores: (batch, num_heads, tgt_len, src_len)
+    # Note: tgt_len × src_len matrix (not square!)
+    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
+
+    # Mask shape must be (batch, 1, tgt_len, src_len) or broadcastable
+    if mask is not None:
+        scores = scores.masked_fill(mask == 0, float('-inf'))
+
+    # Softmax over source length dimension
+    attn = F.softmax(scores, dim=-1)  # Each target position gets distribution over source
+
+    # Output: (batch, num_heads, tgt_len, d_k)
+    output = torch.matmul(attn, V)
+
+    # Reshape to (batch, tgt_len, d_model)
+    output = output.transpose(1, 2).contiguous().view(batch_size, tgt_len, d_model)
+
+    return W_o(output)
+
+# Example: Image captioning
+# image_features: (batch, 196, 512) - 14×14 image patches
+# caption_tokens: (batch, 20, 512) - 20 word tokens
+output = cross_attention(
+    query=caption_tokens,     # (batch, 20, 512)
+    key=image_features,       # (batch, 196, 512)
+    value=image_features      # (batch, 196, 512)
+)  # Returns: (batch, 20, 512)
+# Each word attends to all image patches</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention cross-attention different-lengths EN</div>
+    </div>
+
+    <!-- Card 24 -->
+    <div class="card">
+        <div class="front">How do you implement additive (Bahdanau) attention vs multiplicative (Luong) attention?</div>
+        <div class="back">
+            <strong>Two classic attention scoring mechanisms:</strong>
+
+            <p><strong>1. Multiplicative (Luong) - dot product:</strong></p>
+            <pre><code>def multiplicative_attention(query, keys, values):
+    """
+    query: (batch, d_model) - single query vector
+    keys: (batch, src_len, d_model)
+    values: (batch, src_len, d_model)
+    """
+    # Score: dot product
+    # (batch, d_model) @ (batch, d_model, src_len) → (batch, src_len)
+    scores = torch.matmul(query.unsqueeze(1), keys.transpose(1, 2)).squeeze(1)
+    scores = scores / math.sqrt(query.size(-1))
+
+    attn_weights = F.softmax(scores, dim=-1)  # (batch, src_len)
+
+    # Weighted sum: (batch, src_len) @ (batch, src_len, d_model) → (batch, d_model)
+    context = torch.matmul(attn_weights.unsqueeze(1), values).squeeze(1)
+
+    return context, attn_weights</code></pre>
+
+            <p><strong>2. Additive (Bahdanau) - learned combination:</strong></p>
+            <pre><code>class AdditiveAttention(nn.Module):
+    def __init__(self, query_dim, key_dim, hidden_dim):
+        super().__init__()
+        self.W_q = nn.Linear(query_dim, hidden_dim, bias=False)
+        self.W_k = nn.Linear(key_dim, hidden_dim, bias=False)
+        self.v = nn.Linear(hidden_dim, 1, bias=False)  # Score vector
+
+    def forward(self, query, keys, values):
+        """
+        query: (batch, query_dim)
+        keys: (batch, src_len, key_dim)
+        values: (batch, src_len, value_dim)
+        """
+        # Project query: (batch, query_dim) → (batch, hidden_dim)
+        q_proj = self.W_q(query).unsqueeze(1)  # (batch, 1, hidden_dim)
+
+        # Project keys: (batch, src_len, key_dim) → (batch, src_len, hidden_dim)
+        k_proj = self.W_k(keys)
+
+        # Add and apply tanh: (batch, src_len, hidden_dim)
+        combined = torch.tanh(q_proj + k_proj)
+
+        # Score with learned vector: (batch, src_len, hidden_dim) → (batch, src_len, 1)
+        scores = self.v(combined).squeeze(-1)  # (batch, src_len)
+
+        attn_weights = F.softmax(scores, dim=-1)
+
+        # Weighted sum
+        context = torch.matmul(attn_weights.unsqueeze(1), values).squeeze(1)
+
+        return context, attn_weights
+
+# Comparison:
+# Multiplicative: Faster, fewer parameters, standard in Transformers
+# Additive: More expressive, better when query_dim ≠ key_dim, used in early seq2seq</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention additive multiplicative bahdanau luong EN</div>
+    </div>
+
+    <!-- Card 25 -->
+    <div class="card">
+        <div class="front">CLOZE: Sparse attention patterns reduce complexity from <span class="cloze">O(n²)</span> to approximately <span class="cloze">O(n√n)</span> or <span class="cloze">O(n log n)</span> depending on the pattern.</div>
+        <div class="back">
+            <strong>Answer: O(n²), O(n√n) or O(n log n)</strong>
+
+            <p>Sparse attention patterns and their complexity:</p>
+            <ul>
+                <li><strong>Full attention:</strong> O(n²) - every token attends to every token</li>
+                <li><strong>Local windowed:</strong> O(n × w) ≈ O(n) for fixed window w</li>
+                <li><strong>Strided/Dilated:</strong> O(n × n/k) = O(n²/k) for stride k</li>
+                <li><strong>Fixed pattern (Sparse Transformer):</strong> O(n√n)
+                    <ul>
+                        <li>Each token attends to √n positions</li>
+                        <li>Combination of local + strided patterns</li>
+                    </ul>
+                </li>
+                <li><strong>Hierarchical (Longformer, BigBird):</strong> O(n)
+                    <ul>
+                        <li>Local + global + random patterns</li>
+                        <li>Each token attends to O(1) positions</li>
+                    </ul>
+                </li>
+                <li><strong>LogSparse:</strong> O(n log n)
+                    <ul>
+                        <li>Each token attends to log n positions at exponential distances</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <pre><code># Example complexities for 4096 token sequence:
+n = 4096
+
+full = n * n                    # 16,777,216 operations
+local = n * 128                 # 524,288 (window=128)
+sparse_transformer = n * n**0.5 # 262,144
+logsparse = n * math.log2(n)    # 49,152
+
+print(f"Speedup sparse vs full: {full/sparse_transformer:.1f}x")</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention sparse complexity cloze EN</div>
+    </div>
+
+    <!-- Card 26 -->
+    <div class="card">
+        <div class="front">How do you implement efficient batched attention with variable-length sequences?</div>
+        <div class="back">
+            <strong>Use padding masks and efficient packing:</strong>
+            <pre><code>def batched_attention_with_padding(queries, keys, values, lengths):
+    """
+    Handle variable-length sequences in a batch.
+    queries, keys, values: (batch, max_seq_len, d_model) - padded
+    lengths: (batch,) - actual length of each sequence
+    """
+    batch_size, max_len, d_model = queries.shape
+    device = queries.device
+
+    # Create padding mask: 1 for real tokens, 0 for padding
+    # (batch, max_len)
+    mask = torch.arange(max_len, device=device).expand(batch_size, max_len)
+    mask = mask < lengths.unsqueeze(1)  # (batch, max_len)
+
+    # Expand for attention: (batch, 1, 1, max_len)
+    # This broadcasts to (batch, num_heads, tgt_len, src_len)
+    attn_mask = mask.unsqueeze(1).unsqueeze(2)
+
+    # Compute attention with mask
+    Q = W_q(queries)  # Project
+    K = W_k(keys)
+    V = W_v(values)
+
+    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_model)
+
+    # Mask padding positions
+    scores = scores.masked_fill(~attn_mask, float('-inf'))
+
+    attn_weights = F.softmax(scores, dim=-1)
+
+    # Zero out attention FROM padding positions (not just TO)
+    query_mask = mask.unsqueeze(1).unsqueeze(-1)  # (batch, 1, max_len, 1)
+    attn_weights = attn_weights.masked_fill(~query_mask, 0.0)
+
+    output = torch.matmul(attn_weights, V)
+
+    return output
+
+# Alternative: Use PackedSequence for better efficiency
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+
+def attention_with_packing(queries, lengths):
+    """
+    Avoid computation on padding entirely.
+    """
+    # Pack: removes padding
+    packed_queries = pack_padded_sequence(
+        queries, lengths,
+        batch_first=True,
+        enforce_sorted=False
+    )
+
+    # Process only real tokens (no padding in computation)
+    # ... attention computation ...
+
+    # Unpack back to padded format
+    output, _ = pad_packed_sequence(packed_queries, batch_first=True)
+
+    return output
+
+# PyTorch 2.0 nested tensors (experimental):
+def attention_with_nested_tensors(queries_list):
+    """
+    queries_list: List of tensors with different lengths
+    No padding needed!
+    """
+    # Create nested tensor (no padding)
+    queries_nested = torch.nested.nested_tensor(queries_list)
+
+    # SDPA natively supports nested tensors
+    output = F.scaled_dot_product_attention(
+        queries_nested, keys_nested, values_nested
+    )
+
+    return output</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention batching padding variable-length EN</div>
+    </div>
+
+    <!-- Card 27 -->
+    <div class="card">
+        <div class="front">How do you implement relative position encodings in attention (T5-style)?</div>
+        <div class="back">
+            <strong>T5 uses learned relative position biases added to attention scores:</strong>
+            <pre><code>class RelativePositionBias(nn.Module):
+    def __init__(self, num_heads, max_distance=128):
+        super().__init__()
+        self.num_heads = num_heads
+        self.max_distance = max_distance
+
+        # Learnable bias for each relative position and head
+        # Bucket relative positions to reduce parameters
+        self.num_buckets = 32
+        self.relative_attention_bias = nn.Embedding(
+            self.num_buckets,
+            num_heads
+        )
+
+    def _relative_position_bucket(self, relative_position):
+        """
+        Map relative positions to buckets.
+        T5 uses log-spaced buckets for distances.
+        """
+        num_buckets = self.num_buckets
+        ret = 0
+        n = -relative_position
+
+        # Half buckets for positive, half for negative
+        num_buckets //= 2
+        ret += (n < 0).long() * num_buckets
+        n = torch.abs(n)
+
+        # Log-scale bucketing for larger distances
+        max_exact = num_buckets // 2
+        is_small = n < max_exact
+
+        # Logarithmic bucketing for n >= max_exact
+        val_if_large = max_exact + (
+            torch.log(n.float() / max_exact) /
+            math.log(self.max_distance / max_exact) *
+            (num_buckets - max_exact)
+        ).long()
+        val_if_large = torch.min(
+            val_if_large,
+            torch.full_like(val_if_large, num_buckets - 1)
+        )
+
+        ret += torch.where(is_small, n, val_if_large)
+        return ret
+
+    def forward(self, seq_len):
+        """Compute relative position bias for seq_len × seq_len attention."""
+        # Create position grid
+        positions = torch.arange(seq_len, device=self.relative_attention_bias.weight.device)
+
+        # Compute relative positions: position[i] - position[j]
+        relative_positions = positions.unsqueeze(0) - positions.unsqueeze(1)
+
+        # Map to buckets
+        buckets = self._relative_position_bucket(relative_positions)
+
+        # Get bias values: (seq_len, seq_len, num_heads)
+        bias = self.relative_attention_bias(buckets)
+
+        # Reshape for attention: (1, num_heads, seq_len, seq_len)
+        bias = bias.permute(2, 0, 1).unsqueeze(0)
+
+        return bias
+
+# Usage in attention:
+def attention_with_relative_bias(Q, K, V, relative_bias):
+    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
+
+    # Add relative position bias
+    scores = scores + relative_bias
+
+    attn = F.softmax(scores, dim=-1)
+    output = torch.matmul(attn, V)
+    return output
+
+# In model:
+rel_bias = RelativePositionBias(num_heads=8)
+bias = rel_bias(seq_len=512)
+output = attention_with_relative_bias(Q, K, V, bias)</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention relative-position t5 EN</div>
+    </div>
+
+    <!-- Card 28 -->
+    <div class="card">
+        <div class="front">CLOZE: In PyTorch 2.0+, <span class="cloze">F.scaled_dot_product_attention</span> automatically selects the best attention implementation (Flash Attention, memory-efficient, or math) based on inputs.</div>
+        <div class="back">
+            <strong>Answer: F.scaled_dot_product_attention (or torch.nn.functional.scaled_dot_product_attention)</strong>
+
+            <pre><code>import torch.nn.functional as F
+
+# PyTorch 2.0+ unified attention API
+output = F.scaled_dot_product_attention(
+    query, key, value,
+    attn_mask=None,      # Optional mask
+    dropout_p=0.0,       # Dropout probability
+    is_causal=False,     # Use causal mask
+    scale=None           # Custom scale (default: 1/sqrt(d_k))
+)
+
+# Automatically chooses from:
+# 1. Flash Attention (if available, fastest)
+# 2. Memory-efficient attention (if Flash not available)
+# 3. Math implementation (fallback)
+
+# Control backend selection:
+from torch.nn.attention import SDPBackend, sdpa_kernel
+
+# Force specific backend:
+with sdpa_kernel(enable_flash=True, enable_math=False, enable_mem_efficient=False):
+    output = F.scaled_dot_product_attention(query, key, value, is_causal=True)
+
+# Check which backend was used:
+with torch.backends.cuda.sdp_kernel() as kernel:
+    print(f"Flash Attention enabled: {kernel.enable_flash}")
+    print(f"Memory Efficient enabled: {kernel.enable_mem_efficient}")
+    print(f"Math enabled: {kernel.enable_math}")
+
+# Benefits:
+# ✓ Automatic optimization selection
+# ✓ Up to 3x faster than manual implementation
+# ✓ Lower memory usage
+# ✓ Built-in support for causal masks, dropout
+# ✓ No need to implement Flash Attention manually</code></pre>
+        </div>
+        <div class="tags">cs pythonML attention pytorch sdpa flash-attention cloze EN</div>
+    </div>
+
+</body>
+</html>

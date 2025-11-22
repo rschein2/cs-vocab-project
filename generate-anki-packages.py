@@ -119,13 +119,15 @@ CS_VOCAB_MODEL = genanki.Model(
             background-color: rgba(127, 127, 127, 0.15);
             padding: 12px;
             border-radius: 5px;
-            overflow-x: auto;
             margin: 10px 0;
+            font-size: 0.75em;
         }
 
         pre code {
             background-color: transparent;
             padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         strong {
@@ -233,6 +235,20 @@ if __name__ == '__main__':
         ('exit-status-flashcards.html', 'CS Vocab::Exit Status & Return Codes', 'cs-vocab-exit-status.apkg', 2059400140),
         ('brace-expansion-globbing-flashcards.html', 'CS Vocab::Brace Expansion & Globbing', 'cs-vocab-globbing.apkg', 2059400141),
         ('aliases-functions-scripts-flashcards.html', 'CS Vocab::Aliases, Functions & Scripts', 'cs-vocab-functions.apkg', 2059400142),
+        ('ci-continuous-integration-flashcards.html', 'CS Vocab::CI/Continuous Integration', 'cs-vocab-ci.apkg', 2059400143),
+        ('linux-history-trivia-flashcards.html', 'CS Vocab::Linux History & Trivia', 'cs-vocab-linux-history.apkg', 2059400144),
+        ('sed-deep-dive-flashcards.html', 'CS Vocab::Sed Deep Dive', 'cs-vocab-sed.apkg', 2059400145),
+        ('linux-sociopolitical-flashcards.html', 'CS Vocab::Linux Sociopolitical History', 'cs-vocab-sociopolitical.apkg', 2059400146),
+        ('common-cli-errors-flashcards.html', 'CS Vocab::Common CLI Errors & Antipatterns', 'cs-vocab-common-errors.apkg', 2059400147),
+        ('common-terminal-workflows-flashcards.html', 'CS Vocab::Common Terminal Workflows', 'cs-vocab-workflows.apkg', 2059400148),
+        ('pytorch-basics-flashcards.html', 'CS Vocab::pythonML::PyTorch Basics', 'cs-vocab-pytorch-basics.apkg', 2059400149),
+        ('training-loop-flashcards.html', 'CS Vocab::pythonML::Training Loop', 'cs-vocab-training-loop.apkg', 2059400150),
+        ('reinforcement-learning-flashcards.html', 'CS Vocab::pythonML::Reinforcement Learning', 'cs-vocab-reinforcement-learning.apkg', 2059400151),
+        ('nlp-transformers-flashcards.html', 'CS Vocab::pythonML::NLP & Transformers', 'cs-vocab-nlp-transformers.apkg', 2059400152),
+        ('model-evaluation-metrics-flashcards.html', 'CS Vocab::pythonML::Model Evaluation & Metrics', 'cs-vocab-model-evaluation.apkg', 2059400153),
+        ('advanced-pytorch-flashcards.html', 'CS Vocab::pythonML::Advanced PyTorch', 'cs-vocab-advanced-pytorch.apkg', 2059400154),
+        ('mlops-langfuse-flashcards.html', 'CS Vocab::pythonML::MLOps with LangFuse', 'cs-vocab-mlops-langfuse.apkg', 2059400155),
+        ('attention-mechanisms-flashcards.html', 'CS Vocab::pythonML::Attention Mechanisms', 'cs-vocab-attention.apkg', 2059400156),
     ]
 
     for html_file, deck_name, output_file, deck_id in deck_configs:
@@ -287,8 +303,22 @@ if __name__ == '__main__':
     print('  - cs-vocab-exit-status.apkg (Exit Status & Return Codes only)')
     print('  - cs-vocab-globbing.apkg    (Brace Expansion & Globbing only)')
     print('  - cs-vocab-functions.apkg   (Aliases, Functions & Scripts only)')
+    print('  - cs-vocab-ci.apkg          (CI/Continuous Integration only)')
+    print('  - cs-vocab-linux-history.apkg (Linux History & Trivia only)')
+    print('  - cs-vocab-sed.apkg         (Sed Deep Dive only)')
+    print('  - cs-vocab-sociopolitical.apkg (Linux Sociopolitical History only)')
+    print('  - cs-vocab-common-errors.apkg (Common CLI Errors & Antipatterns only)')
+    print('  - cs-vocab-workflows.apkg   (Common Terminal Workflows only)')
+    print('  - cs-vocab-pytorch-basics.apkg (PyTorch Basics only)')
+    print('  - cs-vocab-training-loop.apkg (PyTorch Training Loop only)')
+    print('  - cs-vocab-reinforcement-learning.apkg (Reinforcement Learning only)')
+    print('  - cs-vocab-nlp-transformers.apkg (NLP & Transformers only)')
+    print('  - cs-vocab-model-evaluation.apkg (Model Evaluation & Metrics only)')
+    print('  - cs-vocab-advanced-pytorch.apkg (Advanced PyTorch only)')
+    print('  - cs-vocab-mlops-langfuse.apkg (MLOps with LangFuse only)')
+    print('  - cs-vocab-attention.apkg   (Attention Mechanisms only)')
     print()
     print('Combined package:')
     print('  - cs-vocab-all.apkg         (All topics)')
     print()
-    print('Import creates subdeck structure: CS Vocab → [33 subdecks]')
+    print('Import creates subdeck structure: CS Vocab → [47 subdecks]')

@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sed Deep Dive Flashcards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background: rgba(245, 245, 245, 0.95);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(221, 221, 221, 0.9);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgba(51, 51, 51, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        .back {
+            color: rgba(68, 68, 68, 0.95);
+        }
+        .back code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: rgba(197, 34, 31, 0.95);
+        }
+        .back pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+        }
+        .back pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(238, 238, 238, 0.9);
+            font-size: 12px;
+            color: rgba(128, 128, 128, 0.95);
+        }
+        ol, ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        strong {
+            color: rgba(76, 175, 80, 0.95);
+        }
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sed Deep Dive Flashcards</h1>
+
+    <div class="card">
+        <div class="front">
+            You need to replace all occurrences of "http://" with "https://" in a file. What's the sed command?
+        </div>
+        <div class="back">
+            <strong>Use sed substitution with g flag:</strong>
+            <pre><code># Basic substitution (g = global, all occurrences per line)
+sed 's/http:\/\//https:\/\//g' file.txt
+
+# Better: Use different delimiter to avoid escaping
+sed 's|http://|https://|g' file.txt
+
+# In-place edit (modify file directly):
+sed -i 's|http://|https://|g' file.txt
+
+# Backup original file before editing:
+sed -i.bak 's|http://|https://|g' file.txt
+# Creates file.txt.bak</code></pre>
+
+            <p><strong>Sed substitution syntax:</strong></p>
+            <pre><code>s/pattern/replacement/flags
+
+s     = substitute command
+/     = delimiter (can be any character: |, #, :, etc.)
+pattern = what to find (regex)
+replacement = what to replace with
+flags = modifiers (g, i, p, etc.)</code></pre>
+
+            <p><strong>Common flags:</strong></p>
+            <ul>
+                <li><code>g</code> - Global (all occurrences on line, not just first)</li>
+                <li><code>i</code> - Case insensitive matching</li>
+                <li><code>p</code> - Print if substitution made</li>
+                <li><code>2</code> - Replace only 2nd occurrence</li>
+                <li><code>w file</code> - Write changed lines to file</li>
+            </ul>
+
+            <p><strong>Examples with flags:</strong></p>
+            <pre><code># Only first occurrence per line:
+sed 's/old/new/' file.txt
+
+# All occurrences (g flag):
+sed 's/old/new/g' file.txt
+
+# Case insensitive (I flag):
+sed 's/error/ERROR/gI' file.txt
+
+# Only 2nd occurrence:
+sed 's/old/new/2' file.txt
+
+# Print only changed lines:
+sed -n 's/old/new/gp' file.txt
+#    ↑ -n suppresses default output, p prints matches</code></pre>
+
+            <p><strong>Different delimiters:</strong></p>
+            <pre><code># Standard (requires escaping slashes):
+sed 's/\/usr\/bin/\/usr\/local\/bin/g'
+
+# Using | delimiter (cleaner):
+sed 's|/usr/bin|/usr/local/bin|g'
+
+# Using # delimiter:
+sed 's#/usr/bin#/usr/local/bin#g'
+
+# Using : delimiter:
+sed 's:/usr/bin:/usr/local/bin:g'
+
+# Rule: Pick delimiter that doesn't appear in pattern</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Choose delimiter that avoids escaping: Use <code>|</code> for paths, <code>:</code> for URLs</li>
+                <li>Without <code>g</code> flag, only first match per line is replaced</li>
+                <li><code>-i</code> edits in place; always test without <code>-i</code> first!</li>
+                <li>macOS sed requires <code>-i ''</code> for in-place: <code>sed -i '' 's/old/new/g' file</code></li>
+            </ul>
+        </div>
+        <div class="tags">cs sed substitution regex stream-editor EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You want to delete all blank lines from a file using sed. How do you do it?
+        </div>
+        <div class="back">
+            <strong>Use sed delete command with pattern:</strong>
+            <pre><code># Delete blank lines (empty lines):
+sed '/^$/d' file.txt
+
+# Delete blank lines and lines with only whitespace:
+sed '/^[[:space:]]*$/d' file.txt
+
+# Delete leading blank lines:
+sed '/./,$!d' file.txt
+
+# Delete trailing blank lines:
+sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' file.txt</code></pre>
+
+            <p><strong>Understanding the pattern:</strong></p>
+            <pre><code>/^$/d
+ │││└─ d = delete command
+ ││└── $ = end of line
+ │└─── ^ = start of line
+ └──── / / = pattern delimiters
+
+# Matches lines where start immediately followed by end (empty line)</code></pre>
+
+            <p><strong>Sed delete command variations:</strong></p>
+            <pre><code># Delete specific lines by number:
+sed '3d' file.txt              # Delete line 3
+sed '1d' file.txt              # Delete first line
+sed '$d' file.txt              # Delete last line ($=last)
+
+# Delete ranges:
+sed '1,10d' file.txt           # Delete lines 1-10
+sed '5,$d' file.txt            # Delete line 5 to end
+
+# Delete by pattern:
+sed '/pattern/d' file.txt      # Delete lines containing "pattern"
+sed '/^#/d' file.txt           # Delete comment lines
+sed '/ERROR/d' file.txt        # Delete lines with ERROR
+
+# Delete everything EXCEPT pattern (keep only matches):
+sed '/pattern/!d' file.txt     # ! inverts
+sed -n '/pattern/p' file.txt   # Same result (print only matches)</code></pre>
+
+            <p><strong>Combining with other commands:</strong></p>
+            <pre><code># Delete blank lines AND lines starting with #:
+sed -e '/^$/d' -e '/^#/d' file.txt
+
+# Or with semicolon:
+sed '/^$/d; /^#/d' file.txt
+
+# Delete blank lines, then substitute:
+sed '/^$/d; s/old/new/g' file.txt</code></pre>
+
+            <p><strong>Common deletion patterns:</strong></p>
+            <pre><code># Remove comments and blank lines:
+sed '/^#/d; /^$/d' file.txt
+
+# Remove trailing whitespace:
+sed 's/[[:space:]]*$//' file.txt
+
+# Remove C-style comments:
+sed 's|/\*.*\*/||g' file.c
+
+# Remove everything after # (inline comments):
+sed 's/#.*//' file.txt
+
+# Delete lines containing specific word:
+sed '/DEBUG/d' log.txt
+
+# Delete lines NOT containing word (keep only matches):
+sed '/ERROR/!d' log.txt</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li><code>/pattern/d</code> deletes matching lines</li>
+                <li><code>/pattern/!d</code> deletes non-matching (keeps only matches)</li>
+                <li><code>^$</code> matches empty lines (zero characters)</li>
+                <li><code>^[[:space:]]*$</code> matches lines with only whitespace</li>
+                <li>Use <code>-n '/pattern/p'</code> instead of <code>/pattern/!d</code> for clarity</li>
+                <li>Always test before using <code>-i</code> (in-place edit)</li>
+            </ul>
+        </div>
+        <div class="tags">cs sed delete blank-lines patterns EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            How do you use sed to edit only specific line numbers or ranges?
+        </div>
+        <div class="back">
+            <strong>Use addresses to target specific lines:</strong>
+
+            <p><strong>Single line addresses:</strong></p>
+            <pre><code># Substitute only on line 5:
+sed '5s/old/new/' file.txt
+
+# Delete line 10:
+sed '10d' file.txt
+
+# Print only line 3:
+sed -n '3p' file.txt
+
+# Append text after line 2:
+sed '2a\New line text' file.txt
+
+# Insert text before line 1 (at start):
+sed '1i\Header line' file.txt</code></pre>
+
+            <p><strong>Range addresses:</strong></p>
+            <pre><code># Substitute lines 10-20:
+sed '10,20s/old/new/g' file.txt
+
+# Delete lines 5-10:
+sed '5,10d' file.txt
+
+# Print lines 1-5:
+sed -n '1,5p' file.txt
+
+# From line 10 to end:
+sed '10,$s/old/new/g' file.txt
+#       ↑ $ means last line</code></pre>
+
+            <p><strong>Pattern addresses:</strong></p>
+            <pre><code># Substitute only in lines containing "ERROR":
+sed '/ERROR/s/old/new/g' file.txt
+
+# Delete from first "START" to first "END":
+sed '/START/,/END/d' file.txt
+
+# Substitute from line 10 to first occurrence of "STOP":
+sed '10,/STOP/s/old/new/g' file.txt
+
+# Act on every 3rd line:
+sed '0~3s/old/new/g' file.txt
+
+# Act on odd lines:
+sed '1~2s/old/new/g' file.txt</code></pre>
+
+            <p><strong>Inverted addresses (everything except):</strong></p>
+            <pre><code># Substitute everywhere EXCEPT lines 5-10:
+sed '5,10!s/old/new/g' file.txt
+
+# Delete all lines EXCEPT those with "KEEP":
+sed '/KEEP/!d' file.txt
+
+# Substitute except in lines with "IGNORE":
+sed '/IGNORE/!s/old/new/g' file.txt</code></pre>
+
+            <p><strong>Complex addressing examples:</strong></p>
+            <pre><code># Extract configuration block:
+sed -n '/\[database\]/,/\[/p' config.ini
+# From [database] to next section
+
+# Comment out specific lines:
+sed '10,20s/^/# /' file.txt
+# Adds # at start of lines 10-20
+
+# Uncomment lines in range:
+sed '5,10s/^# //' file.txt
+
+# Replace only in function (between { and }):
+sed '/function_name() {/,/^}/s/old/new/g' file.sh
+
+# Modify HTML between tags:
+sed '/<body>/,/<\/body>/s/old/new/g' file.html
+
+# Act on first 10 lines containing pattern:
+sed '0,/pattern/s/old/new/' file.txt
+# Only first occurrence across all lines</code></pre>
+
+            <p><strong>Special address symbols:</strong></p>
+            <ul>
+                <li><code>$</code> - Last line</li>
+                <li><code>0</code> - Before first line (special, for ranges)</li>
+                <li><code>!</code> - Negate (apply to non-matching lines)</li>
+                <li><code>,</code> - Range separator</li>
+                <li><code>~</code> - Step (every Nth line)</li>
+            </ul>
+
+            <p><strong>Practical examples:</strong></p>
+            <pre><code># Add line numbers to first 10 lines:
+sed '1,10=' file.txt | sed 'N; s/\n/: /'
+
+# Extract lines 100-200 from large file:
+sed -n '100,200p' large_file.txt
+
+# Remove header and footer (keep middle):
+sed '1,10d; $d' file.txt
+
+# Change config value in specific section:
+sed '/\[production\]/,/\[/{s/debug=true/debug=false/}' config.ini
+
+# Apply substitution only on non-blank lines:
+sed '/./s/old/new/g' file.txt
+#    ↑ . matches any character (non-empty lines)</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Addresses come BEFORE the command: <code>5d</code> not <code>d5</code></li>
+                <li>Combine addresses with any command: <code>s</code>, <code>d</code>, <code>p</code>, <code>a</code>, <code>i</code>, etc.</li>
+                <li><code>1,10</code> is inclusive (includes both line 1 and 10)</li>
+                <li>Use <code>-n</code> with <code>p</code> to suppress default output</li>
+                <li>Test with <code>-n 'addr p'</code> to see which lines match address</li>
+            </ul>
+        </div>
+        <div class="tags">cs sed addresses line-numbers ranges EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            How do you use backreferences in sed to rearrange or reuse matched patterns?
+        </div>
+        <div class="back">
+            <strong>Use \( \) to capture and \1 \2 etc. to reference:</strong>
+
+            <p><strong>Basic backreferences:</strong></p>
+            <pre><code># Swap two words:
+echo "John Doe" | sed 's/\(.*\) \(.*\)/\2 \1/'
+# Output: Doe John
+
+# Extract email domain:
+echo "user@example.com" | sed 's/.*@\(.*\)/\1/'
+# Output: example.com
+
+# Duplicate each word:
+echo "hello" | sed 's/\(.*\)/\1 \1/'
+# Output: hello hello
+
+# Wrap in quotes:
+echo "text" | sed 's/\(.*\)/"\1"/'
+# Output: "text"</code></pre>
+
+            <p><strong>Understanding capture groups:</strong></p>
+            <pre><code>s/\(pattern1\) \(pattern2\)/\2 \1/
+
+\(pattern1\)  = Group 1, captured in \1
+\(pattern2\)  = Group 2, captured in \2
+\2 \1        = Use group 2, then group 1 (swap)
+
+# Up to 9 groups: \1 through \9</code></pre>
+
+            <p><strong>Practical examples:</strong></p>
+            <pre><code># Convert date format (YYYY-MM-DD to MM/DD/YYYY):
+sed 's/\([0-9]\{4\}\)-\([0-9]\{2\}\)-\([0-9]\{2\}\)/\2\/\3\/\1/' dates.txt
+#      └──group 1──┘ └──group 2──┘ └──group 3──┘  \2  \3  \1
+
+# Add parentheses around area code in phone numbers:
+echo "555-123-4567" | sed 's/\([0-9]\{3\}\)-/(\1) /'
+# Output: (555) 123-4567
+
+# Convert variable to uppercase:
+echo "var_name" | sed 's/\(.*\)/\U\1/'
+# Output: VAR_NAME
+
+# Extract filename from path:
+echo "/path/to/file.txt" | sed 's/.*\/\(.*\)/\1/'
+# Output: file.txt
+
+# Add <li> tags around each line:
+sed 's/\(.*\)/<li>\1<\/li>/' list.txt</code></pre>
+
+            <p><strong>Advanced patterns:</strong></p>
+            <pre><code># Swap key=value to value=key:
+sed 's/\(.*\)=\(.*\)/\2=\1/' config.txt
+
+# Convert CamelCase to snake_case (simple):
+sed 's/\([A-Z]\)/_\L\1/g; s/^_//' file.txt
+#       └───┘  └──┘
+#       group  lowercase
+
+# Remove duplicate words:
+sed 's/\b\(.*\) \1\b/\1/' file.txt
+# "the the" → "the"
+
+# HTML: Convert <b>text</b> to **text**:
+sed 's/<b>\(.*\)<\/b>/**\1**/' file.html
+
+# Extract quoted strings:
+sed -n 's/.*"\([^"]*\)".*/\1/p' file.txt
+#          └────┘
+#          Capture anything except quote</code></pre>
+
+            <p><strong>Multiple groups example:</strong></p>
+            <pre><code># Convert CSV to formatted output:
+echo "John,Doe,30" | sed 's/\(.*\),\(.*\),\(.*\)/Name: \1 \2, Age: \3/'
+# Output: Name: John Doe, Age: 30
+
+# Rearrange log format:
+echo "[2024-01-15] ERROR: message" | \
+  sed 's/\[\(.*\)\] \(.*\): \(.*\)/\2 on \1: \3/'
+# Output: ERROR on 2024-01-15: message</code></pre>
+
+            <p><strong>Case modification:</strong></p>
+            <pre><code># Uppercase matched group:
+sed 's/\([a-z]*\)/\U\1/' file.txt
+#                  └─ \U = uppercase
+
+# Lowercase matched group:
+sed 's/\([A-Z]*\)/\L\1/' file.txt
+#                  └─ \L = lowercase
+
+# Capitalize first letter:
+sed 's/\b\(.\)/\U\1/g' file.txt
+
+# Toggle case (not directly supported, use awk or tr)</code></pre>
+
+            <p><strong>GNU sed vs BSD/macOS sed:</strong></p>
+            <pre><code># GNU sed (Linux):
+sed 's/\([0-9]+\)/[\1]/' file.txt    # + quantifier works
+
+# BSD sed (macOS):
+sed 's/\([0-9][0-9]*\)/[\1]/' file.txt  # Must use * instead
+# Or use -E for extended regex:
+sed -E 's/([0-9]+)/[\1]/' file.txt   # () without backslashes</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Escape parentheses: <code>\( \)</code> for basic regex, <code>( )</code> with <code>-E</code></li>
+                <li>Max 9 groups: <code>\1</code> through <code>\9</code></li>
+                <li>Use <code>\0</code> or <code>&</code> to reference entire match</li>
+                <li><code>\U</code> uppercase, <code>\L</code> lowercase (GNU sed)</li>
+                <li>Test pattern with echo first before applying to files</li>
+                <li>For complex transformations, consider awk or perl</li>
+            </ul>
+        </div>
+        <div class="tags">cs sed backreferences capture-groups regex EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's the difference between sed's pattern space and hold space? When would you use them?
+        </div>
+        <div class="back">
+            <strong>Pattern space = current line being processed; Hold space = temporary storage</strong>
+
+            <p><strong>The two buffers:</strong></p>
+            <ul>
+                <li><strong>Pattern space:</strong> Current line(s) being edited, automatically printed by default</li>
+                <li><strong>Hold space:</strong> Separate buffer for storing data, not printed by default</li>
+            </ul>
+
+            <p><strong>Commands to move data between spaces:</strong></p>
+            <pre><code>h   - Copy pattern space to hold space (overwrites)
+H   - Append pattern space to hold space
+g   - Copy hold space to pattern space (overwrites)
+G   - Append hold space to pattern space
+x   - Exchange (swap) pattern and hold space</code></pre>
+
+            <p><strong>Example: Reverse file (print lines in reverse order):</strong></p>
+            <pre><code># Reverse file using hold space:
+sed -n '1!G; h; $p' file.txt
+
+# How it works line by line:
+# Line 1: "first"
+#   1!G  - Don't append (skip on first line)
+#   h    - Copy "first" to hold space
+#   $p   - Don't print (not last line)
+#
+# Line 2: "second"
+#   1!G  - Append hold space ("first") to pattern → "second\nfirst"
+#   h    - Copy to hold space
+#   $p   - Don't print
+#
+# Line 3: "third" (last)
+#   1!G  - Append hold → "third\nsecond\nfirst"
+#   h    - Copy to hold
+#   $p   - Print! (last line)
+#
+# Output: third, second, first</code></pre>
+
+            <p><strong>Example: Print every other line (odd lines):</strong></p>
+            <pre><code># Method 1: Using hold space
+sed -n 'n; p' file.txt
+
+# Method 2: Explicit pattern space manipulation
+sed 'N; d' file.txt
+
+# Method 3: Addresses (simpler!)
+sed -n '1~2p' file.txt    # Print lines 1, 3, 5, 7...</code></pre>
+
+            <p><strong>Example: Append next line to lines containing pattern:</strong></p>
+            <pre><code># If line has "MARKER", append next line to it:
+sed '/MARKER/{N; s/\n/ /}' file.txt
+
+# Input:
+# This has MARKER
+# Next line
+# Other line
+
+# Output:
+# This has MARKER Next line
+# Other line</code></pre>
+
+            <p><strong>Example: Swap pairs of lines:</strong></p>
+            <pre><code># Swap line 1↔2, 3↔4, 5↔6, etc.:
+sed 'N; s/\(.*\)\n\(.*\)/\2\n\1/' file.txt
+
+# Input:       Output:
+# line1        line2
+# line2        line1
+# line3        line4
+# line4        line3</code></pre>
+
+            <p><strong>Example: Delete lines before a pattern:</strong></p>
+            <pre><code># Keep only lines from first "START" onward:
+sed -n '/START/,$p' file.txt
+
+# Using hold space to delay printing:
+sed '/START/h; /START/!{x; /START/d}; /START/,$p' file.txt</code></pre>
+
+            <p><strong>Complex example: Print duplicate lines:</strong></p>
+            <pre><code># Print only lines that appear consecutively:
+sed -n 'h; n; G; /^\(.*\)\n\1$/p' file.txt
+
+# Process:
+# h    - Copy current line to hold
+# n    - Read next line to pattern
+# G    - Append hold (previous line) to pattern
+# Pattern now has: current\nprevious
+# Check if they match, print if yes</code></pre>
+
+            <p><strong>When to use pattern/hold space:</strong></p>
+            <ul>
+                <li><strong>Single line processing:</strong> Pattern space only (most common)</li>
+                <li><strong>Multi-line processing:</strong> Use <code>N</code> to append next line</li>
+                <li><strong>Buffering/delayed output:</strong> Hold space</li>
+                <li><strong>Reordering lines:</strong> Hold space</li>
+                <li><strong>Comparing lines:</strong> Hold previous, compare with current</li>
+            </ul>
+
+            <p><strong>Simpler alternatives:</strong></p>
+            <pre><code># Instead of complex sed hold space:
+
+# Reverse file:
+tac file.txt              # Much simpler!
+
+# Print odd lines:
+awk 'NR % 2' file.txt     # Clearer intent
+
+# Swap pairs:
+awk '{getline next; print next; print}' file.txt
+
+# Complex transformations → Consider awk or Python</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Most sed usage doesn't need hold space</li>
+                <li>Hold space is for advanced multi-line operations</li>
+                <li>Pattern space is cleared after each cycle; hold space persists</li>
+                <li>Use <code>N</code> to append next line to pattern space (common)</li>
+                <li>For complex multi-line logic, awk is often clearer</li>
+                <li>Test with small input files first - hold space logic is tricky!</li>
+            </ul>
+        </div>
+        <div class="tags">cs sed pattern-space hold-space buffers advanced EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            How do you edit files in-place with sed, and what are the pitfalls to avoid?
+        </div>
+        <div class="back">
+            <strong>Use -i flag for in-place editing (with caution!):</strong>
+
+            <p><strong>Basic in-place editing:</strong></p>
+            <pre><code># Linux/GNU sed:
+sed -i 's/old/new/g' file.txt
+
+# macOS/BSD sed (requires argument):
+sed -i '' 's/old/new/g' file.txt
+#      ↑↑ empty string required
+
+# Create backup before editing:
+sed -i.bak 's/old/new/g' file.txt
+# Creates file.txt.bak with original content</code></pre>
+
+            <p><strong>Portable script (works on both Linux and macOS):</strong></p>
+            <pre><code>#!/bin/sh
+# Always create backup for safety and portability:
+sed -i.bak 's/old/new/g' file.txt
+
+# Or detect OS:
+if sed --version 2>/dev/null | grep -q GNU; then
+    # GNU sed
+    sed -i 's/old/new/g' file.txt
+else
+    # BSD sed
+    sed -i '' 's/old/new/g' file.txt
+fi</code></pre>
+
+            <p><strong>Safer approach - test first:</strong></p>
+            <pre><code># ALWAYS test without -i first:
+sed 's/old/new/g' file.txt | head -20
+# Review output to ensure correctness
+
+# When confident, edit in-place WITH backup:
+sed -i.bak 's/old/new/g' file.txt
+
+# Verify changes:
+diff file.txt.bak file.txt
+
+# If good, remove backup:
+rm file.txt.bak
+
+# If bad, restore:
+mv file.txt.bak file.txt</code></pre>
+
+            <p><strong>Multiple files at once:</strong></p>
+            <pre><code># Edit all .txt files:
+sed -i.bak 's/old/new/g' *.txt
+
+# Edit files found by find:
+find . -name "*.conf" -exec sed -i.bak 's/old/new/g' {} +
+
+# Edit files from git:
+git grep -l 'old' | xargs sed -i.bak 's/old/new/g'</code></pre>
+
+            <p><strong>Common pitfalls:</strong></p>
+            <pre><code># ❌ PITFALL 1: No backup (risky!)
+sed -i 's/bug/fix/g' important.txt
+# If pattern is wrong, data is lost forever
+
+# ✓ BETTER: Always backup
+sed -i.bak 's/bug/fix/g' important.txt
+
+# ❌ PITFALL 2: Wrong regex (replaces too much)
+sed -i 's/./DOT/g' file.txt
+# Replaces EVERY character with "DOT"!
+
+# ✓ BETTER: Escape literal dots
+sed -i 's/\./DOT/g' file.txt
+
+# ❌ PITFALL 3: Forgetting '' on macOS
+sed -i 's/old/new/g' file.txt  # Error on macOS!
+
+# ✓ BETTER: Portable with backup
+sed -i.bak 's/old/new/g' file.txt
+
+# ❌ PITFALL 4: Empty file result
+sed -i '/pattern/d' file.txt
+# If all lines match, file becomes empty!
+
+# ✓ BETTER: Check first
+if sed '/pattern/d' file.txt | grep -q .; then
+    sed -i.bak '/pattern/d' file.txt
+else
+    echo "Warning: Would delete all lines!"
+fi</code></pre>
+
+            <p><strong>Race conditions and permissions:</strong></p>
+            <pre><code># How -i works internally:
+# 1. Create temporary file
+# 2. Process input → write to temp
+# 3. Replace original with temp
+
+# Issues:
+# - Original inode changes (hard links break)
+# - Permissions must allow write
+# - Race condition if file modified during edit
+
+# Check permissions first:
+if [ -w file.txt ]; then
+    sed -i.bak 's/old/new/g' file.txt
+else
+    echo "Error: No write permission"
+fi</code></pre>
+
+            <p><strong>Alternatives to -i:</strong></p>
+            <pre><code># Method 1: Redirect to new file, then move:
+sed 's/old/new/g' file.txt > file.txt.new
+mv file.txt.new file.txt
+
+# Method 2: Use temp file:
+sed 's/old/new/g' file.txt > /tmp/temp.$$
+mv /tmp/temp.$$ file.txt
+
+# Method 3: Sponge (from moreutils):
+sed 's/old/new/g' file.txt | sponge file.txt
+# Reads all input before writing (safe)
+
+# Method 4: Backup manually:
+cp file.txt file.txt.bak
+sed 's/old/new/g' file.txt.bak > file.txt</code></pre>
+
+            <p><strong>Best practices:</strong></p>
+            <ol>
+                <li><strong>Test first:</strong> Run without <code>-i</code>, inspect output</li>
+                <li><strong>Always backup:</strong> Use <code>-i.bak</code> not <code>-i</code></li>
+                <li><strong>Verify changes:</strong> Use <code>diff</code> to check</li>
+                <li><strong>Version control:</strong> Commit before bulk edits</li>
+                <li><strong>Small batches:</strong> Edit few files first, verify, then all</li>
+            </ol>
+
+            <p><strong>Recovery from mistakes:</strong></p>
+            <pre><code># If you forgot backup and sed destroyed file:
+# 1. DON'T CLOSE TERMINAL (process may still have file open)
+# 2. Check if backup exists:
+ls -la file.txt*
+
+# 3. Check version control:
+git checkout file.txt
+
+# 4. Check editor temp files:
+ls ~/.vim/.*.swp
+
+# 5. If truly lost, try file recovery tools:
+# extundelete, photorec, testdisk</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>NEVER use <code>-i</code> without testing the pattern first</li>
+                <li>ALWAYS create backups with <code>-i.bak</code></li>
+                <li>Be aware: macOS sed requires <code>-i ''</code> (empty string)</li>
+                <li>Verify changes with <code>diff old.bak new</code></li>
+                <li>For critical files, use version control before bulk edits</li>
+                <li>Consider using <code>perl -i</code> for portable in-place editing</li>
+            </ul>
+        </div>
+        <div class="tags">cs sed in-place-editing -i pitfalls safety EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            When should you use sed vs awk vs grep vs perl? What are the strengths of each?
+        </div>
+        <div class="back">
+            <strong>Each tool has a sweet spot - use the right tool for the job:</strong>
+
+            <p><strong>Quick decision guide:</strong></p>
+            <pre><code>SEARCH only → grep
+SIMPLE substitution on streams → sed
+COLUMNAR data / calculations → awk
+COMPLEX transformations → perl/python
+
+If you need to write more than 3 sed commands → use awk
+If awk script is over 20 lines → use Python</code></pre>
+
+            <p><strong>grep - Search and filter:</strong></p>
+            <pre><code># Strengths:
+- Fastest for simple pattern matching
+- Recursive search (-r)
+- Context (lines before/after)
+- Multiple patterns (-e, -f)
+- Color output
+
+# Use grep when:
+grep "ERROR" logfile.txt              # Find lines
+grep -r "TODO" src/                   # Search directories
+grep -v "DEBUG" log.txt               # Exclude lines
+ps aux | grep nginx                   # Filter command output
+
+# Don't use grep for:
+# - Substitution (use sed)
+# - Column processing (use awk)
+# - Complex logic (use awk/python)</code></pre>
+
+            <p><strong>sed - Stream editing (line-by-line text transformation):</strong></p>
+            <pre><code># Strengths:
+- Simple substitutions
+- Line-oriented editing
+- Fast streaming (doesn't load entire file)
+- In-place editing (-i)
+
+# Use sed when:
+sed 's/old/new/g' file.txt            # Simple replace
+sed '10,20d' file.txt                 # Delete lines
+sed 's|http://|https://|g'            # Change all URLs
+sed -n '5,10p' file.txt               # Extract lines
+
+# Don't use sed for:
+# - Column/field processing (use awk)
+# - Math operations (use awk)
+# - Multi-line complex logic (use awk/python)
+# - Data analysis (use awk/python)</code></pre>
+
+            <p><strong>awk - Column/field processing and calculations:</strong></p>
+            <pre><code># Strengths:
+- Columnar data (whitespace/CSV)
+- Math and calculations
+- Conditional logic
+- Associative arrays
+- Built-in variables (NR, NF, etc.)
+
+# Use awk when:
+awk '{print $1, $3}' file.txt         # Extract columns
+awk '$3 > 100' data.txt               # Filter by value
+awk '{sum+=$2} END {print sum}'       # Calculate totals
+awk -F: '{print $1}' /etc/passwd      # Process delimited files
+
+# Don't use awk for:
+# - Simple grep (use grep)
+# - Simple substitution (use sed)
+# - Complex text parsing (use python)
+# - Binary data (use specialized tools)</code></pre>
+
+            <p><strong>perl - Complex text processing:</strong></p>
+            <pre><code># Strengths:
+- Powerful regex (lookahead, lookbehind)
+- In-place editing (portable -i)
+- One-liners for complex tasks
+- Libraries for everything
+
+# Use perl when:
+perl -pe 's/regex/replace/g' file     # Sed replacement (portable)
+perl -i.bak -pe 's/old/new/g' *       # In-place (Linux+macOS)
+perl -ne 'print if /start/../end/'   # Range selection
+perl -F: -lane 'print $F[0]' file    # AWK-like field processing
+
+# Don't use perl for:
+# - Simple tasks (overkill, use grep/sed/awk)
+# - When Python is available and familiar
+# - Team isn't familiar with Perl</code></pre>
+
+            <p><strong>Real-world comparison:</strong></p>
+            <pre><code># Task: Extract user names from /etc/passwd
+
+# grep (search only):
+grep "^user" /etc/passwd
+# Shows full line, not just username
+
+# sed (extract first field):
+sed 's/:.*//' /etc/passwd
+# Harder to read, sed isn't designed for fields
+
+# awk (BEST for this):
+awk -F: '{print $1}' /etc/passwd
+# Clear intent, designed for field processing
+
+# perl (also works):
+perl -F: -lane 'print $F[0]' /etc/passwd
+# Overkill for this task</code></pre>
+
+            <p><strong>Another example: Sum values in column 2:</strong></p>
+            <pre><code># sed: Can't do math ❌
+# sed doesn't have arithmetic
+
+# awk: Perfect ✓
+awk '{sum += $2} END {print sum}' data.txt
+
+# perl: Works but overkill
+perl -lane '$sum += $F[1]; END {print $sum}' data.txt
+
+# Python: Best for complex analysis
+python -c "import sys; print(sum(float(l.split()[1]) for l in sys.stdin))" < data.txt</code></pre>
+
+            <p><strong>Combining tools (Unix philosophy):</strong></p>
+            <pre><code># Often best to combine tools:
+grep "ERROR" log.txt | awk '{print $1, $5}' | sort | uniq -c
+
+# Pipeline breakdown:
+grep      # Filter relevant lines
+awk       # Extract specific fields
+sort      # Order data
+uniq -c   # Count occurrences</code></pre>
+
+            <p><strong>Decision flowchart:</strong></p>
+            <pre><code>Need to search/filter only?
+  → grep
+
+Need simple find/replace?
+  → sed
+
+Need to work with columns/fields?
+  → awk
+
+Need complex regex or transformations?
+  → perl or python
+
+Need programming features (loops, arrays, etc.)?
+  → awk (simple) or python (complex)
+
+Need to process non-text data?
+  → Specialized tools (jq for JSON, etc.)</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Start simple: Try grep first, then sed, then awk</li>
+                <li>grep for filtering, sed for editing, awk for columns</li>
+                <li>Perl is great but Python is often clearer for complex tasks</li>
+                <li>Combine tools with pipes - Unix philosophy!</li>
+                <li>Learn all four - they complement each other</li>
+                <li>If script gets complex, switch to Python/Ruby</li>
+            </ul>
+        </div>
+        <div class="tags">cs sed awk grep perl comparison when-to-use EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What are some powerful sed one-liners every developer should know?
+        </div>
+        <div class="back">
+            <strong>Essential sed one-liners for daily use:</strong>
+
+            <p><strong>1. Substitution essentials:</strong></p>
+            <pre><code># Replace all occurrences:
+sed 's/old/new/g' file.txt
+
+# Case insensitive replacement:
+sed 's/old/new/gI' file.txt
+
+# Replace only on lines containing pattern:
+sed '/pattern/s/old/new/g' file.txt
+
+# Replace in specific line range:
+sed '10,20s/old/new/g' file.txt</code></pre>
+
+            <p><strong>2. Delete patterns:</strong></p>
+            <pre><code># Delete blank lines:
+sed '/^$/d' file.txt
+
+# Delete comments and blank lines:
+sed '/^#/d; /^$/d' file.txt
+
+# Delete trailing whitespace:
+sed 's/[[:space:]]*$//' file.txt
+
+# Delete lines containing pattern:
+sed '/pattern/d' file.txt
+
+# Delete from pattern to end of file:
+sed '/pattern/,$d' file.txt</code></pre>
+
+            <p><strong>3. Extract and print:</strong></p>
+            <pre><code># Print specific lines:
+sed -n '10,20p' file.txt
+
+# Print lines matching pattern:
+sed -n '/pattern/p' file.txt
+
+# Print lines NOT matching pattern:
+sed -n '/pattern/!p' file.txt
+
+# Print first occurrence of pattern to end:
+sed -n '/pattern/,$p' file.txt
+
+# Extract between two patterns:
+sed -n '/START/,/END/p' file.txt</code></pre>
+
+            <p><strong>4. Insert and append:</strong></p>
+            <pre><code># Add line before first line:
+sed '1i\New first line' file.txt
+
+# Add line after last line:
+sed '$a\New last line' file.txt
+
+# Insert before lines matching pattern:
+sed '/pattern/i\Inserted line' file.txt
+
+# Append after lines matching pattern:
+sed '/pattern/a\Appended line' file.txt</code></pre>
+
+            <p><strong>5. File processing:</strong></p>
+            <pre><code># Remove first line (header):
+sed '1d' file.txt
+
+# Remove last line:
+sed '$d' file.txt
+
+# Remove first and last lines:
+sed '1d; $d' file.txt
+
+# Double-space file:
+sed 'G' file.txt
+
+# Remove double-spacing (keep single):
+sed 'n; d' file.txt
+
+# Number all lines:
+sed = file.txt | sed 'N; s/\n/\t/'</code></pre>
+
+            <p><strong>6. Formatting and transformation:</strong></p>
+            <pre><code># Convert uppercase to lowercase:
+sed 's/.*/\L&/' file.txt
+
+# Convert to uppercase:
+sed 's/.*/\U&/' file.txt
+
+# Trim leading spaces:
+sed 's/^[[:space:]]*//' file.txt
+
+# Trim trailing spaces:
+sed 's/[[:space:]]*$//' file.txt
+
+# Trim leading and trailing spaces:
+sed 's/^[[:space:]]*//; s/[[:space:]]*$//' file.txt
+
+# Condense multiple blank lines to single:
+sed '/^$/N; /^\n$/D' file.txt</code></pre>
+
+            <p><strong>7. Working with code:</strong></p>
+            <pre><code># Comment out lines 10-20:
+sed '10,20s/^/# /' file.sh
+
+# Uncomment lines:
+sed 's/^# //' file.sh
+
+# Remove C-style comments:
+sed 's|/\*.*\*/||g' file.c
+
+# Remove inline comments:
+sed 's/#.*//' file.conf
+
+# Remove trailing semicolons:
+sed 's/;$//' file.sql</code></pre>
+
+            <p><strong>8. Configuration file editing:</strong></p>
+            <pre><code># Change config value:
+sed 's/^DEBUG=.*/DEBUG=true/' config.sh
+
+# Enable commented setting:
+sed '/^#.*SERVER_NAME/s/^#//' config.conf
+
+# Add value after line:
+sed '/\[section\]/a\new_key=value' config.ini
+
+# Replace entire line matching pattern:
+sed '/^PORT=/c\PORT=8080' config.txt</code></pre>
+
+            <p><strong>9. Data conversion:</strong></p>
+            <pre><code># CSV to TSV (comma to tab):
+sed 's/,/\t/g' file.csv
+
+# DOS to Unix (remove \r):
+sed 's/\r$//' file.txt
+
+# Unix to DOS (add \r):
+sed 's/$/\r/' file.txt
+
+# Remove all digits:
+sed 's/[0-9]//g' file.txt
+
+# Keep only digits:
+sed 's/[^0-9]//g' file.txt</code></pre>
+
+            <p><strong>10. Advanced patterns:</strong></p>
+            <pre><code># Reverse line order (tac alternative):
+sed '1!G; h; $!d' file.txt
+
+# Print every 3rd line:
+sed -n '0~3p' file.txt
+
+# Delete duplicate consecutive lines:
+sed '$!N; /^\(.*\)\n\1$/!P; D' file.txt
+
+# Wrap each line in quotes:
+sed 's/.*/"&"/' file.txt
+
+# Extract email addresses:
+sed -n 's/.*\([a-zA-Z0-9.]*@[a-zA-Z0-9.]*\).*/\1/p' file.txt</code></pre>
+
+            <p><strong>Practical combinations:</strong></p>
+            <pre><code># Clean log file (remove timestamps, blank lines, debug):
+sed 's/^\[[^]]*\] //; /^$/d; /DEBUG/d' app.log
+
+# Prepare data for import (trim, lowercase, remove comments):
+sed 's/^[[:space:]]*//; s/[[:space:]]*$//; s/.*/\L&/; /^#/d; /^$/d' data.txt
+
+# Quick config file edit (backup, change, verify):
+sed -i.bak 's/old_value/new_value/g' config.txt && diff config.txt{.bak,}</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Save useful patterns in shell aliases or functions</li>
+                <li>Always test without <code>-i</code> before editing in-place</li>
+                <li>Use <code>|</code> or <code>#</code> as delimiter to avoid escaping slashes</li>
+                <li>Combine with <code>find</code> for batch processing</li>
+                <li>Remember: sed is line-oriented, awk for columns</li>
+            </ul>
+        </div>
+        <div class="tags">cs sed one-liners cheatsheet examples EN</div>
+    </div>
+
+</body>
+</html>

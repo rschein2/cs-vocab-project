@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PyTorch Training Loop Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(249, 250, 251, 0.95);
+        }
+        h1 {
+            color: rgba(31, 41, 55, 0.95);
+            border-bottom: 3px solid rgba(76, 175, 80, 0.8);
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(31, 41, 55, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+        }
+        .back {
+            color: rgba(55, 65, 81, 0.95);
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(229, 231, 235, 0.95);
+            font-size: 12px;
+            color: rgba(107, 114, 128, 0.95);
+        }
+        code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            color: rgba(197, 34, 31, 0.95);
+            font-size: 0.9em;
+        }
+        pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+        pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        strong {
+            color: rgba(31, 41, 55, 0.95);
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>PyTorch Training Loop Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            What is the standard structure of a PyTorch training loop?
+        </div>
+        <div class="back">
+            <strong>Complete training loop structure:</strong>
+
+            <pre><code># Setup
+model = MyModel().to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(
+    model.parameters(), lr=0.001
+)
+
+# Training loop
+for epoch in range(num_epochs):
+    # Training phase
+    model.train()
+    for batch_x, batch_y in train_loader:
+        batch_x = batch_x.to(device)
+        batch_y = batch_y.to(device)
+
+        # 1. Zero gradients
+        optimizer.zero_grad()
+
+        # 2. Forward pass
+        outputs = model(batch_x)
+
+        # 3. Compute loss
+        loss = criterion(outputs, batch_y)
+
+        # 4. Backward pass
+        loss.backward()
+
+        # 5. Update weights
+        optimizer.step()
+
+    # Validation phase
+    model.eval()
+    with torch.no_grad():
+        for val_x, val_y in val_loader:
+            val_x = val_x.to(device)
+            val_y = val_y.to(device)
+            val_outputs = model(val_x)
+            val_loss = criterion(
+                val_outputs, val_y
+            )</code></pre>
+
+            <strong>Key steps:</strong> zero_grad → forward → loss → backward → step
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop structure EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between an epoch and a batch?
+        </div>
+        <div class="back">
+            <strong>Epoch:</strong> One complete pass through the entire training dataset.
+            <br>
+            <strong>Batch:</strong> A subset of the training data processed together.
+
+            <p><strong>Relationship:</strong></p>
+            <ul>
+                <li>Dataset size = 1000 samples</li>
+                <li>Batch size = 32</li>
+                <li>Batches per epoch = 1000 / 32 ≈ 32 batches</li>
+                <li>1 epoch = 32 gradient updates</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>dataset_size = 1000
+batch_size = 32
+num_epochs = 10
+
+# Create DataLoader
+train_loader = DataLoader(
+    dataset,
+    batch_size=batch_size,
+    shuffle=True
+)
+
+# batches per epoch
+batches_per_epoch = len(train_loader)
+# 32 batches
+
+# total iterations
+total_iterations = batches_per_epoch * num_epochs
+# 320 gradient updates
+
+for epoch in range(num_epochs):
+    print(f"Epoch {epoch+1}/{num_epochs}")
+
+    for batch_idx, (x, y) in enumerate(train_loader):
+        # Process one batch
+        # batch_idx goes from 0 to 31
+
+        # Global iteration count
+        iteration = epoch * batches_per_epoch + batch_idx</code></pre>
+
+            <strong>Terminology:</strong> iteration = processing one batch, step = one weight update
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop epoch batch EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            How do you properly implement a validation loop?
+        </div>
+        <div class="back">
+            <strong>Key requirements for validation:</strong>
+            <ul>
+                <li>Set <code>model.eval()</code></li>
+                <li>Use <code>torch.no_grad()</code></li>
+                <li>Don't update weights (no backward, no optimizer.step)</li>
+                <li>Compute metrics over entire validation set</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>def validate(model, val_loader, criterion, device):
+    model.eval()  # set to eval mode
+
+    total_loss = 0
+    correct = 0
+    total = 0
+
+    with torch.no_grad():  # disable gradients
+        for batch_x, batch_y in val_loader:
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
+
+            # Forward only
+            outputs = model(batch_x)
+            loss = criterion(outputs, batch_y)
+
+            # Accumulate metrics
+            total_loss += loss.item()
+
+            # For classification accuracy
+            _, predicted = outputs.max(1)
+            total += batch_y.size(0)
+            correct += predicted.eq(batch_y).sum().item()
+
+    # Compute average metrics
+    avg_loss = total_loss / len(val_loader)
+    accuracy = 100. * correct / total
+
+    return avg_loss, accuracy
+
+# In training loop
+for epoch in range(num_epochs):
+    # Train
+    model.train()
+    train_one_epoch(model, train_loader, ...)
+
+    # Validate
+    val_loss, val_acc = validate(
+        model, val_loader, criterion, device
+    )
+    print(f"Val Loss: {val_loss:.4f}, "
+          f"Acc: {val_acc:.2f}%")</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop validation EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            What is gradient clipping and when should you use it?
+        </div>
+        <div class="back">
+            <strong>Gradient clipping:</strong> Limiting gradient magnitude to prevent exploding gradients.
+
+            <p><strong>When to use:</strong></p>
+            <ul>
+                <li>RNNs and LSTMs (prone to exploding gradients)</li>
+                <li>Transformers and deep networks</li>
+                <li>When you see NaN or inf losses</li>
+                <li>Unstable training</li>
+            </ul>
+
+            <p><strong>Two methods:</strong></p>
+            <ul>
+                <li><code>clip_grad_norm_</code> - clips by norm (common)</li>
+                <li><code>clip_grad_value_</code> - clips by value</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>import torch.nn.utils as utils
+
+# In training loop
+for batch_x, batch_y in train_loader:
+    optimizer.zero_grad()
+    outputs = model(batch_x)
+    loss = criterion(outputs, batch_y)
+    loss.backward()
+
+    # Clip gradients by norm
+    utils.clip_grad_norm_(
+        model.parameters(),
+        max_norm=1.0  # common value
+    )
+
+    optimizer.step()
+
+# Clip by value (less common)
+utils.clip_grad_value_(
+    model.parameters(),
+    clip_value=0.5
+)
+
+# With mixed precision
+scaler.scale(loss).backward()
+scaler.unscale_(optimizer)  # unscale first!
+utils.clip_grad_norm_(model.parameters(), 1.0)
+scaler.step(optimizer)
+scaler.update()
+
+# Monitor gradient norms
+total_norm = 0
+for p in model.parameters():
+    if p.grad is not None:
+        param_norm = p.grad.data.norm(2)
+        total_norm += param_norm.item() ** 2
+total_norm = total_norm ** 0.5
+print(f"Gradient norm: {total_norm:.4f}")</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop gradient-clipping EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            How do you implement learning rate scheduling in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Learning rate schedulers:</strong> Adjust learning rate during training for better convergence.
+
+            <p><strong>Common schedulers:</strong></p>
+            <ul>
+                <li><code>StepLR</code> - decay by factor every N epochs</li>
+                <li><code>ReduceLROnPlateau</code> - decay when metric plateaus</li>
+                <li><code>CosineAnnealingLR</code> - cosine decay</li>
+                <li><code>OneCycleLR</code> - one cycle policy</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>from torch.optim import lr_scheduler
+
+optimizer = optim.Adam(
+    model.parameters(), lr=0.001
+)
+
+# Step decay: lr *= 0.1 every 30 epochs
+scheduler = lr_scheduler.StepLR(
+    optimizer, step_size=30, gamma=0.1
+)
+
+# Reduce on plateau
+scheduler = lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode='min', factor=0.1,
+    patience=10, verbose=True
+)
+
+# Cosine annealing
+scheduler = lr_scheduler.CosineAnnealingLR(
+    optimizer, T_max=100
+)
+
+# Training loop
+for epoch in range(num_epochs):
+    train_one_epoch(...)
+    val_loss = validate(...)
+
+    # Step scheduler
+    if isinstance(scheduler,
+                  lr_scheduler.ReduceLROnPlateau):
+        scheduler.step(val_loss)  # needs metric
+    else:
+        scheduler.step()  # just step
+
+    # Check current LR
+    current_lr = optimizer.param_groups[0]['lr']
+    print(f"Current LR: {current_lr:.6f}")
+
+# Manual LR update
+for param_group in optimizer.param_groups:
+    param_group['lr'] = new_lr</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop lr-scheduling EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            How do you save and resume training from a checkpoint?
+        </div>
+        <div class="back">
+            <strong>Checkpointing:</strong> Save training state to resume later.
+
+            <p><strong>What to save:</strong></p>
+            <ul>
+                <li>Model state dict</li>
+                <li>Optimizer state dict</li>
+                <li>Scheduler state dict (if using)</li>
+                <li>Current epoch</li>
+                <li>Best metrics</li>
+                <li>Random states (for reproducibility)</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># Save checkpoint
+def save_checkpoint(model, optimizer, epoch,
+                   best_acc, filename):
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'best_acc': best_acc,
+        'rng_state': torch.get_rng_state(),
+    }
+    torch.save(checkpoint, filename)
+    print(f"Checkpoint saved: {filename}")
+
+# Load and resume
+def load_checkpoint(model, optimizer, filename):
+    checkpoint = torch.load(filename)
+    model.load_state_dict(
+        checkpoint['model_state_dict']
+    )
+    optimizer.load_state_dict(
+        checkpoint['optimizer_state_dict']
+    )
+    epoch = checkpoint['epoch']
+    best_acc = checkpoint['best_acc']
+    torch.set_rng_state(checkpoint['rng_state'])
+
+    return epoch, best_acc
+
+# In training loop
+best_acc = 0
+start_epoch = 0
+
+# Resume from checkpoint if exists
+if os.path.exists('checkpoint.pth'):
+    start_epoch, best_acc = load_checkpoint(
+        model, optimizer, 'checkpoint.pth'
+    )
+
+for epoch in range(start_epoch, num_epochs):
+    train(...)
+    val_acc = validate(...)
+
+    # Save if best
+    if val_acc > best_acc:
+        best_acc = val_acc
+        save_checkpoint(model, optimizer, epoch,
+                       best_acc, 'best_model.pth')
+
+    # Save regular checkpoint
+    if epoch % 10 == 0:
+        save_checkpoint(model, optimizer, epoch,
+                       best_acc, 'checkpoint.pth')</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop checkpointing EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            How do you implement early stopping?
+        </div>
+        <div class="back">
+            <strong>Early stopping:</strong> Stop training when validation metric stops improving to prevent overfitting.
+
+            <p><strong>Key parameters:</strong></p>
+            <ul>
+                <li>Patience - how many epochs to wait for improvement</li>
+                <li>Min delta - minimum change to count as improvement</li>
+                <li>Restore best weights - revert to best model</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>class EarlyStopping:
+    def __init__(self, patience=7, min_delta=0,
+                 restore_best_weights=True):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.restore_best_weights = restore_best_weights
+        self.best_loss = None
+        self.counter = 0
+        self.best_weights = None
+
+    def __call__(self, val_loss, model):
+        if self.best_loss is None:
+            self.best_loss = val_loss
+            self.best_weights = model.state_dict()
+        elif val_loss > self.best_loss - self.min_delta:
+            self.counter += 1
+            print(f"EarlyStopping: {self.counter}/{self.patience}")
+            if self.counter >= self.patience:
+                if self.restore_best_weights:
+                    model.load_state_dict(self.best_weights)
+                return True  # stop training
+        else:
+            self.best_loss = val_loss
+            self.counter = 0
+            self.best_weights = model.state_dict()
+        return False
+
+# Usage
+early_stopping = EarlyStopping(
+    patience=10, min_delta=0.001
+)
+
+for epoch in range(num_epochs):
+    train_loss = train_one_epoch(...)
+    val_loss = validate(...)
+
+    # Check early stopping
+    if early_stopping(val_loss, model):
+        print(f"Early stopping at epoch {epoch}")
+        break
+
+print("Training complete!")</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop early-stopping EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            How do you properly use DataLoader for training?
+        </div>
+        <div class="back">
+            <strong>DataLoader:</strong> Efficient batching and loading of data.
+
+            <p><strong>Key parameters:</strong></p>
+            <ul>
+                <li><code>batch_size</code> - samples per batch</li>
+                <li><code>shuffle</code> - randomize order (True for train)</li>
+                <li><code>num_workers</code> - parallel data loading</li>
+                <li><code>pin_memory</code> - faster GPU transfer</li>
+                <li><code>drop_last</code> - drop incomplete last batch</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>from torch.utils.data import Dataset, DataLoader
+
+# Custom Dataset
+class MyDataset(Dataset):
+    def __init__(self, data, labels):
+        self.data = data
+        self.labels = labels
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx], self.labels[idx]
+
+# Create datasets
+train_dataset = MyDataset(train_data, train_labels)
+val_dataset = MyDataset(val_data, val_labels)
+
+# Create DataLoaders
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=32,
+    shuffle=True,  # randomize training
+    num_workers=4,  # parallel loading
+    pin_memory=True,  # faster GPU transfer
+    drop_last=True  # consistent batch sizes
+)
+
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=64,  # can be larger for val
+    shuffle=False,  # don't shuffle validation
+    num_workers=4,
+    pin_memory=True
+)
+
+# Usage
+for batch_x, batch_y in train_loader:
+    # batch_x shape: (32, ...)
+    # automatically batched
+    pass
+
+# Get single batch
+batch_x, batch_y = next(iter(train_loader))
+
+# Number of batches
+num_batches = len(train_loader)</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop dataloader EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            How do you track and log training metrics effectively?
+        </div>
+        <div class="back">
+            <strong>Best practices for metric tracking:</strong>
+
+            <p><strong>What to track:</strong></p>
+            <ul>
+                <li>Training loss (per batch or epoch)</li>
+                <li>Validation loss and accuracy</li>
+                <li>Learning rate</li>
+                <li>Gradient norms</li>
+                <li>Time per epoch</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>import time
+from collections import defaultdict
+
+# Simple tracking
+class MetricTracker:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.metrics = defaultdict(list)
+
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            self.metrics[key].append(value)
+
+    def avg(self, key):
+        return sum(self.metrics[key]) / len(self.metrics[key])
+
+# Usage
+tracker = MetricTracker()
+
+for epoch in range(num_epochs):
+    start_time = time.time()
+    model.train()
+
+    # Training
+    tracker.reset()
+    for batch_x, batch_y in train_loader:
+        optimizer.zero_grad()
+        outputs = model(batch_x)
+        loss = criterion(outputs, batch_y)
+        loss.backward()
+        optimizer.step()
+
+        tracker.update(train_loss=loss.item())
+
+    # Validation
+    val_loss, val_acc = validate(...)
+
+    # Log metrics
+    epoch_time = time.time() - start_time
+    train_loss_avg = tracker.avg('train_loss')
+
+    print(f"Epoch {epoch+1}/{num_epochs}")
+    print(f"  Train Loss: {train_loss_avg:.4f}")
+    print(f"  Val Loss: {val_loss:.4f}, "
+          f"Acc: {val_acc:.2f}%")
+    print(f"  Time: {epoch_time:.2f}s")
+    print(f"  LR: {optimizer.param_groups[0]['lr']:.6f}")
+
+    # Save to file
+    with open('metrics.txt', 'a') as f:
+        f.write(f"{epoch},{train_loss_avg},"
+                f"{val_loss},{val_acc}\n")</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop metrics logging EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            How do you implement gradient accumulation for large effective batch sizes?
+        </div>
+        <div class="back">
+            <strong>Gradient accumulation:</strong> Simulate larger batch sizes by accumulating gradients over multiple smaller batches.
+
+            <p><strong>Why use it:</strong></p>
+            <ul>
+                <li>Limited GPU memory</li>
+                <li>Want large effective batch size</li>
+                <li>Effective batch = batch_size × accumulation_steps</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># Normal training: batch_size=32
+batch_size = 32
+
+# With accumulation: effective batch_size=128
+batch_size = 32
+accumulation_steps = 4
+# Effective: 32 × 4 = 128
+
+optimizer.zero_grad()
+
+for epoch in range(num_epochs):
+    for i, (batch_x, batch_y) in enumerate(train_loader):
+        batch_x = batch_x.to(device)
+        batch_y = batch_y.to(device)
+
+        # Forward pass
+        outputs = model(batch_x)
+        loss = criterion(outputs, batch_y)
+
+        # Scale loss by accumulation steps
+        loss = loss / accumulation_steps
+
+        # Backward (accumulates gradients)
+        loss.backward()
+
+        # Update weights every N steps
+        if (i + 1) % accumulation_steps == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+
+    # Don't forget last batch if needed
+    if (i + 1) % accumulation_steps != 0:
+        optimizer.step()
+        optimizer.zero_grad()
+
+# With gradient clipping
+if (i + 1) % accumulation_steps == 0:
+    torch.nn.utils.clip_grad_norm_(
+        model.parameters(), max_norm=1.0
+    )
+    optimizer.step()
+    optimizer.zero_grad()</code></pre>
+
+            <strong>Important:</strong> Scale loss or use <code>loss / accumulation_steps</code>!
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop gradient-accumulation EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">
+            What are common training loop bugs and how to debug them?
+        </div>
+        <div class="back">
+            <strong>Common bugs:</strong>
+
+            <p><strong>1. Forgot to zero gradients:</strong></p>
+            <pre><code># WRONG - gradients accumulate
+for batch in loader:
+    outputs = model(batch_x)
+    loss.backward()  # accumulates!
+    optimizer.step()
+
+# CORRECT
+optimizer.zero_grad()
+loss.backward()
+optimizer.step()</code></pre>
+
+            <p><strong>2. Forgot model.eval() for validation:</strong></p>
+            <pre><code># WRONG - dropout still active
+for val_batch in val_loader:
+    val_outputs = model(val_x)
+
+# CORRECT
+model.eval()
+with torch.no_grad():
+    val_outputs = model(val_x)</code></pre>
+
+            <p><strong>3. Loss not decreasing:</strong></p>
+            <ul>
+                <li>Check learning rate (too low/high)</li>
+                <li>Verify data normalization</li>
+                <li>Check loss function matches task</li>
+                <li>Try simpler model first</li>
+                <li>Overfit single batch to test</li>
+            </ul>
+
+            <p><strong>4. NaN or inf loss:</strong></p>
+            <ul>
+                <li>Learning rate too high</li>
+                <li>Missing gradient clipping</li>
+                <li>Division by zero</li>
+                <li>Log of negative number</li>
+            </ul>
+
+            <p><strong>Debugging tips:</strong></p>
+            <pre><code># Overfit single batch
+single_batch = next(iter(train_loader))
+for i in range(100):
+    loss = train_step(model, single_batch)
+    print(f"Iter {i}: Loss {loss:.4f}")
+# Should reach ~0
+
+# Check gradients
+for name, param in model.named_parameters():
+    if param.grad is not None:
+        print(f"{name}: {param.grad.norm():.4f}")
+
+# Verify shapes
+print(f"Input: {batch_x.shape}")
+print(f"Output: {outputs.shape}")
+print(f"Target: {batch_y.shape}")</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop debugging bugs EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">
+            How do you implement a training progress bar with tqdm?
+        </div>
+        <div class="back">
+            <strong>Using tqdm for progress tracking:</strong>
+
+            <strong>Example:</strong>
+            <pre><code>from tqdm import tqdm
+
+# Basic progress bar
+for epoch in range(num_epochs):
+    # Progress bar for batches
+    pbar = tqdm(train_loader,
+                desc=f'Epoch {epoch+1}/{num_epochs}')
+
+    for batch_x, batch_y in pbar:
+        optimizer.zero_grad()
+        outputs = model(batch_x)
+        loss = criterion(outputs, batch_y)
+        loss.backward()
+        optimizer.step()
+
+        # Update progress bar
+        pbar.set_postfix({
+            'loss': f'{loss.item():.4f}'
+        })
+
+# More advanced
+for epoch in range(num_epochs):
+    model.train()
+    train_loss = 0
+
+    pbar = tqdm(enumerate(train_loader),
+                total=len(train_loader),
+                desc=f'Train Epoch {epoch+1}')
+
+    for batch_idx, (batch_x, batch_y) in pbar:
+        # Training step
+        loss = train_step(...)
+        train_loss += loss.item()
+
+        # Update with multiple metrics
+        pbar.set_postfix({
+            'loss': f'{loss.item():.4f}',
+            'avg_loss': f'{train_loss/(batch_idx+1):.4f}',
+            'lr': f'{optimizer.param_groups[0]["lr"]:.6f}'
+        })
+
+    # Validation progress bar
+    model.eval()
+    pbar_val = tqdm(val_loader, desc='Validation')
+    for batch_x, batch_y in pbar_val:
+        with torch.no_grad():
+            val_outputs = model(batch_x)
+            # ...
+
+# Nested progress bars (epochs and batches)
+epoch_pbar = tqdm(range(num_epochs), desc='Training')
+for epoch in epoch_pbar:
+    batch_pbar = tqdm(train_loader, leave=False)
+    for batch in batch_pbar:
+        # train
+        pass</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop tqdm progress-bar EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">
+            How do you handle class imbalance in training?
+        </div>
+        <div class="back">
+            <strong>Strategies for imbalanced datasets:</strong>
+
+            <p><strong>1. Weighted loss:</strong></p>
+            <pre><code># Calculate class weights
+from sklearn.utils.class_weight import compute_class_weight
+
+class_weights = compute_class_weight(
+    'balanced',
+    classes=np.unique(train_labels),
+    y=train_labels
+)
+class_weights = torch.FloatTensor(class_weights).to(device)
+
+# Use in loss function
+criterion = nn.CrossEntropyLoss(weight=class_weights)
+
+# Manual weights
+# Class 0: 1000 samples, Class 1: 100 samples
+weights = torch.tensor([1.0, 10.0])  # weight minority class more
+criterion = nn.CrossEntropyLoss(weight=weights)</code></pre>
+
+            <p><strong>2. Weighted sampling:</strong></p>
+            <pre><code>from torch.utils.data import WeightedRandomSampler
+
+# Compute sample weights
+class_counts = np.bincount(train_labels)
+sample_weights = 1. / class_counts[train_labels]
+
+sampler = WeightedRandomSampler(
+    weights=sample_weights,
+    num_samples=len(sample_weights),
+    replacement=True
+)
+
+train_loader = DataLoader(
+    dataset,
+    batch_size=32,
+    sampler=sampler  # use sampler, not shuffle
+)</code></pre>
+
+            <p><strong>3. Focal loss (for severe imbalance):</strong></p>
+            <pre><code>class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.25, gamma=2):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+
+    def forward(self, inputs, targets):
+        ce_loss = F.cross_entropy(
+            inputs, targets, reduction='none'
+        )
+        pt = torch.exp(-ce_loss)
+        focal_loss = self.alpha * (1-pt)**self.gamma * ce_loss
+        return focal_loss.mean()
+
+criterion = FocalLoss(alpha=0.25, gamma=2)</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop class-imbalance EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">
+            How do you implement model ensembling during training?
+        </div>
+        <div class="back">
+            <strong>Ensemble techniques:</strong>
+
+            <p><strong>1. Simple ensemble (train multiple models):</strong></p>
+            <pre><code># Train N models
+models = []
+for i in range(5):
+    model = MyModel().to(device)
+    optimizer = optim.Adam(model.parameters())
+
+    # Train model
+    for epoch in range(num_epochs):
+        train(model, ...)
+
+    models.append(model)
+
+# Inference with ensemble
+def ensemble_predict(models, x):
+    predictions = []
+    for model in models:
+        model.eval()
+        with torch.no_grad():
+            pred = model(x)
+            predictions.append(pred)
+
+    # Average predictions
+    ensemble_pred = torch.stack(predictions).mean(dim=0)
+    return ensemble_pred
+
+# Use
+preds = ensemble_predict(models, test_data)</code></pre>
+
+            <p><strong>2. Exponential moving average (EMA):</strong></p>
+            <pre><code>class EMA:
+    def __init__(self, model, decay=0.999):
+        self.model = model
+        self.decay = decay
+        self.shadow = {}
+        self.backup = {}
+
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                self.shadow[name] = param.data.clone()
+
+    def update(self):
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                new_average = (
+                    self.decay * self.shadow[name] +
+                    (1.0 - self.decay) * param.data
+                )
+                self.shadow[name] = new_average.clone()
+
+    def apply_shadow(self):
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                self.backup[name] = param.data
+                param.data = self.shadow[name]
+
+    def restore(self):
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                param.data = self.backup[name]
+
+# Usage
+ema = EMA(model, decay=0.999)
+
+for epoch in range(num_epochs):
+    for batch in train_loader:
+        # Train step
+        optimizer.step()
+
+        # Update EMA
+        ema.update()
+
+# Use EMA weights for validation
+ema.apply_shadow()
+validate(model, ...)
+ema.restore()</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop ensembling ema EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">
+            How do you implement TensorBoard logging in PyTorch?
+        </div>
+        <div class="back">
+            <strong>TensorBoard integration:</strong>
+
+            <strong>Example:</strong>
+            <pre><code>from torch.utils.tensorboard import SummaryWriter
+
+# Create writer
+writer = SummaryWriter('runs/experiment_1')
+
+# Log scalars
+for epoch in range(num_epochs):
+    train_loss = train_one_epoch(...)
+    val_loss, val_acc = validate(...)
+
+    # Log metrics
+    writer.add_scalar('Loss/train', train_loss, epoch)
+    writer.add_scalar('Loss/val', val_loss, epoch)
+    writer.add_scalar('Accuracy/val', val_acc, epoch)
+    writer.add_scalar(
+        'Learning_rate',
+        optimizer.param_groups[0]['lr'],
+        epoch
+    )
+
+# Log histograms (gradients, weights)
+for name, param in model.named_parameters():
+    writer.add_histogram(
+        f'Weights/{name}',
+        param,
+        epoch
+    )
+    if param.grad is not None:
+        writer.add_histogram(
+            f'Gradients/{name}',
+            param.grad,
+            epoch
+        )
+
+# Log images
+writer.add_image('Input_samples', img_grid, epoch)
+
+# Log model graph
+dummy_input = torch.randn(1, 3, 224, 224).to(device)
+writer.add_graph(model, dummy_input)
+
+# Multiple scalars on same plot
+writer.add_scalars('Losses', {
+    'train': train_loss,
+    'val': val_loss
+}, epoch)
+
+# Close writer
+writer.close()
+
+# View in browser:
+# tensorboard --logdir=runs</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop tensorboard logging EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">
+            How do you implement learning rate warmup?
+        </div>
+        <div class="back">
+            <strong>Learning rate warmup:</strong> Gradually increase LR from low value at start of training.
+
+            <p><strong>Why use it:</strong></p>
+            <ul>
+                <li>Stabilizes training in early epochs</li>
+                <li>Common in transformer training</li>
+                <li>Prevents early divergence with large LR</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># Manual warmup
+def get_lr(epoch, warmup_epochs, base_lr):
+    if epoch < warmup_epochs:
+        # Linear warmup
+        return base_lr * (epoch + 1) / warmup_epochs
+    else:
+        return base_lr
+
+warmup_epochs = 5
+base_lr = 0.001
+
+for epoch in range(num_epochs):
+    # Set learning rate
+    lr = get_lr(epoch, warmup_epochs, base_lr)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+    # Train
+    train_one_epoch(...)
+
+# Using scheduler
+from torch.optim.lr_scheduler import LambdaLR
+
+def warmup_lambda(epoch):
+    if epoch < warmup_epochs:
+        return (epoch + 1) / warmup_epochs
+    else:
+        return 1.0
+
+optimizer = optim.Adam(model.parameters(), lr=base_lr)
+scheduler = LambdaLR(optimizer, lr_lambda=warmup_lambda)
+
+for epoch in range(num_epochs):
+    train_one_epoch(...)
+    scheduler.step()
+
+# Warmup + cosine decay
+from transformers import get_cosine_schedule_with_warmup
+
+total_steps = len(train_loader) * num_epochs
+warmup_steps = len(train_loader) * warmup_epochs
+
+scheduler = get_cosine_schedule_with_warmup(
+    optimizer,
+    num_warmup_steps=warmup_steps,
+    num_training_steps=total_steps
+)
+
+# Step after each batch
+for batch in train_loader:
+    train_step(...)
+    scheduler.step()</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop lr-warmup EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">
+            How do you implement data augmentation during training?
+        </div>
+        <div class="back">
+            <strong>Data augmentation in training pipeline:</strong>
+
+            <strong>Example:</strong>
+            <pre><code>import torchvision.transforms as transforms
+from torch.utils.data import Dataset
+
+# Define transforms
+train_transform = transforms.Compose([
+    transforms.RandomResizedCrop(224),
+    transforms.RandomHorizontalFlip(),
+    transforms.ColorJitter(
+        brightness=0.2,
+        contrast=0.2,
+        saturation=0.2
+    ),
+    transforms.RandomRotation(15),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
+])
+
+# No augmentation for validation
+val_transform = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
+])
+
+# Custom dataset with transforms
+class MyDataset(Dataset):
+    def __init__(self, data, labels, transform=None):
+        self.data = data
+        self.labels = labels
+        self.transform = transform
+
+    def __getitem__(self, idx):
+        x = self.data[idx]
+        y = self.labels[idx]
+
+        if self.transform:
+            x = self.transform(x)
+
+        return x, y
+
+# Create datasets with different transforms
+train_dataset = MyDataset(
+    train_data, train_labels,
+    transform=train_transform
+)
+val_dataset = MyDataset(
+    val_data, val_labels,
+    transform=val_transform
+)
+
+# Advanced: augmentation libraries
+# pip install albumentations
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+
+transform = A.Compose([
+    A.RandomCrop(224, 224),
+    A.HorizontalFlip(p=0.5),
+    A.ShiftScaleRotate(p=0.5),
+    A.Normalize(),
+    ToTensorV2()
+])</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop data-augmentation EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">
+            How do you handle multi-GPU training in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Multi-GPU training with DataParallel and DistributedDataParallel:</strong>
+
+            <p><strong>DataParallel (simple, less efficient):</strong></p>
+            <pre><code># Wrap model
+model = MyModel()
+if torch.cuda.device_count() > 1:
+    print(f"Using {torch.cuda.device_count()} GPUs")
+    model = nn.DataParallel(model)
+
+model = model.to(device)
+
+# Training loop unchanged
+for batch in train_loader:
+    outputs = model(batch_x)  # splits across GPUs
+    loss = criterion(outputs, batch_y)
+    loss.backward()
+    optimizer.step()</code></pre>
+
+            <p><strong>DistributedDataParallel (recommended):</strong></p>
+            <pre><code>import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data.distributed import DistributedSampler
+
+def setup(rank, world_size):
+    dist.init_process_group(
+        "nccl",
+        rank=rank,
+        world_size=world_size
+    )
+
+def train(rank, world_size):
+    setup(rank, world_size)
+
+    model = MyModel().to(rank)
+    model = DDP(model, device_ids=[rank])
+
+    # Use DistributedSampler
+    sampler = DistributedSampler(
+        dataset,
+        num_replicas=world_size,
+        rank=rank
+    )
+
+    loader = DataLoader(
+        dataset,
+        batch_size=32,
+        sampler=sampler  # no shuffle!
+    )
+
+    for epoch in range(num_epochs):
+        sampler.set_epoch(epoch)  # important!
+
+        for batch in loader:
+            # Training step
+            pass
+
+    dist.destroy_process_group()
+
+# Launch
+import torch.multiprocessing as mp
+
+world_size = torch.cuda.device_count()
+mp.spawn(
+    train,
+    args=(world_size,),
+    nprocs=world_size
+)
+
+# Or use: python -m torch.distributed.launch</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop multi-gpu distributed EN</div>
+    </div>
+
+    <!-- Card 19 -->
+    <div class="card">
+        <div class="front">
+            How do you implement mixup or cutmix data augmentation?
+        </div>
+        <div class="back">
+            <strong>Advanced augmentation techniques:</strong>
+
+            <p><strong>Mixup:</strong> Blend two images and their labels</p>
+            <pre><code>def mixup_data(x, y, alpha=1.0):
+    '''Mixup augmentation'''
+    lam = np.random.beta(alpha, alpha)
+    batch_size = x.size(0)
+    index = torch.randperm(batch_size).to(x.device)
+
+    mixed_x = lam * x + (1 - lam) * x[index]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    return (lam * criterion(pred, y_a) +
+            (1 - lam) * criterion(pred, y_b))
+
+# In training loop
+for batch_x, batch_y in train_loader:
+    # Apply mixup
+    mixed_x, y_a, y_b, lam = mixup_data(
+        batch_x, batch_y, alpha=1.0
+    )
+
+    optimizer.zero_grad()
+    outputs = model(mixed_x)
+
+    # Mixed loss
+    loss = mixup_criterion(
+        criterion, outputs, y_a, y_b, lam
+    )
+
+    loss.backward()
+    optimizer.step()</code></pre>
+
+            <p><strong>CutMix:</strong> Cut and paste image regions</p>
+            <pre><code>def cutmix_data(x, y, alpha=1.0):
+    lam = np.random.beta(alpha, alpha)
+    batch_size = x.size(0)
+    index = torch.randperm(batch_size).to(x.device)
+
+    # Random box
+    W, H = x.size(2), x.size(3)
+    cut_w = int(W * np.sqrt(1 - lam))
+    cut_h = int(H * np.sqrt(1 - lam))
+
+    cx = np.random.randint(W)
+    cy = np.random.randint(H)
+
+    x1 = np.clip(cx - cut_w // 2, 0, W)
+    y1 = np.clip(cy - cut_h // 2, 0, H)
+    x2 = np.clip(cx + cut_w // 2, 0, W)
+    y2 = np.clip(cy + cut_h // 2, 0, H)
+
+    # Apply cutmix
+    x[:, :, x1:x2, y1:y2] = x[index, :, x1:x2, y1:y2]
+
+    # Adjust lambda based on actual box size
+    lam = 1 - ((x2 - x1) * (y2 - y1) / (W * H))
+
+    return x, y, y[index], lam</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop mixup cutmix augmentation EN</div>
+    </div>
+
+    <!-- Card 20 -->
+    <div class="card">
+        <div class="front">
+            What is label smoothing and how do you implement it?
+        </div>
+        <div class="back">
+            <strong>Label smoothing:</strong> Softens hard labels to prevent overconfidence.
+
+            <p><strong>Concept:</strong></p>
+            <ul>
+                <li>Instead of [0, 1, 0] use [0.05, 0.9, 0.05]</li>
+                <li>Prevents model from being too confident</li>
+                <li>Improves generalization</li>
+                <li>Common in classification tasks</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>class LabelSmoothingCrossEntropy(nn.Module):
+    def __init__(self, smoothing=0.1):
+        super().__init__()
+        self.smoothing = smoothing
+
+    def forward(self, pred, target):
+        n_classes = pred.size(-1)
+        log_preds = F.log_softmax(pred, dim=-1)
+
+        # Smooth target distribution
+        loss = -log_preds.sum(dim=-1).mean()
+        loss = loss * self.smoothing / n_classes
+
+        # Target loss
+        nll_loss = F.nll_loss(
+            log_preds,
+            target,
+            reduction='mean'
+        )
+        loss = loss + (1 - self.smoothing) * nll_loss
+
+        return loss
+
+# Usage
+criterion = LabelSmoothingCrossEntropy(smoothing=0.1)
+
+for batch_x, batch_y in train_loader:
+    outputs = model(batch_x)
+    loss = criterion(outputs, batch_y)
+    # ...
+
+# Alternative: manual smoothing
+def smooth_labels(labels, n_classes, smoothing=0.1):
+    with torch.no_grad():
+        # Create smoothed labels
+        smooth_labels = torch.full(
+            (len(labels), n_classes),
+            smoothing / (n_classes - 1)
+        )
+        smooth_labels.scatter_(
+            1,
+            labels.unsqueeze(1),
+            1.0 - smoothing
+        )
+    return smooth_labels
+
+# In training
+smooth_targets = smooth_labels(
+    batch_y, num_classes, smoothing=0.1
+)
+loss = F.cross_entropy(outputs, smooth_targets)</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop label-smoothing EN</div>
+    </div>
+
+    <!-- Card 21 -->
+    <div class="card">
+        <div class="front">
+            How do you implement cyclical learning rates?
+        </div>
+        <div class="back">
+            <strong>Cyclical learning rates:</strong> Vary LR between bounds during training.
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>Can escape local minima</li>
+                <li>Often converges faster</li>
+                <li>Reduces need to tune LR</li>
+                <li>Variants: triangular, triangular2, exp_range</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>from torch.optim.lr_scheduler import CyclicLR
+
+optimizer = optim.SGD(
+    model.parameters(),
+    lr=0.001,
+    momentum=0.9
+)
+
+# Cyclical LR
+scheduler = CyclicLR(
+    optimizer,
+    base_lr=0.001,     # min LR
+    max_lr=0.01,       # max LR
+    step_size_up=2000, # steps to increase
+    mode='triangular',  # or 'triangular2', 'exp_range'
+    cycle_momentum=True
+)
+
+# Training loop - step per batch!
+for epoch in range(num_epochs):
+    for batch in train_loader:
+        optimizer.zero_grad()
+        loss = train_step(...)
+        loss.backward()
+        optimizer.step()
+
+        # Step scheduler every batch
+        scheduler.step()
+
+        # Log current LR
+        current_lr = optimizer.param_groups[0]['lr']
+
+# OneCycleLR (Leslie Smith's 1cycle policy)
+from torch.optim.lr_scheduler import OneCycleLR
+
+total_steps = len(train_loader) * num_epochs
+
+scheduler = OneCycleLR(
+    optimizer,
+    max_lr=0.01,
+    total_steps=total_steps,
+    pct_start=0.3,  # % of cycle spent increasing LR
+    anneal_strategy='cos',  # or 'linear'
+    div_factor=25.0,  # initial_lr = max_lr/div_factor
+    final_div_factor=1e4  # min_lr = initial_lr/final_div_factor
+)
+
+# Step per batch
+for epoch in range(num_epochs):
+    for batch in train_loader:
+        train_step(...)
+        scheduler.step()</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop cyclical-lr onecycle EN</div>
+    </div>
+
+    <!-- Card 22 -->
+    <div class="card">
+        <div class="front">
+            How do you properly implement batch normalization in a training loop?
+        </div>
+        <div class="back">
+            <strong>BatchNorm behavior differences:</strong>
+
+            <p><strong>Training mode (<code>model.train()</code>):</strong></p>
+            <ul>
+                <li>Normalizes using batch statistics (mean/std of current batch)</li>
+                <li>Updates running mean and running variance</li>
+                <li>These running stats used in eval mode</li>
+            </ul>
+
+            <p><strong>Eval mode (<code>model.eval()</code>):</strong></p>
+            <ul>
+                <li>Uses fixed running statistics</li>
+                <li>Doesn't update running mean/variance</li>
+                <li>Consistent output for same input</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>class MyModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 64, 3)
+        self.bn1 = nn.BatchNorm2d(64)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)  # behavior changes with mode
+        return x
+
+model = MyModel()
+
+# Training - uses batch stats
+model.train()
+for batch in train_loader:
+    outputs = model(batch_x)  # BN updates running stats
+    # ...
+
+# Validation - uses running stats
+model.eval()
+with torch.no_grad():
+    for batch in val_loader:
+        outputs = model(val_x)  # BN uses fixed stats
+
+# Common mistake: small batch size
+# BN needs reasonable batch size (min 8-16)
+# For small batches, use GroupNorm or LayerNorm
+
+# Freeze BN during fine-tuning
+def freeze_bn(model):
+    for module in model.modules():
+        if isinstance(module, nn.BatchNorm2d):
+            module.eval()  # always use running stats
+            module.weight.requires_grad = False
+            module.bias.requires_grad = False
+
+# In training loop
+model.train()
+freeze_bn(model)  # keep BN in eval mode</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop batchnorm EN</div>
+    </div>
+
+    <!-- Card 23 -->
+    <div class="card">
+        <div class="front">
+            How do you implement gradient checkpointing to save memory?
+        </div>
+        <div class="back">
+            <strong>Gradient checkpointing:</strong> Trade compute for memory by recomputing activations during backward pass.
+
+            <p><strong>When to use:</strong></p>
+            <ul>
+                <li>Training very deep networks</li>
+                <li>Limited GPU memory</li>
+                <li>Large batch sizes needed</li>
+                <li>Trades ~20% speed for ~50% memory savings</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>from torch.utils.checkpoint import checkpoint
+
+class MyModel(nn.Module):
+    def __init__(self, use_checkpoint=False):
+        super().__init__()
+        self.use_checkpoint = use_checkpoint
+        self.layer1 = nn.Linear(1000, 1000)
+        self.layer2 = nn.Linear(1000, 1000)
+        self.layer3 = nn.Linear(1000, 10)
+
+    def forward(self, x):
+        if self.use_checkpoint:
+            # Checkpoint expensive layers
+            x = checkpoint(self.layer1, x)
+            x = checkpoint(self.layer2, x)
+        else:
+            x = self.layer1(x)
+            x = self.layer2(x)
+
+        x = self.layer3(x)
+        return x
+
+# Enable checkpointing
+model = MyModel(use_checkpoint=True)
+
+# For sequential models
+class CheckpointedSequential(nn.Sequential):
+    def forward(self, x):
+        for module in self:
+            x = checkpoint(module, x)
+        return x
+
+# Usage
+model = CheckpointedSequential(
+    nn.Linear(1000, 1000),
+    nn.ReLU(),
+    nn.Linear(1000, 1000),
+    nn.ReLU(),
+    nn.Linear(1000, 10)
+)
+
+# Hugging Face transformers style
+from transformers import BertModel
+
+model = BertModel.from_pretrained('bert-base')
+model.config.gradient_checkpointing = True
+
+# Manual checkpoint for custom functions
+def custom_forward(x, layer1, layer2):
+    x = layer1(x)
+    x = F.relu(x)
+    x = layer2(x)
+    return x
+
+# Use in forward
+x = checkpoint(
+    custom_forward,
+    x, self.layer1, self.layer2
+)</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop gradient-checkpointing memory EN</div>
+    </div>
+
+    <!-- Card 24 -->
+    <div class="card">
+        <div class="front">
+            How do you implement model evaluation metrics (accuracy, F1, etc.)?
+        </div>
+        <div class="back">
+            <strong>Computing evaluation metrics:</strong>
+
+            <strong>Example:</strong>
+            <pre><code>from sklearn.metrics import (
+    accuracy_score,
+    precision_recall_fscore_support,
+    confusion_matrix
+)
+
+def evaluate_model(model, dataloader, device):
+    model.eval()
+
+    all_preds = []
+    all_labels = []
+
+    with torch.no_grad():
+        for batch_x, batch_y in dataloader:
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
+
+            outputs = model(batch_x)
+            _, preds = outputs.max(1)
+
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(batch_y.cpu().numpy())
+
+    # Calculate metrics
+    accuracy = accuracy_score(all_labels, all_preds)
+
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        all_labels,
+        all_preds,
+        average='weighted'  # or 'macro', 'micro'
+    )
+
+    cm = confusion_matrix(all_labels, all_preds)
+
+    return {
+        'accuracy': accuracy,
+        'precision': precision,
+        'recall': recall,
+        'f1': f1,
+        'confusion_matrix': cm
+    }
+
+# Usage
+metrics = evaluate_model(model, test_loader, device)
+print(f"Accuracy: {metrics['accuracy']:.4f}")
+print(f"F1 Score: {metrics['f1']:.4f}")
+
+# Manual accuracy calculation
+def compute_accuracy(model, dataloader, device):
+    model.eval()
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for batch_x, batch_y in dataloader:
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
+
+            outputs = model(batch_x)
+            _, predicted = outputs.max(1)
+
+            total += batch_y.size(0)
+            correct += predicted.eq(batch_y).sum().item()
+
+    return 100. * correct / total
+
+# Top-k accuracy
+def topk_accuracy(output, target, k=5):
+    with torch.no_grad():
+        batch_size = target.size(0)
+        _, pred = output.topk(k, 1, True, True)
+        pred = pred.t()
+        correct = pred.eq(target.view(1, -1).expand_as(pred))
+        correct_k = correct[:k].reshape(-1).float().sum(0)
+        return correct_k.mul_(100.0 / batch_size).item()</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop metrics evaluation EN</div>
+    </div>
+
+    <!-- Card 25 -->
+    <div class="card">
+        <div class="front">
+            How do you implement a complete end-to-end training script with all best practices?
+        </div>
+        <div class="back">
+            <strong>Production-ready training template:</strong>
+
+            <pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
+import os
+
+class Trainer:
+    def __init__(self, model, train_loader,
+                 val_loader, config):
+        self.model = model.to(config['device'])
+        self.train_loader = train_loader
+        self.val_loader = val_loader
+        self.config = config
+
+        self.criterion = nn.CrossEntropyLoss()
+        self.optimizer = optim.Adam(
+            model.parameters(),
+            lr=config['lr']
+        )
+        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            self.optimizer, mode='min', patience=5
+        )
+
+        self.writer = SummaryWriter(config['log_dir'])
+        self.best_val_loss = float('inf')
+        self.patience_counter = 0
+
+    def train_epoch(self, epoch):
+        self.model.train()
+        total_loss = 0
+
+        pbar = tqdm(self.train_loader,
+                    desc=f'Epoch {epoch}')
+
+        for batch_x, batch_y in pbar:
+            batch_x = batch_x.to(self.config['device'])
+            batch_y = batch_y.to(self.config['device'])
+
+            self.optimizer.zero_grad()
+            outputs = self.model(batch_x)
+            loss = self.criterion(outputs, batch_y)
+            loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(
+                self.model.parameters(),
+                max_norm=1.0
+            )
+
+            self.optimizer.step()
+
+            total_loss += loss.item()
+            pbar.set_postfix({'loss': f'{loss.item():.4f}'})
+
+        return total_loss / len(self.train_loader)
+
+    def validate(self):
+        self.model.eval()
+        total_loss = 0
+        correct = 0
+        total = 0
+
+        with torch.no_grad():
+            for batch_x, batch_y in self.val_loader:
+                batch_x = batch_x.to(self.config['device'])
+                batch_y = batch_y.to(self.config['device'])
+
+                outputs = self.model(batch_x)
+                loss = self.criterion(outputs, batch_y)
+
+                total_loss += loss.item()
+                _, predicted = outputs.max(1)
+                total += batch_y.size(0)
+                correct += predicted.eq(batch_y).sum().item()
+
+        avg_loss = total_loss / len(self.val_loader)
+        accuracy = 100. * correct / total
+
+        return avg_loss, accuracy
+
+    def save_checkpoint(self, epoch, is_best=False):
+        checkpoint = {
+            'epoch': epoch,
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'best_val_loss': self.best_val_loss
+        }
+
+        path = os.path.join(
+            self.config['save_dir'],
+            'checkpoint.pth'
+        )
+        torch.save(checkpoint, path)
+
+        if is_best:
+            best_path = os.path.join(
+                self.config['save_dir'],
+                'best_model.pth'
+            )
+            torch.save(checkpoint, best_path)
+
+    def train(self):
+        for epoch in range(self.config['num_epochs']):
+            train_loss = self.train_epoch(epoch)
+            val_loss, val_acc = self.validate()
+
+            # Log metrics
+            self.writer.add_scalar('Loss/train', train_loss, epoch)
+            self.writer.add_scalar('Loss/val', val_loss, epoch)
+            self.writer.add_scalar('Accuracy/val', val_acc, epoch)
+
+            # Step scheduler
+            self.scheduler.step(val_loss)
+
+            # Save best model
+            if val_loss < self.best_val_loss:
+                self.best_val_loss = val_loss
+                self.save_checkpoint(epoch, is_best=True)
+                self.patience_counter = 0
+            else:
+                self.patience_counter += 1
+
+            # Early stopping
+            if self.patience_counter >= self.config['patience']:
+                print(f"Early stopping at epoch {epoch}")
+                break
+
+        self.writer.close()
+
+# Usage
+config = {
+    'device': torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
+    'lr': 0.001,
+    'num_epochs': 100,
+    'patience': 15,
+    'log_dir': 'runs/experiment',
+    'save_dir': 'checkpoints'
+}
+
+trainer = Trainer(model, train_loader, val_loader, config)
+trainer.train()</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch training-loop production template EN</div>
+    </div>
+
+</body>
+</html>

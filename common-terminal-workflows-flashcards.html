@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Common Terminal Workflows Flashcards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background: rgba(245, 245, 245, 0.95);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(221, 221, 221, 0.9);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgba(51, 51, 51, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        .back {
+            color: rgba(68, 68, 68, 0.95);
+        }
+        .back code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: rgba(197, 34, 31, 0.95);
+        }
+        .back pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+        }
+        .back pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(238, 238, 238, 0.9);
+            font-size: 12px;
+            color: rgba(128, 128, 128, 0.95);
+        }
+        ol, ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        strong {
+            color: rgba(76, 175, 80, 0.95);
+        }
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Common Terminal Workflows Flashcards</h1>
+
+    <div class="card">
+        <div class="front">
+            A process is using too much CPU or memory. What's the workflow to find and kill it?
+        </div>
+        <div class="back">
+            <strong>Find process → Identify PID → Kill it (gracefully first)</strong>
+
+            <p><strong>Quick workflow:</strong></p>
+            <pre><code># Method 1: Find by name and kill
+pkill -f process_name
+
+# Method 2: Interactive selection with top/htop
+htop
+# Press F4 to filter, F9 to kill
+
+# Method 3: Find PID then kill
+ps aux | grep process_name
+kill PID
+
+# Method 4: Find and kill in one line
+kill $(pgrep -f process_name)</code></pre>
+
+            <p><strong>Detailed step-by-step:</strong></p>
+            <pre><code># Step 1: Find the process
+ps aux | grep -i nginx
+# or more targeted:
+ps aux | grep -i nginx | grep -v grep
+
+# Step 2: Note the PID (second column)
+# user  12345  0.5  2.1  ...
+
+# Step 3: Kill gracefully (SIGTERM)
+kill 12345
+
+# Step 4: Wait a few seconds, check if still running
+ps aux | grep 12345
+
+# Step 5: Force kill if necessary (SIGKILL)
+kill -9 12345</code></pre>
+
+            <p><strong>One-liner approaches:</strong></p>
+            <pre><code># Kill by name (all matching processes):
+pkill nginx
+pkill -f "python.*script.py"  # Match full command line
+
+# Kill specific user's processes:
+pkill -u username nginx
+
+# Kill with confirmation:
+ps aux | grep nginx | grep -v grep | awk '{print $2}' | xargs -p kill
+
+# Kill all but leave one running:
+pgrep nginx | tail -n +2 | xargs kill</code></pre>
+
+            <p><strong>Finding resource hogs:</strong></p>
+            <pre><code># Top CPU consumers:
+ps aux --sort=-%cpu | head -10
+
+# Top memory consumers:
+ps aux --sort=-%mem | head -10
+
+# Interactive monitoring:
+top
+# Press Shift+M for memory sort
+# Press Shift+P for CPU sort
+# Press k to kill, enter PID
+
+# Better: htop (if installed)
+htop
+# F6 to sort by column
+# F4 to filter
+# F9 to kill</code></pre>
+
+            <p><strong>Kill entire process tree:</strong></p>
+            <pre><code># Kill process and all children:
+pkill -TERM -P $PPID  # Kill children of parent
+killall -9 process_name  # Kill all instances
+
+# Kill process tree (parent + children):
+kill -TERM -$(ps -o pgid= $PID | grep -o '[0-9]*')</code></pre>
+
+            <p><strong>Checking before killing:</strong></p>
+            <pre><code># See what will be killed:
+pgrep -a nginx
+# Shows PID and full command
+
+# Count how many:
+pgrep nginx | wc -l
+
+# Kill with dry-run first:
+echo "Will kill: $(pgrep nginx)"
+# Then: pkill nginx</code></pre>
+
+            <p><strong>Signal options:</strong></p>
+            <pre><code>kill PID          # SIGTERM (15) - graceful shutdown
+kill -9 PID       # SIGKILL (9) - force kill (can't be caught)
+kill -HUP PID     # SIGHUP (1) - reload config
+kill -USR1 PID    # SIGUSR1 - application-defined
+
+# Nginx example:
+kill -HUP $(cat /var/run/nginx.pid)  # Reload config
+kill -QUIT $(cat /var/run/nginx.pid) # Graceful shutdown</code></pre>
+
+            <p><strong>Common scenarios:</strong></p>
+            <pre><code># Frozen SSH session:
+ps aux | grep ssh
+kill -9 SSH_PID
+
+# Runaway Python script:
+pkill -f "python.*my_script"
+
+# Zombie process (shows as <defunct>):
+# Kill the parent process
+ps -ef | grep defunct
+kill PARENT_PID
+
+# All Chrome tabs eating memory:
+pkill -f chrome
+# or just some:
+ps aux | grep chrome | grep -v "main process" | awk '{print $2}' | xargs kill</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Try SIGTERM (kill) before SIGKILL (kill -9)</li>
+                <li>SIGKILL prevents cleanup - use as last resort</li>
+                <li>Use pkill/pgrep for convenience over ps + grep</li>
+                <li>htop is more user-friendly than top</li>
+                <li>Check what you're killing: pgrep -a shows full commands</li>
+            </ul>
+        </div>
+        <div class="tags">cs terminal workflows processes kill htop EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You need to monitor a log file in real-time as new entries are added. What's the workflow?
+        </div>
+        <div class="back">
+            <strong>Use tail -f to follow log files in real-time</strong>
+
+            <p><strong>Basic monitoring:</strong></p>
+            <pre><code># Follow single log file:
+tail -f /var/log/syslog
+
+# Follow with line numbers:
+tail -fn 100 /var/log/application.log
+
+# Follow and filter:
+tail -f /var/log/nginx/access.log | grep "GET /api"
+
+# Follow and highlight errors:
+tail -f /var/log/app.log | grep --color -E "ERROR|WARN|$"</code></pre>
+
+            <p><strong>Multiple log files:</strong></p>
+            <pre><code># Follow multiple files (shows filename headers):
+tail -f /var/log/nginx/*.log
+
+# Specific files:
+tail -f /var/log/syslog /var/log/auth.log
+
+# All logs in directory:
+tail -f /var/log/*.log
+
+# Follow with multitail (if installed):
+multitail /var/log/syslog /var/log/apache2/error.log</code></pre>
+
+            <p><strong>Filtering and processing:</strong></p>
+            <pre><code># Only errors:
+tail -f app.log | grep ERROR
+
+# Multiple patterns:
+tail -f app.log | grep -E "ERROR|WARN|FATAL"
+
+# Exclude certain lines:
+tail -f app.log | grep -v DEBUG
+
+# Show timestamp and filter:
+tail -f app.log | grep "$(date +%Y-%m-%d)"
+
+# Count errors per minute:
+tail -f app.log | grep ERROR | while read line; do
+    echo "$(date +%T): $line"
+done</code></pre>
+
+            <p><strong>Following rotated logs:</strong></p>
+            <pre><code># tail -f stops working after logrotate!
+# Use -F (--follow=name) instead:
+tail -F /var/log/app.log
+# Keeps following even if file is rotated/recreated
+
+# Comparison:
+-f    # Follows file descriptor (breaks on rotation)
+-F    # Follows filename (works through rotation)</code></pre>
+
+            <p><strong>Advanced monitoring patterns:</strong></p>
+            <pre><code># Follow with context (show 3 lines after errors):
+tail -f app.log | grep -A 3 ERROR
+
+# Colorize different log levels:
+tail -f app.log | \
+  grep --color=always -E "ERROR|$" | \
+  grep --color=always -E "WARN|$"
+
+# Alert on specific pattern:
+tail -f app.log | while read line; do
+    if echo "$line" | grep -q "FATAL"; then
+        notify-send "FATAL ERROR" "$line"
+    fi
+    echo "$line"
+done
+
+# Follow and save to file:
+tail -f live.log | tee archive.log</code></pre>
+
+            <p><strong>Starting from different positions:</strong></p>
+            <pre><code># Last 50 lines, then follow:
+tail -n 50 -f app.log
+
+# All existing content, then follow:
+tail -n +1 -f app.log
+
+# Skip first 1000 lines, then follow:
+tail -n +1000 -f app.log</code></pre>
+
+            <p><strong>Using less for log exploration:</strong></p>
+            <pre><code># Open in less with live update:
+less +F /var/log/syslog
+# Press Ctrl+C to stop following
+# Press F to resume following
+# Press q to quit
+
+# Search while following:
+# Press Ctrl+C, then /search_term, then F to resume</code></pre>
+
+            <p><strong>Alternatives and tools:</strong></p>
+            <pre><code># journalctl (systemd logs):
+journalctl -f
+journalctl -u nginx -f  # Follow specific service
+journalctl -f --since "5 min ago"
+
+# lnav (log navigator - if installed):
+lnav /var/log/*.log
+# Auto-formats, colorizes, merges timelines
+
+# watch (refresh every 2 sec):
+watch -n 2 'tail -20 /var/log/app.log'
+
+# tmux split with multiple logs:
+tmux split-window -h 'tail -f /var/log/app.log'
+tmux split-window -v 'tail -f /var/log/error.log'</code></pre>
+
+            <p><strong>Performance monitoring while tailing:</strong></p>
+            <pre><code># Monitor web server requests per second:
+tail -f access.log | awk '{print $1}' | uniq -c
+
+# Watch for specific IP:
+tail -f access.log | grep "192.168.1.100"
+
+# Monitor response times:
+tail -f access.log | awk '{print $10}' | \
+  awk '{sum+=$1; count++} END {print sum/count}'
+
+# Alert on slow requests:
+tail -f access.log | awk '$10 > 1000 {print "Slow:", $0}'</code></pre>
+
+            <p><strong>Following Docker/Kubernetes logs:</strong></p>
+            <pre><code># Docker:
+docker logs -f container_name
+docker logs -f --tail 100 container_name
+
+# Kubernetes:
+kubectl logs -f pod-name
+kubectl logs -f deployment/app-name
+
+# All pods in deployment:
+kubectl logs -f -l app=myapp --all-containers</code></pre>
+
+            <p><strong>Common scenarios:</strong></p>
+            <pre><code># Debug deployment:
+tail -f /var/log/nginx/error.log | grep "$(date +%H:%M)"
+
+# Monitor API calls:
+tail -f api.log | grep POST | grep -v /health
+
+# Watch authentication attempts:
+tail -F /var/log/auth.log | grep "Failed password"
+
+# Monitor application startup:
+tail -n +1 -f app.log | grep -E "Started|Listening|Ready"</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Use <code>-F</code> instead of <code>-f</code> for rotated logs</li>
+                <li>Pipe to grep for filtering, but watch performance on high-volume logs</li>
+                <li>journalctl is better for systemd services than tailing logs</li>
+                <li>lnav is great for pretty log viewing (worth installing)</li>
+                <li>Ctrl+C stops tail -f (closes pipe gracefully)</li>
+            </ul>
+        </div>
+        <div class="tags">cs terminal workflows logs tail monitoring EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Your disk is full. What's the workflow to find and clean up large files and directories?
+        </div>
+        <div class="back">
+            <strong>Check disk usage → Find large directories → Identify files to delete</strong>
+
+            <p><strong>Quick assessment:</strong></p>
+            <pre><code># Check overall disk usage:
+df -h
+
+# Find largest directories in current location:
+du -sh * | sort -h | tail -10
+
+# One-liner to find disk hogs:
+du -ah . | sort -h | tail -20</code></pre>
+
+            <p><strong>Step-by-step workflow:</strong></p>
+            <pre><code># Step 1: Check which filesystem is full
+df -h
+# Look for Usage% near 100%
+
+# Step 2: Find largest directories from root
+sudo du -sh /* | sort -h | tail -10
+
+# Step 3: Drill down into largest one
+cd /var  # (example if /var is large)
+sudo du -sh * | sort -h | tail -10
+
+# Step 4: Continue drilling down
+cd log   # (example)
+sudo du -sh * | sort -h
+
+# Step 5: Examine largest files
+ls -lhS  # Sort by size, largest first</code></pre>
+
+            <p><strong>Finding specific types of files:</strong></p>
+            <pre><code># Find largest files (top 20):
+find / -type f -exec du -h {} + 2>/dev/null | sort -h | tail -20
+
+# Find files over 100MB:
+find / -type f -size +100M -exec ls -lh {} \; 2>/dev/null
+
+# Find largest files in home directory:
+find ~ -type f -printf '%s %p\n' | sort -n | tail -20
+
+# One-liner for largest files:
+find / -type f -printf '%s %p\n' 2>/dev/null | \
+  sort -rn | head -20 | \
+  awk '{printf "%.2fG\t%s\n", $1/1024/1024/1024, $2}'</code></pre>
+
+            <p><strong>Common cleanup targets:</strong></p>
+            <pre><code># Log files (check before deleting!):
+find /var/log -name "*.log" -mtime +30 -exec ls -lh {} \;
+# Delete old logs:
+find /var/log -name "*.log" -mtime +30 -delete
+
+# Compressed old logs:
+find /var/log -name "*.gz" -mtime +90 -delete
+
+# Core dumps:
+find / -name "core.*" -delete 2>/dev/null
+
+# Package manager cache:
+# APT (Debian/Ubuntu):
+sudo apt clean
+sudo apt autoclean
+
+# DNF (Fedora):
+sudo dnf clean all
+
+# Homebrew (macOS):
+brew cleanup
+
+# npm cache:
+npm cache clean --force
+
+# Docker:
+docker system prune -a  # Remove all unused images/containers</code></pre>
+
+            <p><strong>Temporary file cleanup:</strong></p>
+            <pre><code># /tmp cleanup (be careful!):
+find /tmp -type f -atime +7 -delete
+# -atime +7 = not accessed in 7 days
+
+# User cache directories:
+du -sh ~/.cache/*
+rm -rf ~/.cache/thumbnails/*
+
+# Browser caches:
+du -sh ~/.cache/google-chrome
+du -sh ~/.cache/mozilla
+
+# Old downloads:
+find ~/Downloads -type f -mtime +90 -ls</code></pre>
+
+            <p><strong>Interactive tools:</strong></p>
+            <pre><code># ncdu - visual disk usage analyzer:
+sudo ncdu /
+# Navigate with arrow keys
+# Press 'd' to delete
+# Press 'q' to quit
+
+# baobab (GNOME Disk Usage Analyzer):
+baobab /
+
+# QDirStat (GUI):
+qdirstat /</code></pre>
+
+            <p><strong>Finding duplicate files:</strong></p>
+            <pre><code># fdupes (if installed):
+fdupes -r /home/user/Documents
+
+# Manual approach - find files with same size:
+find . -type f -printf '%s %p\n' | \
+  sort -n | \
+  uniq -D -w 10  # Show duplicates by size
+
+# Find exact duplicates (slow on large dirs):
+find . -type f -exec md5sum {} + | \
+  sort | \
+  uniq -w32 --all-repeated=separate</code></pre>
+
+            <p><strong>Safe deletion workflow:</strong></p>
+            <pre><code># NEVER: rm -rf / (catastrophic!)
+# ALWAYS: Preview before deleting
+
+# Step 1: Find candidates
+find /var/log -name "*.log" -mtime +30 -ls > /tmp/to-delete.txt
+
+# Step 2: Review the list
+less /tmp/to-delete.txt
+
+# Step 3: Delete (if comfortable)
+find /var/log -name "*.log" -mtime +30 -delete
+
+# Or move to trash first:
+mkdir /tmp/trash
+find /var/log -name "*.log" -mtime +30 -exec mv {} /tmp/trash/ \;</code></pre>
+
+            <p><strong>Journal/systemd logs:</strong></p>
+            <pre><code># Check journal size:
+journalctl --disk-usage
+
+# Limit journal to 100MB:
+sudo journalctl --vacuum-size=100M
+
+# Delete logs older than 2 weeks:
+sudo journalctl --vacuum-time=2weeks
+
+# Configure permanent limit:
+# Edit /etc/systemd/journald.conf
+# SystemMaxUse=100M</code></pre>
+
+            <p><strong>Finding old files:</strong></p>
+            <pre><code># Files not accessed in 1 year:
+find /data -type f -atime +365 -ls
+
+# Files not modified in 6 months:
+find /backup -type f -mtime +180 -ls
+
+# Large old files:
+find /data -type f -size +1G -mtime +180 -exec ls -lh {} \;</code></pre>
+
+            <p><strong>Emergency cleanup (disk 100% full):</strong></p>
+            <pre><code># Find processes with deleted files still open:
+sudo lsof | grep deleted
+
+# Largest log file actively being written:
+sudo lsof / | grep -E "\\.log" | \
+  awk '{print $9}' | xargs du -sh | sort -h
+
+# Truncate log instead of delete (keeps app running):
+sudo truncate -s 0 /var/log/huge-app.log
+
+# Or:
+> /var/log/huge-app.log  # Empty file</code></pre>
+
+            <p><strong>One-liner toolkit:</strong></p>
+            <pre><code># Top 10 largest directories:
+sudo du -h / --max-depth=1 2>/dev/null | sort -h | tail -10
+
+# Top 10 largest files:
+sudo find / -type f -printf '%s %p\n' 2>/dev/null | \
+  sort -rn | head -10 | \
+  numfmt --field=1 --to=iec
+
+# What's using disk space in current dir:
+du -sh ./* | sort -h
+
+# Hidden files eating space:
+du -sh .[!.]* | sort -h</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Use ncdu for interactive exploration (worth installing)</li>
+                <li>Check journalctl --disk-usage on systemd systems</li>
+                <li>Package manager caches are safe to clean</li>
+                <li>Docker images/containers can consume massive space</li>
+                <li>Always preview with <code>ls</code> before deleting</li>
+                <li>Truncate active log files instead of deleting them</li>
+            </ul>
+        </div>
+        <div class="tags">cs terminal workflows disk-usage cleanup du ncdu EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            You're about to edit an important config file. What's the quick backup workflow?
+        </div>
+        <div class="back">
+            <strong>Create timestamped backup before editing critical files</strong>
+
+            <p><strong>Quick one-liners:</strong></p>
+            <pre><code># Simple backup:
+cp config.yml config.yml.bak
+
+# Timestamped backup (best practice):
+cp config.yml config.yml.$(date +%Y%m%d_%H%M%S)
+
+# Or more readable:
+cp config.yml{,.bak}
+
+# Backup before editing in one command:
+cp config.yml{,.bak} && vim config.yml</code></pre>
+
+            <p><strong>Creating a backup function:</strong></p>
+            <pre><code># Add to ~/.bashrc:
+backup() {
+    if [ -f "$1" ]; then
+        cp "$1" "$1.$(date +%Y%m%d_%H%M%S).bak"
+        echo "Backed up: $1 → $1.$(date +%Y%m%d_%H%M%S).bak"
+    else
+        echo "Error: File not found: $1"
+    fi
+}
+
+# Usage:
+backup /etc/nginx/nginx.conf
+# Then edit the file</code></pre>
+
+            <p><strong>Backup and edit in one command:</strong></p>
+            <pre><code># Define as function:
+vimbak() {
+    cp "$1"{,.$(date +%Y%m%d_%H%M%S).bak} && vim "$1"
+}
+
+# Or for any editor:
+editbak() {
+    local file="$1"
+    cp "$file"{,.$(date +%Y%m%d_%H%M%S).bak}
+    ${EDITOR:-vi} "$file"
+}
+
+# Usage:
+vimbak /etc/ssh/sshd_config</code></pre>
+
+            <p><strong>Multiple file backups:</strong></p>
+            <pre><code># Backup multiple files:
+for file in *.conf; do
+    cp "$file" "$file.$(date +%Y%m%d).bak"
+done
+
+# Backup entire directory:
+cp -r /etc/nginx /etc/nginx.$(date +%Y%m%d_%H%M%S).bak
+
+# Or with tar (compressed):
+tar -czf nginx-backup-$(date +%Y%m%d_%H%M%S).tar.gz /etc/nginx/</code></pre>
+
+            <p><strong>System config backups:</strong></p>
+            <pre><code># Backup with sudo (preserves permissions):
+sudo cp /etc/ssh/sshd_config{,.$(date +%Y%m%d).bak}
+
+# Verify backup:
+ls -lh /etc/ssh/sshd_config*
+
+# Compare after editing:
+diff /etc/ssh/sshd_config{.$(date +%Y%m%d).bak,}</code></pre>
+
+            <p><strong>Rotating backups (keep only recent):</strong></p>
+            <pre><code># Keep only last 5 backups:
+backup_and_rotate() {
+    local file="$1"
+    local keep=5
+
+    # Create new backup
+    cp "$file" "$file.$(date +%Y%m%d_%H%M%S).bak"
+
+    # Remove old backups (keep only $keep newest)
+    ls -t "$file".*.bak | tail -n +$((keep + 1)) | xargs rm -f
+}
+
+# Usage:
+backup_and_rotate /etc/nginx/nginx.conf</code></pre>
+
+            <p><strong>Incremental backup approach:</strong></p>
+            <pre><code># Backup only if file changed:
+backup_if_changed() {
+    local file="$1"
+    local latest_backup=$(ls -t "$file".*.bak 2>/dev/null | head -1)
+
+    if [ -z "$latest_backup" ] || ! cmp -s "$file" "$latest_backup"; then
+        cp "$file" "$file.$(date +%Y%m%d_%H%M%S).bak"
+        echo "Backup created"
+    else
+        echo "No changes, backup skipped"
+    fi
+}</code></pre>
+
+            <p><strong>Backup with version control:</strong></p>
+            <pre><code># Use git for better tracking:
+cd /etc/nginx
+sudo git init  # First time only
+sudo git add nginx.conf
+sudo git commit -m "Before editing listen port"
+
+# Edit file...
+
+# See changes:
+sudo git diff
+
+# Commit changes:
+sudo git add nginx.conf
+sudo git commit -m "Changed listen port to 8080"
+
+# Rollback if needed:
+sudo git checkout HEAD~1 nginx.conf</code></pre>
+
+            <p><strong>Restoration workflow:</strong></p>
+            <pre><code># List backups:
+ls -lht config.yml.*.bak
+
+# Preview difference:
+diff config.yml config.yml.20240115_143022.bak
+
+# Restore specific backup:
+cp config.yml.20240115_143022.bak config.yml
+
+# Or restore most recent:
+cp $(ls -t config.yml.*.bak | head -1) config.yml
+
+# Restore and keep current as .bad:
+mv config.yml config.yml.bad && \
+cp config.yml.20240115_143022.bak config.yml</code></pre>
+
+            <p><strong>Cleaning up old backups:</strong></p>
+            <pre><code># Remove backups older than 30 days:
+find /etc -name "*.bak" -mtime +30 -delete
+
+# List old backups before deleting:
+find . -name "*.bak" -mtime +30 -ls
+
+# Interactive cleanup:
+find . -name "*.bak" -mtime +30 -ok rm {} \;</code></pre>
+
+            <p><strong>Advanced: Keep backups in separate directory:</strong></p>
+            <pre><code># Create backup directory:
+mkdir -p ~/.config-backups
+
+# Backup function with separate storage:
+backup() {
+    local file="$1"
+    local filename=$(basename "$file")
+    local backup_dir="$HOME/.config-backups"
+
+    mkdir -p "$backup_dir"
+    cp "$file" "$backup_dir/${filename}.$(date +%Y%m%d_%H%M%S).bak"
+    echo "Backed up to: $backup_dir/"
+}
+
+# Or system-wide:
+sudo mkdir -p /var/backups/configs
+sudo cp /etc/nginx/nginx.conf \
+  /var/backups/configs/nginx.conf.$(date +%Y%m%d_%H%M%S)</code></pre>
+
+            <p><strong>One-liner toolkit:</strong></p>
+            <pre><code># Quick backup:
+cp file{,.bak}
+
+# Timestamped:
+cp file{,.$(date +%F).bak}
+
+# Backup and edit:
+cp file{,.bak} && vim file
+
+# Backup directory:
+cp -r dir{,.bak}
+
+# Restore from latest:
+cp $(ls -t file.*.bak | head -1) file</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>ALWAYS backup before editing critical configs</li>
+                <li>Use timestamps, not just .bak (allows multiple backups)</li>
+                <li>For system files, use git for better version control</li>
+                <li>Test restore procedure - backups are useless if you can't restore</li>
+                <li>Clean up old backups periodically</li>
+                <li>For production systems, use proper backup tools (not just cp)</li>
+            </ul>
+        </div>
+        <div class="tags">cs terminal workflows backup config-files git EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's the workflow to check what's running on a specific port?
+        </div>
+        <div class="back">
+            <strong>Find process using port → Identify what it is → Kill if needed</strong>
+
+            <p><strong>Quick commands:</strong></p>
+            <pre><code># Check what's on port 8080:
+sudo lsof -i :8080
+
+# Alternative (on Linux):
+sudo ss -tulpn | grep :8080
+sudo netstat -tulpn | grep :8080  # Older systems
+
+# Just show PID:
+sudo lsof -ti :8080
+
+# Kill process on port:
+sudo kill $(sudo lsof -ti :8080)</code></pre>
+
+            <p><strong>Step-by-step workflow:</strong></p>
+            <pre><code># Step 1: Find what's using the port
+sudo lsof -i :8080
+# Output shows:
+# COMMAND   PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+# node    12345  user   20u  IPv4  ...     TCP *:8080 (LISTEN)
+
+# Step 2: Get more info about the process
+ps aux | grep 12345
+
+# Step 3: Decide to kill or investigate further
+sudo kill 12345  # Graceful
+# or
+sudo kill -9 12345  # Force</code></pre>
+
+            <p><strong>Using different tools:</strong></p>
+            <pre><code># lsof (most portable):
+sudo lsof -i :80
+sudo lsof -i :443
+sudo lsof -i tcp:8080  # Specific protocol
+
+# ss (modern, faster):
+ss -tulpn | grep :80
+# t = TCP, u = UDP, l = listening, p = processes, n = numeric
+
+# netstat (older, still works):
+netstat -tulpn | grep :80
+
+# fuser (show which process uses file/socket):
+fuser 8080/tcp</code></pre>
+
+            <p><strong>Finding all listening ports:</strong></p>
+            <pre><code># All listening ports with processes:
+sudo lsof -i -P -n | grep LISTEN
+
+# Or with ss:
+sudo ss -tulpn
+
+# Just port numbers:
+sudo lsof -i -P -n | grep LISTEN | awk '{print $9}' | cut -d: -f2 | sort -u
+
+# Ports and processes:
+sudo netstat -tulpn | grep LISTEN</code></pre>
+
+            <p><strong>Check if port is available:</strong></p>
+            <pre><code># Test if port 8080 is free:
+if ! sudo lsof -i :8080 > /dev/null; then
+    echo "Port 8080 is available"
+else
+    echo "Port 8080 is in use"
+fi
+
+# Or with nc:
+nc -z localhost 8080
+if [ $? -eq 0 ]; then
+    echo "Port 8080 is open"
+else
+    echo "Port 8080 is closed"
+fi</code></pre>
+
+            <p><strong>Remote port checking:</strong></p>
+            <pre><code># Check if remote port is open:
+nc -zv example.com 80
+nc -zv example.com 443
+
+# Timeout after 2 seconds:
+nc -zv -w2 example.com 8080
+
+# telnet alternative:
+telnet example.com 80
+
+# Using curl:
+curl -v telnet://example.com:80
+
+# nmap (if installed):
+nmap -p 80,443 example.com</code></pre>
+
+            <p><strong>Port range scanning:</strong></p>
+            <pre><code># Check range of ports:
+for port in {8000..8010}; do
+    if sudo lsof -i :$port > /dev/null 2>&1; then
+        echo "Port $port: IN USE"
+        sudo lsof -i :$port
+    else
+        echo "Port $port: available"
+    fi
+done
+
+# Or with nmap:
+nmap -p 8000-8010 localhost</code></pre>
+
+            <p><strong>Common port troubleshooting:</strong></p>
+            <pre><code># Web server conflicts:
+sudo lsof -i :80    # HTTP
+sudo lsof -i :443   # HTTPS
+sudo lsof -i :8080  # Alternative HTTP
+
+# Database ports:
+sudo lsof -i :3306  # MySQL
+sudo lsof -i :5432  # PostgreSQL
+sudo lsof -i :27017 # MongoDB
+sudo lsof -i :6379  # Redis
+
+# Application servers:
+sudo lsof -i :3000  # Node/React dev
+sudo lsof -i :8000  # Django/Python
+sudo lsof -i :4200  # Angular
+
+# SSH:
+sudo lsof -i :22</code></pre>
+
+            <p><strong>Killing process on port (carefully!):</strong></p>
+            <pre><code># Find and kill in one line:
+sudo kill $(sudo lsof -ti :8080)
+
+# Force kill:
+sudo kill -9 $(sudo lsof -ti :8080)
+
+# Or with fuser:
+sudo fuser -k 8080/tcp
+
+# Check what will be killed first:
+echo "Will kill: $(sudo lsof -ti :8080)"
+ps aux | grep $(sudo lsof -ti :8080)
+# Then kill if appropriate</code></pre>
+
+            <p><strong>Preventing port conflicts:</strong></p>
+            <pre><code># Start service on random available port:
+python3 -m http.server 0  # Picks random port
+# Shows: Serving HTTP on 0.0.0.0 port 54321
+
+# Find next available port:
+find_available_port() {
+    local port=8000
+    while sudo lsof -i :$port > /dev/null 2>&1; do
+        ((port++))
+    done
+    echo $port
+}
+
+# Use it:
+PORT=$(find_available_port)
+python3 -m http.server $PORT</code></pre>
+
+            <p><strong>Port forwarding checks:</strong></p>
+            <pre><code># Check if port is forwarded:
+sudo iptables -t nat -L -n | grep :8080
+
+# Check Docker port mappings:
+docker ps --format "table {{.Names}}\t{{.Ports}}"
+
+# SSH tunnel check:
+ps aux | grep "ssh.*-L.*8080"</code></pre>
+
+            <p><strong>Monitoring port connections:</strong></p>
+            <pre><code># Watch connections to port:
+watch 'sudo lsof -i :80'
+
+# Count connections:
+sudo lsof -i :80 | wc -l
+
+# See established connections:
+sudo ss -tn | grep :80 | grep ESTAB
+
+# Connection states:
+sudo netstat -an | grep :80 | awk '{print $6}' | sort | uniq -c</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>lsof needs sudo to see all processes</li>
+                <li>ss is faster than netstat on modern systems</li>
+                <li>Always verify what's running before killing</li>
+                <li>Use nc to test port availability</li>
+                <li>Check Docker containers - they often bind ports</li>
+                <li>Remember to check both TCP and UDP</li>
+            </ul>
+        </div>
+        <div class="tags">cs terminal workflows ports lsof netstat ss networking EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's the workflow to download and extract an archive in one command?
+        </div>
+        <div class="back">
+            <strong>Download and pipe directly to tar/unzip - no intermediate file needed</strong>
+
+            <p><strong>Tar archives (wget or curl):</strong></p>
+            <pre><code># wget + tar:
+wget -qO- https://example.com/file.tar.gz | tar -xzf -
+
+# curl + tar:
+curl -sL https://example.com/file.tar.gz | tar -xzf -
+
+# With bzip2:
+curl -sL https://example.com/file.tar.bz2 | tar -xjf -
+
+# With xz:
+curl -sL https://example.com/file.tar.xz | tar -xJf -</code></pre>
+
+            <p><strong>Breaking down the commands:</strong></p>
+            <pre><code># wget options:
+-q     # Quiet (no progress)
+-O-    # Output to stdout (dash means stdout)
+
+# curl options:
+-s     # Silent (no progress)
+-L     # Follow redirects
+-o-    # Output to stdout (or just -)
+
+# tar options:
+-x     # Extract
+-z     # gzip compression
+-j     # bzip2 compression
+-J     # xz compression
+-f -   # Read from stdin (dash)</code></pre>
+
+            <p><strong>Extract to specific directory:</strong></p>
+            <pre><code># Extract to target directory:
+curl -sL https://example.com/file.tar.gz | tar -xzf - -C /target/dir
+
+# Create directory if needed:
+mkdir -p /opt/app && \
+curl -sL https://example.com/app.tar.gz | tar -xzf - -C /opt/app
+
+# Strip first directory level:
+curl -sL https://example.com/file.tar.gz | tar -xzf - --strip-components=1</code></pre>
+
+            <p><strong>Zip files:</strong></p>
+            <pre><code># unzip from stdin:
+curl -sL https://example.com/file.zip > temp.zip && unzip temp.zip && rm temp.zip
+
+# Or with a function:
+unzip_url() {
+    curl -sL "$1" | gunzip -c | tar -x
+}
+
+# Better - just download if it's a zip:
+wget https://example.com/file.zip && unzip file.zip && rm file.zip</code></pre>
+
+            <p><strong>With progress indication:</strong></p>
+            <pre><code># curl with progress bar:
+curl -L --progress-bar https://example.com/file.tar.gz | tar -xzf -
+
+# wget with progress:
+wget --progress=bar:force -O- https://example.com/file.tar.gz | tar -xzf -
+
+# Or show extraction progress:
+curl -sL https://example.com/file.tar.gz | tar -xzvf -
+#                                                  ^--- v for verbose</code></pre>
+
+            <p><strong>Common use cases:</strong></p>
+            <pre><code># Install from GitHub release:
+curl -sL \
+  https://github.com/user/project/releases/download/v1.0.0/app.tar.gz | \
+  tar -xzf - -C /usr/local/bin
+
+# Node.js binary:
+curl -sL https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-x64.tar.xz | \
+  tar -xJf - --strip-components=1 -C /usr/local
+
+# WordPress:
+curl -sL https://wordpress.org/latest.tar.gz | tar -xzf - -C /var/www/html</code></pre>
+
+            <p><strong>Verification before extraction:</strong></p>
+            <pre><code># Download, verify checksum, then extract:
+curl -sLO https://example.com/file.tar.gz
+curl -sLO https://example.com/file.tar.gz.sha256
+
+# Verify:
+sha256sum -c file.tar.gz.sha256
+
+# If OK, extract:
+tar -xzf file.tar.gz && rm file.tar.gz file.tar.gz.sha256</code></pre>
+
+            <p><strong>Extract specific files only:</strong></p>
+            <pre><code># List contents first:
+curl -sL https://example.com/file.tar.gz | tar -tzf -
+
+# Extract specific file:
+curl -sL https://example.com/file.tar.gz | tar -xzf - path/to/file.txt
+
+# Extract matching pattern:
+curl -sL https://example.com/file.tar.gz | tar -xzf - --wildcards '*.conf'</code></pre>
+
+            <p><strong>Parallel compression (faster):</strong></p>
+            <pre><code># Using pigz (parallel gzip):
+curl -sL https://example.com/file.tar.gz | pigz -dc | tar -xf -
+
+# Using pbzip2 (parallel bzip2):
+curl -sL https://example.com/file.tar.bz2 | pbzip2 -dc | tar -xf -
+
+# Using pixz (parallel xz):
+curl -sL https://example.com/file.tar.xz | pixz -dc | tar -xf -</code></pre>
+
+            <p><strong>Creating one-liner installer scripts:</strong></p>
+            <pre><code># Typical installer pattern:
+curl -sL https://install.example.com/install.sh | bash
+
+# Or:
+wget -qO- https://install.example.com/install.sh | sh
+
+# Download and run with sudo:
+curl -sL https://install.example.com/install.sh | sudo bash
+
+# Preview script first (safer):
+curl -sL https://install.example.com/install.sh | less
+# Then run if it looks safe</code></pre>
+
+            <p><strong>Error handling:</strong></p>
+            <pre><code># Exit on download failure:
+curl -fsSL https://example.com/file.tar.gz | tar -xzf - || {
+    echo "Download or extraction failed"
+    exit 1
+}
+
+# Check HTTP status:
+if curl -sL --fail https://example.com/file.tar.gz | tar -xzf -; then
+    echo "Success"
+else
+    echo "Failed"
+fi</code></pre>
+
+            <p><strong>Alternative: Using process substitution:</strong></p>
+            <pre><code># bash/zsh process substitution:
+tar -xzf <(curl -sL https://example.com/file.tar.gz)
+
+# Can be clearer to read:
+source <(curl -sL https://raw.githubusercontent.com/user/repo/main/script.sh)</code></pre>
+
+            <p><strong>Common patterns:</strong></p>
+            <pre><code># GitHub tar.gz:
+curl -sL https://github.com/user/repo/archive/refs/tags/v1.0.0.tar.gz | \
+  tar -xzf - --strip-components=1
+
+# Docker official convenience scripts:
+curl -fsSL https://get.docker.com | sh
+
+# Rust installer:
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Oh My Zsh:
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Use <code>-</code> in tar to read from stdin</li>
+                <li>curl -sL is quiet and follows redirects</li>
+                <li>wget -qO- is equivalent (quiet, output to stdout)</li>
+                <li>Always use HTTPS URLs to prevent MITM attacks</li>
+                <li>For scripts, preview with <code>less</code> before piping to <code>bash</code></li>
+                <li>Consider verifying checksums for important downloads</li>
+            </ul>
+        </div>
+        <div class="tags">cs terminal workflows download curl wget tar archives EN</div>
+    </div>
+
+</body>
+</html>

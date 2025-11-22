@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Model Evaluation & Metrics Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(249, 250, 251, 0.95);
+        }
+        h1 {
+            color: rgba(31, 41, 55, 0.95);
+            border-bottom: 3px solid rgba(76, 175, 80, 0.8);
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(31, 41, 55, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+        }
+        .back {
+            color: rgba(55, 65, 81, 0.95);
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(229, 231, 235, 0.95);
+            font-size: 12px;
+            color: rgba(107, 114, 128, 0.95);
+        }
+        code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            color: rgba(197, 34, 31, 0.95);
+            font-size: 0.9em;
+        }
+        pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+        pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        strong {
+            color: rgba(31, 41, 55, 0.95);
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Model Evaluation & Metrics Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            What is a confusion matrix and how do you interpret it?
+        </div>
+        <div class="back">
+            <strong>Confusion Matrix:</strong> Table showing actual vs predicted classifications.
+
+            <p><strong>For binary classification:</strong></p>
+            <pre><code>                Predicted
+                Pos    Neg
+Actual  Pos     TP     FN
+        Neg     FP     TN
+
+TP = True Positive  (correctly predicted positive)
+TN = True Negative  (correctly predicted negative)
+FP = False Positive (wrongly predicted positive) Type I error
+FN = False Negative (wrongly predicted negative) Type II error</code></pre>
+
+            <strong>Example in Python:</strong>
+            <pre><code>from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
+
+y_true = [0, 1, 0, 1, 0, 1, 1, 0]
+y_pred = [0, 1, 0, 0, 0, 1, 1, 1]
+
+cm = confusion_matrix(y_true, y_pred)
+print(cm)
+# [[3 1]  <- TN=3, FP=1
+#  [1 3]] <- FN=1, TP=3
+
+# Visualize
+disp = ConfusionMatrixDisplay(cm, display_labels=['Negative', 'Positive'])
+disp.plot()
+plt.show()
+
+# Multi-class
+from sklearn.metrics import classification_report
+
+y_true_multi = [0, 1, 2, 0, 1, 2]
+y_pred_multi = [0, 2, 1, 0, 1, 2]
+
+cm_multi = confusion_matrix(y_true_multi, y_pred_multi)
+print(cm_multi)
+#      Predicted
+#      0  1  2
+# 0  [[2  0  0]
+# 1   [0  1  1]
+# 2   [0  1  1]]
+
+print(classification_report(y_true_multi, y_pred_multi))</code></pre>
+
+            <p><strong>Reading the matrix:</strong></p>
+            <ul>
+                <li>Diagonal = correct predictions</li>
+                <li>Off-diagonal = errors</li>
+                <li>Row = actual class</li>
+                <li>Column = predicted class</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML evaluation confusion-matrix metrics EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            What are precision, recall, and F1-score? When to use each?
+        </div>
+        <div class="back">
+            <strong>Precision:</strong> Of predicted positives, how many are actually positive?
+            <pre><code>Precision = TP / (TP + FP)
+"How precise/accurate are my positive predictions?"</code></pre>
+
+            <strong>Recall (Sensitivity):</strong> Of actual positives, how many did we find?
+            <pre><code>Recall = TP / (TP + FN)
+"How many positives did I recall/capture?"</code></pre>
+
+            <strong>F1-Score:</strong> Harmonic mean of precision and recall
+            <pre><code>F1 = 2 * (Precision * Recall) / (Precision + Recall)
+Balances precision and recall</code></pre>
+
+            <strong>Example:</strong>
+            <pre><code>from sklearn.metrics import precision_score, recall_score, f1_score, precision_recall_fscore_support
+
+y_true = [1, 0, 1, 1, 0, 1, 0, 0]
+y_pred = [1, 0, 1, 0, 0, 1, 0, 1]
+
+precision = precision_score(y_true, y_pred)
+recall = recall_score(y_true, y_pred)
+f1 = f1_score(y_true, y_pred)
+
+print(f"Precision: {precision:.3f}")  # 0.667
+print(f"Recall: {recall:.3f}")        # 0.750
+print(f"F1: {f1:.3f}")                # 0.706
+
+# For multi-class
+precision, recall, f1, support = precision_recall_fscore_support(
+    y_true_multi,
+    y_pred_multi,
+    average='weighted'  # or 'macro', 'micro'
+)
+
+# Binary vs multi-class averaging
+# binary: just compute for positive class
+# macro: average across classes (unweighted)
+# weighted: average weighted by support
+# micro: compute globally (useful for imbalanced)</code></pre>
+
+            <p><strong>When to use:</strong></p>
+            <ul>
+                <li><strong>Precision:</strong> When FP is costly (spam detection - don't want good emails marked spam)</li>
+                <li><strong>Recall:</strong> When FN is costly (cancer detection - don't want to miss cancer)</li>
+                <li><strong>F1:</strong> When you need balance, or have imbalanced classes</li>
+            </ul>
+
+            <p><strong>Precision-Recall Tradeoff:</strong></p>
+            <pre><code># Lowering threshold increases recall but decreases precision
+from sklearn.metrics import precision_recall_curve
+
+precisions, recalls, thresholds = precision_recall_curve(y_true, y_scores)
+
+plt.plot(recalls, precisions)
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')</code></pre>
+        </div>
+        <div class="tags">cs pythonML evaluation precision recall f1 metrics EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            What is ROC-AUC and how do you interpret it?
+        </div>
+        <div class="back">
+            <strong>ROC Curve:</strong> Receiver Operating Characteristic curve plots True Positive Rate vs False Positive Rate at different thresholds.
+
+            <pre><code>TPR (True Positive Rate) = Recall = TP / (TP + FN)
+FPR (False Positive Rate) = FP / (FP + TN)
+
+AUC (Area Under Curve) = Area under ROC curve [0, 1]</code></pre>
+
+            <p><strong>Interpretation:</strong></p>
+            <ul>
+                <li>AUC = 1.0: Perfect classifier</li>
+                <li>AUC = 0.9-1.0: Excellent</li>
+                <li>AUC = 0.8-0.9: Good</li>
+                <li>AUC = 0.7-0.8: Fair</li>
+                <li>AUC = 0.5: Random (coin flip)</li>
+                <li>AUC < 0.5: Worse than random (predictions inverted)</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>from sklearn.metrics import roc_curve, roc_auc_score, auc
+import matplotlib.pyplot as plt
+
+# Binary classification with probability scores
+y_true = [0, 0, 1, 1, 0, 1, 0, 1]
+y_scores = [0.1, 0.4, 0.35, 0.8, 0.2, 0.9, 0.3, 0.7]
+
+# Compute ROC curve
+fpr, tpr, thresholds = roc_curve(y_true, y_scores)
+
+# Compute AUC
+roc_auc = roc_auc_score(y_true, y_scores)
+# or: roc_auc = auc(fpr, tpr)
+
+print(f"AUC: {roc_auc:.3f}")
+
+# Plot
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, label=f'ROC curve (AUC = {roc_auc:.2f})')
+plt.plot([0, 1], [0, 1], 'k--', label='Random')  # diagonal
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.legend()
+plt.show()
+
+# Multi-class ROC (one vs rest)
+from sklearn.preprocessing import label_binarize
+from sklearn.metrics import roc_auc_score
+
+y_true_multi = [0, 1, 2, 0, 1, 2]
+y_scores_multi = [
+    [0.8, 0.1, 0.1],  # pred for sample 1
+    [0.2, 0.7, 0.1],  # pred for sample 2
+    [0.1, 0.2, 0.7],  # etc...
+    [0.9, 0.05, 0.05],
+    [0.1, 0.8, 0.1],
+    [0.1, 0.1, 0.8]
+]
+
+# One-vs-rest AUC
+auc_ovr = roc_auc_score(
+    y_true_multi,
+    y_scores_multi,
+    multi_class='ovr',  # one-vs-rest
+    average='weighted'
+)
+
+print(f"Multi-class AUC: {auc_ovr:.3f}")</code></pre>
+
+            <p><strong>When to use ROC-AUC:</strong></p>
+            <ul>
+                <li>Balanced datasets</li>
+                <li>When you care about ranking</li>
+                <li>When costs of FP and FN are similar</li>
+            </ul>
+
+            <p><strong>When NOT to use:</strong></p>
+            <ul>
+                <li>Highly imbalanced data (use PR-AUC instead)</li>
+                <li>When one error type is much more costly</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML evaluation roc auc metrics EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            What regression metrics should you use and when?
+        </div>
+        <div class="back">
+            <strong>Common regression metrics:</strong>
+
+            <p><strong>1. MAE (Mean Absolute Error):</strong></p>
+            <pre><code>MAE = (1/n) * Σ|y_true - y_pred|
+
+# Easy to interpret (same units as target)
+# Robust to outliers
+# All errors weighted equally</code></pre>
+
+            <p><strong>2. MSE (Mean Squared Error):</strong></p>
+            <pre><code>MSE = (1/n) * Σ(y_true - y_pred)²
+
+# Penalizes large errors more
+# Differentiable everywhere (good for optimization)
+# Units are squared (harder to interpret)</code></pre>
+
+            <p><strong>3. RMSE (Root Mean Squared Error):</strong></p>
+            <pre><code>RMSE = √MSE = √[(1/n) * Σ(y_true - y_pred)²]
+
+# Same units as target (easier to interpret than MSE)
+# Still penalizes large errors
+# Most commonly reported</code></pre>
+
+            <p><strong>4. R² (R-squared / Coefficient of Determination):</strong></p>
+            <pre><code>R² = 1 - (SS_res / SS_tot)
+where:
+  SS_res = Σ(y_true - y_pred)²  # residual sum of squares
+  SS_tot = Σ(y_true - mean(y))²  # total sum of squares
+
+# Range: (-∞, 1]
+# R² = 1: Perfect predictions
+# R² = 0: Model as good as predicting mean
+# R² < 0: Model worse than mean</code></pre>
+
+            <p><strong>5. MAPE (Mean Absolute Percentage Error):</strong></p>
+            <pre><code>MAPE = (100/n) * Σ|((y_true - y_pred) / y_true)|
+
+# Scale-independent (percentage)
+# Easy to interpret
+# Undefined when y_true = 0</code></pre>
+
+            <strong>Implementation:</strong>
+            <pre><code>from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
+y_true = [3, -0.5, 2, 7]
+y_pred = [2.5, 0.0, 2, 8]
+
+mae = mean_absolute_error(y_true, y_pred)
+mse = mean_squared_error(y_true, y_pred)
+rmse = np.sqrt(mse)  # or mean_squared_error(..., squared=False)
+r2 = r2_score(y_true, y_pred)
+
+print(f"MAE: {mae:.3f}")    # 0.500
+print(f"MSE: {mse:.3f}")    # 0.375
+print(f"RMSE: {rmse:.3f}")  # 0.612
+print(f"R²: {r2:.3f}")      # 0.948
+
+# Custom MAPE
+def mean_absolute_percentage_error(y_true, y_pred):
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
+mape = mean_absolute_percentage_error(y_true, y_pred)
+print(f"MAPE: {mape:.2f}%")</code></pre>
+
+            <p><strong>When to use:</strong></p>
+            <ul>
+                <li><strong>MAE:</strong> Robust to outliers, interpretable</li>
+                <li><strong>RMSE:</strong> Most common, penalizes large errors</li>
+                <li><strong>R²:</strong> Explains variance, model comparison</li>
+                <li><strong>MAPE:</strong> When scale varies, relative errors matter</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML evaluation regression metrics mae mse rmse r2 EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            How do you perform k-fold cross-validation in Python?
+        </div>
+        <div class="back">
+            <strong>K-Fold Cross-Validation:</strong> Split data into k folds, train on k-1, test on 1, repeat k times.
+
+            <p><strong>Why use it:</strong></p>
+            <ul>
+                <li>Better estimate of model performance</li>
+                <li>Uses all data for training and testing</li>
+                <li>Reduces variance in performance estimate</li>
+            </ul>
+
+            <strong>Basic implementation:</strong>
+            <pre><code>from sklearn.model_selection import cross_val_score, KFold
+from sklearn.ensemble import RandomForestClassifier
+
+model = RandomForestClassifier()
+
+# Simple k-fold cross-validation
+scores = cross_val_score(
+    model,
+    X,
+    y,
+    cv=5,  # 5-fold
+    scoring='accuracy'
+)
+
+print(f"Scores: {scores}")
+print(f"Mean: {scores.mean():.3f} (+/- {scores.std() * 2:.3f})")
+
+# Manual k-fold
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+for fold, (train_idx, val_idx) in enumerate(kf.split(X)):
+    X_train, X_val = X[train_idx], X[val_idx]
+    y_train, y_val = y[train_idx], y[val_idx]
+
+    model.fit(X_train, y_train)
+    score = model.score(X_val, y_val)
+    print(f"Fold {fold + 1}: {score:.3f}")</code></pre>
+
+            <p><strong>Stratified K-Fold (for classification):</strong></p>
+            <pre><code>from sklearn.model_selection import StratifiedKFold
+
+# Preserves class distribution in each fold
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+scores = cross_val_score(model, X, y, cv=skf, scoring='f1')
+
+# Or use directly
+scores = cross_val_score(
+    model,
+    X,
+    y,
+    cv=StratifiedKFold(n_splits=5, shuffle=True),
+    scoring='f1_weighted'
+)</code></pre>
+
+            <p><strong>Multiple metrics:</strong></p>
+            <pre><code>from sklearn.model_selection import cross_validate
+
+scoring = ['accuracy', 'precision_macro', 'recall_macro', 'f1_macro']
+
+results = cross_validate(
+    model,
+    X,
+    y,
+    cv=5,
+    scoring=scoring,
+    return_train_score=True
+)
+
+print(f"Test Accuracy: {results['test_accuracy'].mean():.3f}")
+print(f"Test Precision: {results['test_precision_macro'].mean():.3f}")
+print(f"Test Recall: {results['test_recall_macro'].mean():.3f}")
+print(f"Test F1: {results['test_f1_macro'].mean():.3f}")</code></pre>
+
+            <p><strong>For time series (no shuffle):</strong></p>
+            <pre><code>from sklearn.model_selection import TimeSeriesSplit
+
+tscv = TimeSeriesSplit(n_splits=5)
+
+for train_idx, val_idx in tscv.split(X):
+    X_train, X_val = X[train_idx], X[val_idx]
+    y_train, y_val = y[train_idx], y[val_idx]
+    # Train must come before validation (temporal order)
+
+scores = cross_val_score(model, X, y, cv=tscv)</code></pre>
+
+            <p><strong>Leave-One-Out CV (LOO):</strong></p>
+            <pre><code>from sklearn.model_selection import LeaveOneOut
+
+loo = LeaveOneOut()
+scores = cross_val_score(model, X, y, cv=loo)
+# n_splits = len(X)
+# Very expensive for large datasets!</code></pre>
+
+            <strong>Best practices:</strong>
+            <ul>
+                <li>Use stratified k-fold for classification</li>
+                <li>k=5 or k=10 is standard</li>
+                <li>Always shuffle (except time series)</li>
+                <li>Set random_state for reproducibility</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML evaluation cross-validation k-fold EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            How do you handle imbalanced datasets in evaluation?
+        </div>
+        <div class="back">
+            <strong>Problem:</strong> Accuracy is misleading when classes are imbalanced (e.g., 95% negative, 5% positive).
+
+            <p><strong>Better metrics for imbalanced data:</strong></p>
+
+            <p><strong>1. Precision-Recall AUC (better than ROC-AUC):</strong></p>
+            <pre><code>from sklearn.metrics import precision_recall_curve, auc
+
+precision, recall, _ = precision_recall_curve(y_true, y_scores)
+pr_auc = auc(recall, precision)
+
+print(f"PR-AUC: {pr_auc:.3f}")
+
+# Or directly
+from sklearn.metrics import average_precision_score
+ap = average_precision_score(y_true, y_scores)
+print(f"Average Precision: {ap:.3f}")</code></pre>
+
+            <p><strong>2. F1-Score (or F-beta):</strong></p>
+            <pre><code>from sklearn.metrics import f1_score, fbeta_score
+
+# Standard F1
+f1 = f1_score(y_true, y_pred)
+
+# F-beta: weight recall β times more than precision
+# β > 1: emphasize recall
+# β < 1: emphasize precision
+
+# F2: recall 2x more important
+f2 = fbeta_score(y_true, y_pred, beta=2)
+
+# F0.5: precision 2x more important
+f0_5 = fbeta_score(y_true, y_pred, beta=0.5)</code></pre>
+
+            <p><strong>3. Balanced Accuracy:</strong></p>
+            <pre><code>from sklearn.metrics import balanced_accuracy_score
+
+# Average of recall for each class
+# Not affected by class imbalance
+
+balanced_acc = balanced_accuracy_score(y_true, y_pred)
+print(f"Balanced Accuracy: {balanced_acc:.3f}")
+
+# Example:
+# Class 0: 90% recall
+# Class 1: 50% recall
+# Balanced accuracy = (90 + 50) / 2 = 70%
+# Regular accuracy might be 85% (misleading!)</code></pre>
+
+            <p><strong>4. Matthews Correlation Coefficient (MCC):</strong></p>
+            <pre><code>from sklearn.metrics import matthews_corrcoef
+
+# Range [-1, 1]
+# +1: perfect prediction
+#  0: no better than random
+# -1: total disagreement
+
+mcc = matthews_corrcoef(y_true, y_pred)
+print(f"MCC: {mcc:.3f}")
+
+# Good for imbalanced data, considers all confusion matrix values</code></pre>
+
+            <p><strong>5. Cohen's Kappa:</strong></p>
+            <pre><code>from sklearn.metrics import cohen_kappa_score
+
+# Measures agreement while accounting for chance
+# κ > 0.8: Almost perfect
+# κ = 0.6-0.8: Substantial
+# κ = 0.4-0.6: Moderate
+# κ = 0.2-0.4: Fair
+# κ < 0.2: Slight
+
+kappa = cohen_kappa_score(y_true, y_pred)
+print(f"Cohen's Kappa: {kappa:.3f}")</code></pre>
+
+            <p><strong>6. Class-wise metrics:</strong></p>
+            <pre><code>from sklearn.metrics import classification_report
+
+# Shows precision, recall, F1 for each class
+report = classification_report(
+    y_true,
+    y_pred,
+    target_names=['Negative', 'Positive']
+)
+print(report)
+
+# Output:
+#               precision  recall  f1-score  support
+# Negative        0.95      0.99      0.97      950
+# Positive        0.70      0.40      0.51       50
+# accuracy                            0.94     1000
+# macro avg       0.83      0.70      0.74     1000
+# weighted avg    0.93      0.94      0.93     1000</code></pre>
+
+            <p><strong>Complete evaluation for imbalanced data:</strong></p>
+            <pre><code>def evaluate_imbalanced_model(y_true, y_pred, y_scores):
+    """Comprehensive evaluation for imbalanced classification"""
+    from sklearn.metrics import (
+        confusion_matrix, precision_recall_fscore_support,
+        roc_auc_score, average_precision_score,
+        balanced_accuracy_score, matthews_corrcoef
+    )
+
+    print("Confusion Matrix:")
+    print(confusion_matrix(y_true, y_pred))
+    print()
+
+    precision, recall, f1, support = precision_recall_fscore_support(
+        y_true, y_pred, average='binary'
+    )
+
+    print(f"Precision: {precision:.3f}")
+    print(f"Recall: {recall:.3f}")
+    print(f"F1: {f1:.3f}")
+    print(f"Balanced Accuracy: {balanced_accuracy_score(y_true, y_pred):.3f}")
+    print(f"MCC: {matthews_corrcoef(y_true, y_pred):.3f}")
+    print(f"ROC-AUC: {roc_auc_score(y_true, y_scores):.3f}")
+    print(f"PR-AUC: {average_precision_score(y_true, y_scores):.3f}")
+
+# Usage
+evaluate_imbalanced_model(y_true, y_pred, y_scores)</code></pre>
+
+            <strong>What NOT to use:</strong>
+            <ul>
+                <li>Accuracy (misleading!)</li>
+                <li>ROC-AUC alone (use PR-AUC instead)</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML evaluation imbalanced metrics EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            How do you create and interpret a classification report?
+        </div>
+        <div class="back">
+            <strong>Classification Report:</strong> Comprehensive summary of classification metrics.
+
+            <strong>Example:</strong>
+            <pre><code>from sklearn.metrics import classification_report
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+
+# Generate data
+X, y = make_classification(n_samples=1000, n_classes=3, n_informative=5)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Train model
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+# Generate report
+report = classification_report(
+    y_test,
+    y_pred,
+    target_names=['Class 0', 'Class 1', 'Class 2'],
+    digits=3
+)
+
+print(report)
+
+# Output example:
+#               precision  recall  f1-score  support
+#
+#    Class 0      0.857    0.923    0.889       65
+#    Class 1      0.895    0.810    0.850       63
+#    Class 2      0.889    0.889    0.889       72
+#
+#    accuracy                        0.875      200
+#   macro avg      0.880    0.874    0.876      200
+#weighted avg      0.877    0.875    0.875      200</code></pre>
+
+            <p><strong>Understanding output:</strong></p>
+            <ul>
+                <li><strong>precision:</strong> TP / (TP + FP) for each class</li>
+                <li><strong>recall:</strong> TP / (TP + FN) for each class</li>
+                <li><strong>f1-score:</strong> Harmonic mean of precision/recall</li>
+                <li><strong>support:</strong> Number of samples in each class</li>
+            </ul>
+
+            <p><strong>Averaging modes:</strong></p>
+            <ul>
+                <li><strong>macro avg:</strong> Simple average across classes (treats all classes equally)</li>
+                <li><strong>weighted avg:</strong> Average weighted by support (accounts for class imbalance)</li>
+            </ul>
+
+            <strong>As dictionary:</strong>
+            <pre><code># Get as dict for programmatic access
+report_dict = classification_report(
+    y_test,
+    y_pred,
+    output_dict=True
+)
+
+print(report_dict['Class 0']['f1-score'])
+print(report_dict['accuracy'])
+print(report_dict['macro avg']['precision'])
+
+# Custom report with zero_division handling
+report = classification_report(
+    y_test,
+    y_pred,
+    zero_division=0,  # or 1, or 'warn'
+    labels=[0, 1, 2],  # Specify label order
+    target_names=['Negative', 'Neutral', 'Positive']
+)</code></pre>
+
+            <p><strong>For binary classification:</strong></p>
+            <pre><code># Focus on positive class
+report = classification_report(
+    y_test,
+    y_pred,
+    target_names=['Negative', 'Positive']
+)
+
+# Often we care most about positive class metrics</code></pre>
+
+            <p><strong>Save report:</strong></p>
+            <pre><code>with open('classification_report.txt', 'w') as f:
+    f.write(classification_report(y_test, y_pred))</code></pre>
+        </div>
+        <div class="tags">cs pythonML evaluation classification-report metrics EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            How do you perform statistical significance testing for model comparison?
+        </div>
+        <div class="back">
+            <strong>Question:</strong> Is model A significantly better than model B?
+
+            <p><strong>1. Paired t-test (for cross-validation scores):</strong></p>
+            <pre><code>from scipy import stats
+from sklearn.model_selection import cross_val_score
+
+# Get CV scores for both models
+scores_model_a = cross_val_score(model_a, X, y, cv=10)
+scores_model_b = cross_val_score(model_b, X, y, cv=10)
+
+# Paired t-test
+t_stat, p_value = stats.ttest_rel(scores_model_a, scores_model_b)
+
+print(f"t-statistic: {t_stat:.4f}")
+print(f"p-value: {p_value:.4f}")
+
+if p_value < 0.05:
+    if scores_model_a.mean() > scores_model_b.mean():
+        print("Model A is significantly better (p < 0.05)")
+    else:
+        print("Model B is significantly better (p < 0.05)")
+else:
+    print("No significant difference (p >= 0.05)")</code></pre>
+
+            <p><strong>2. McNemar's test (for paired predictions):</strong></p>
+            <pre><code>from statsmodels.stats.contingency_tables import mcnemar
+
+# Create contingency table
+# Rows: Model A correct/incorrect
+# Cols: Model B correct/incorrect
+
+correct_a = (y_pred_a == y_true)
+correct_b = (y_pred_b == y_true)
+
+# Contingency table
+n_00 = sum(~correct_a & ~correct_b)  # both wrong
+n_01 = sum(~correct_a & correct_b)   # A wrong, B right
+n_10 = sum(correct_a & ~correct_b)   # A right, B wrong
+n_11 = sum(correct_a & correct_b)    # both right
+
+table = [[n_00, n_01],
+         [n_10, n_11]]
+
+result = mcnemar(table, exact=True)
+print(f"McNemar statistic: {result.statistic:.4f}")
+print(f"p-value: {result.pvalue:.4f}")
+
+# If p < 0.05, there's a significant difference</code></pre>
+
+            <p><strong>3. Wilcoxon signed-rank test (non-parametric):</strong></p>
+            <pre><code># Like paired t-test but doesn't assume normality
+statistic, p_value = stats.wilcoxon(scores_model_a, scores_model_b)
+
+print(f"Wilcoxon statistic: {statistic:.4f}")
+print(f"p-value: {p_value:.4f}")</code></pre>
+
+            <p><strong>4. Bootstrapping for confidence intervals:</strong></p>
+            <pre><code>import numpy as np
+
+def bootstrap_comparison(model_a, model_b, X, y, n_bootstrap=1000):
+    """Compare models using bootstrap"""
+    differences = []
+
+    for i in range(n_bootstrap):
+        # Bootstrap sample
+        indices = np.random.choice(len(X), len(X), replace=True)
+        X_boot, y_boot = X[indices], y[indices]
+
+        # Out-of-bag indices
+        oob_indices = list(set(range(len(X))) - set(indices))
+        if len(oob_indices) == 0:
+            continue
+
+        X_oob, y_oob = X[oob_indices], y[oob_indices]
+
+        # Train and evaluate
+        model_a.fit(X_boot, y_boot)
+        model_b.fit(X_boot, y_boot)
+
+        score_a = model_a.score(X_oob, y_oob)
+        score_b = model_b.score(X_oob, y_oob)
+
+        differences.append(score_a - score_b)
+
+    # Compute confidence interval
+    ci_lower = np.percentile(differences, 2.5)
+    ci_upper = np.percentile(differences, 97.5)
+
+    print(f"95% CI of difference: [{ci_lower:.4f}, {ci_upper:.4f}]")
+
+    if ci_lower > 0:
+        print("Model A is significantly better")
+    elif ci_upper < 0:
+        print("Model B is significantly better")
+    else:
+        print("No significant difference")
+
+    return differences
+
+diffs = bootstrap_comparison(model_a, model_b, X, y)</code></pre>
+
+            <p><strong>5. Effect size (practical significance):</strong></p>
+            <pre><code># Cohen's d: effect size
+def cohens_d(scores_a, scores_b):
+    diff = scores_a.mean() - scores_b.mean()
+    pooled_std = np.sqrt((scores_a.std()**2 + scores_b.std()**2) / 2)
+    return diff / pooled_std
+
+d = cohens_d(scores_model_a, scores_model_b)
+
+# Interpretation:
+# |d| < 0.2: small effect
+# |d| = 0.2-0.5: medium effect
+# |d| > 0.8: large effect
+
+print(f"Cohen's d: {d:.4f}")
+if abs(d) > 0.5:
+    print("Practically significant difference")</code></pre>
+
+            <strong>Best practices:</strong>
+            <ul>
+                <li>Use paired tests when comparing on same data</li>
+                <li>Report both statistical and practical significance</li>
+                <li>Use multiple random seeds/CV folds</li>
+                <li>Correct for multiple comparisons (Bonferroni)</li>
+            </ul>
+        </div>
+        <div class="tags">cs pythonML evaluation statistical-significance hypothesis-testing EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            How do you create and interpret learning curves?
+        </div>
+        <div class="back">
+            <strong>Learning Curves:</strong> Plot training/validation performance vs training set size or training iterations.
+
+            <p><strong>Purpose:</strong></p>
+            <ul>
+                <li>Diagnose overfitting/underfitting</li>
+                <li>Determine if more data would help</li>
+                <li>Understand model capacity</li>
+            </ul>
+
+            <strong>Implementation:</strong>
+            <pre><code>from sklearn.model_selection import learning_curve
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Generate learning curve
+train_sizes, train_scores, val_scores = learning_curve(
+    model,
+    X,
+    y,
+    train_sizes=np.linspace(0.1, 1.0, 10),
+    cv=5,
+    scoring='accuracy',
+    n_jobs=-1
+)
+
+# Compute mean and std
+train_mean = train_scores.mean(axis=1)
+train_std = train_scores.std(axis=1)
+val_mean = val_scores.mean(axis=1)
+val_std = val_scores.std(axis=1)
+
+# Plot
+plt.figure(figsize=(10, 6))
+plt.plot(train_sizes, train_mean, label='Training score', marker='o')
+plt.plot(train_sizes, val_mean, label='Validation score', marker='o')
+
+plt.fill_between(train_sizes,
+                 train_mean - train_std,
+                 train_mean + train_std,
+                 alpha=0.1)
+plt.fill_between(train_sizes,
+                 val_mean - val_std,
+                 val_mean + val_std,
+                 alpha=0.1)
+
+plt.xlabel('Training Set Size')
+plt.ylabel('Accuracy')
+plt.title('Learning Curves')
+plt.legend()
+plt.grid(True)
+plt.show()</code></pre>
+
+            <p><strong>Interpreting learning curves:</strong></p>
+
+            <p><strong>1. High Variance (Overfitting):</strong></p>
+            <pre><code># Training score: high
+# Validation score: much lower
+# Gap between train and val: large
+
+Solutions:
+- More training data
+- Regularization
+- Simpler model
+- More dropout</code></pre>
+
+            <p><strong>2. High Bias (Underfitting):</strong></p>
+            <pre><code># Training score: low
+# Validation score: low (similar to train)
+# Gap: small
+# Both curves plateau early
+
+Solutions:
+- More complex model
+- More features
+- Less regularization
+- Train longer</code></pre>
+
+            <p><strong>3. Good Fit:</strong></p>
+            <pre><code># Training score: high
+# Validation score: high
+# Gap: small
+# Curves converge</code></pre>
+
+            <p><strong>4. More Data Would Help:</strong></p>
+            <pre><code># Validation curve still improving
+# Gap narrowing at end
+# Curves haven't converged
+
+Action: Get more training data</code></pre>
+
+            <p><strong>Validation curve (hyperparameter tuning):</strong></p>
+            <pre><code>from sklearn.model_selection import validation_curve
+
+# Test different hyperparameter values
+param_range = [1, 10, 100, 1000]
+train_scores, val_scores = validation_curve(
+    RandomForestClassifier(),
+    X,
+    y,
+    param_name="n_estimators",
+    param_range=param_range,
+    cv=5,
+    scoring="accuracy"
+)
+
+train_mean = train_scores.mean(axis=1)
+val_mean = val_scores.mean(axis=1)
+
+plt.plot(param_range, train_mean, label='Training')
+plt.plot(param_range, val_mean, label='Validation')
+plt.xlabel('n_estimators')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.xscale('log')
+plt.show()
+
+# Find optimal value where val score peaks</code></pre>
+        </div>
+        <div class="tags">cs pythonML evaluation learning-curves overfitting underfitting EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            How do you evaluate ranking and recommendation models?
+        </div>
+        <div class="back">
+            <strong>Ranking metrics:</strong> Evaluate how well model orders items.
+
+            <p><strong>1. Mean Average Precision (MAP):</strong></p>
+            <pre><code># Average of precision at each relevant document
+def average_precision(y_true, y_pred_ranked):
+    """
+    y_true: list of relevant items
+    y_pred_ranked: list of predicted items in order
+    """
+    precisions = []
+    num_relevant = 0
+
+    for k, item in enumerate(y_pred_ranked, 1):
+        if item in y_true:
+            num_relevant += 1
+            precision_at_k = num_relevant / k
+            precisions.append(precision_at_k)
+
+    if not precisions:
+        return 0.0
+
+    return sum(precisions) / len(y_true)
+
+# Example
+y_true = [1, 3, 5]  # relevant items
+y_pred = [1, 2, 3, 4, 5]  # ranked predictions
+
+ap = average_precision(y_true, y_pred)
+print(f"AP: {ap:.3f}")
+
+# MAP: average AP across all queries
+def mean_average_precision(y_true_list, y_pred_list):
+    return sum(
+        average_precision(y_t, y_p)
+        for y_t, y_p in zip(y_true_list, y_pred_list)
+    ) / len(y_true_list)</code></pre>
+
+            <p><strong>2. Normalized Discounted Cumulative Gain (NDCG):</strong></p>
+            <pre><code>from sklearn.metrics import ndcg_score
+import numpy as np
+
+# True relevance scores (0-5 scale, or binary)
+y_true = [[3, 2, 3, 0, 1, 2]]  # one query
+
+# Predicted scores (probabilities or relevance estimates)
+y_score = [[0.9, 0.8, 0.7, 0.6, 0.5, 0.4]]
+
+# NDCG@k (consider only top k)
+ndcg = ndcg_score(y_true, y_score, k=5)
+print(f"NDCG@5: {ndcg:.3f}")
+
+# Manual computation
+def dcg_at_k(relevances, k):
+    """Discounted Cumulative Gain"""
+    relevances = np.asarray(relevances)[:k]
+    return sum(
+        (2**rel - 1) / np.log2(i + 2)
+        for i, rel in enumerate(relevances)
+    )
+
+def ndcg_at_k(y_true, y_pred, k):
+    """Normalized DCG"""
+    # Sort predictions by score
+    order = np.argsort(y_pred)[::-1]
+    y_true_sorted = np.array(y_true)[order]
+
+    # DCG of predictions
+    dcg = dcg_at_k(y_true_sorted, k)
+
+    # IDCG: DCG of perfect ranking
+    idcg = dcg_at_k(sorted(y_true, reverse=True), k)
+
+    if idcg == 0:
+        return 0.0
+
+    return dcg / idcg
+
+ndcg_manual = ndcg_at_k([3, 2, 3, 0, 1, 2], [0.9, 0.8, 0.7, 0.6, 0.5, 0.4], k=5)
+print(f"NDCG@5 (manual): {ndcg_manual:.3f}")</code></pre>
+
+            <p><strong>3. Precision@K and Recall@K:</strong></p>
+            <pre><code>def precision_at_k(y_true, y_pred, k):
+    """Precision in top K recommendations"""
+    top_k = y_pred[:k]
+    relevant_in_top_k = len(set(top_k) & set(y_true))
+    return relevant_in_top_k / k
+
+def recall_at_k(y_true, y_pred, k):
+    """Recall in top K recommendations"""
+    top_k = y_pred[:k]
+    relevant_in_top_k = len(set(top_k) & set(y_true))
+    return relevant_in_top_k / len(y_true)
+
+# Example
+relevant = [1, 3, 5, 7]
+recommended = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+print(f"P@5: {precision_at_k(relevant, recommended, 5):.3f}")
+# P@5 = 3/5 = 0.600 (3 relevant in top 5)
+
+print(f"R@5: {recall_at_k(relevant, recommended, 5):.3f}")
+# R@5 = 3/4 = 0.750 (found 3 of 4 relevant)</code></pre>
+
+            <p><strong>4. Mean Reciprocal Rank (MRR):</strong></p>
+            <pre><code>def reciprocal_rank(y_true, y_pred):
+    """Position of first relevant item"""
+    for i, item in enumerate(y_pred, 1):
+        if item in y_true:
+            return 1.0 / i
+    return 0.0
+
+def mean_reciprocal_rank(y_true_list, y_pred_list):
+    return sum(
+        reciprocal_rank(y_t, y_p)
+        for y_t, y_p in zip(y_true_list, y_pred_list)
+    ) / len(y_true_list)
+
+# Example
+queries = [
+    ([1, 3], [2, 1, 3]),  # first relevant at position 2 -> RR = 1/2
+    ([5], [1, 2, 5]),     # first relevant at position 3 -> RR = 1/3
+]
+
+mrr = mean_reciprocal_rank(
+    [q[0] for q in queries],
+    [q[1] for q in queries]
+)
+print(f"MRR: {mrr:.3f}")  # (0.5 + 0.333) / 2 = 0.417</code></pre>
+
+            <p><strong>5. Hit Rate@K:</strong></p>
+            <pre><code>def hit_rate_at_k(y_true, y_pred, k):
+    """Did we recommend at least one relevant item in top K?"""
+    top_k = set(y_pred[:k])
+    return 1.0 if len(top_k & set(y_true)) > 0 else 0.0
+
+# For all users
+hit_rates = [
+    hit_rate_at_k(y_t, y_p, k=10)
+    for y_t, y_p in zip(y_true_list, y_pred_list)
+]
+
+print(f"Hit Rate@10: {sum(hit_rates) / len(hit_rates):.3f}")</code></pre>
+        </div>
+        <div class="tags">cs pythonML evaluation ranking recommendation map ndcg EN</div>
+    </div>
+
+</body>
+</html>

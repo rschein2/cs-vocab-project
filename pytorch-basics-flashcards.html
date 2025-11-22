@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PyTorch Basics Flashcards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(249, 250, 251, 0.95);
+        }
+        h1 {
+            color: rgba(31, 41, 55, 0.95);
+            border-bottom: 3px solid rgba(76, 175, 80, 0.8);
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(31, 41, 55, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+        }
+        .back {
+            color: rgba(55, 65, 81, 0.95);
+            line-height: 1.6;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(229, 231, 235, 0.95);
+            font-size: 12px;
+            color: rgba(107, 114, 128, 0.95);
+        }
+        code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            color: rgba(197, 34, 31, 0.95);
+            font-size: 0.9em;
+        }
+        pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+            margin: 10px 0;
+            font-size: 0.75em;
+        }
+        pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        strong {
+            color: rgba(31, 41, 55, 0.95);
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>PyTorch Basics Flashcards</h1>
+
+    <!-- Card 1 -->
+    <div class="card">
+        <div class="front">
+            What are the main ways to create a tensor in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Main tensor creation methods:</strong>
+            <ul>
+                <li><code>torch.tensor(data)</code> - from Python list/array</li>
+                <li><code>torch.zeros(shape)</code> - all zeros</li>
+                <li><code>torch.ones(shape)</code> - all ones</li>
+                <li><code>torch.rand(shape)</code> - random [0, 1)</li>
+                <li><code>torch.randn(shape)</code> - random normal distribution</li>
+                <li><code>torch.empty(shape)</code> - uninitialized (fast)</li>
+                <li><code>torch.arange(start, end, step)</code> - range of values</li>
+                <li><code>torch.linspace(start, end, steps)</code> - linearly spaced</li>
+            </ul>
+            <strong>Example:</strong>
+            <pre><code>import torch
+
+# From list
+x = torch.tensor([1, 2, 3])
+
+# Zeros and ones
+zeros = torch.zeros(3, 4)
+ones = torch.ones(2, 3)
+
+# Random
+rand = torch.rand(2, 2)
+randn = torch.randn(3, 3)
+
+# Range
+r = torch.arange(0, 10, 2)
+# tensor([0, 2, 4, 6, 8])</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics tensor-creation EN</div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card">
+        <div class="front">
+            How do you move tensors between CPU and GPU in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Device management methods:</strong>
+            <ul>
+                <li><code>.to(device)</code> - move to specified device</li>
+                <li><code>.cpu()</code> - move to CPU</li>
+                <li><code>.cuda()</code> - move to GPU</li>
+                <li><code>.device</code> - check current device</li>
+            </ul>
+            <strong>Example:</strong>
+            <pre><code># Check if GPU available
+device = torch.device(
+    'cuda' if torch.cuda.is_available()
+    else 'cpu'
+)
+
+# Create tensor on CPU
+x = torch.tensor([1, 2, 3])
+
+# Move to GPU
+x_gpu = x.to(device)
+# or: x_gpu = x.cuda()
+
+# Move back to CPU
+x_cpu = x_gpu.cpu()
+
+# Check device
+print(x_gpu.device)
+# cuda:0
+
+# Create directly on GPU
+y = torch.ones(3, 3, device=device)</code></pre>
+            <strong>Important:</strong> All tensors in an operation must be on the same device!
+        </div>
+        <div class="tags">cs pythonML pytorch basics device-management gpu EN</div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+        <div class="front">
+            What is <code>requires_grad</code> and when should you use it?
+        </div>
+        <div class="back">
+            <strong><code>requires_grad</code>:</strong> Boolean flag that tells PyTorch to track operations on a tensor for automatic differentiation.
+
+            <p><strong>When to use:</strong></p>
+            <ul>
+                <li>Set to <code>True</code> for model parameters that need gradients</li>
+                <li>Set to <code>False</code> for input data (default)</li>
+                <li>PyTorch model parameters have <code>requires_grad=True</code> by default</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># Create tensor with gradient tracking
+x = torch.tensor([2.0], requires_grad=True)
+
+# Or enable later
+y = torch.tensor([3.0])
+y.requires_grad_(True)  # in-place
+
+# Check if requires grad
+print(x.requires_grad)  # True
+
+# Compute with autograd
+z = x ** 2 + y
+z.backward()
+
+print(x.grad)  # dz/dx = 2*x = 4.0
+print(y.grad)  # dz/dy = 1.0
+
+# Disable for inference
+with torch.no_grad():
+    output = model(input)  # no grad</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics autograd requires-grad EN</div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+        <div class="front">
+            What does <code>.backward()</code> do and how do you use it?
+        </div>
+        <div class="back">
+            <strong><code>.backward()</code>:</strong> Computes gradients of a tensor with respect to all tensors with <code>requires_grad=True</code> in the computation graph.
+
+            <p><strong>Key points:</strong></p>
+            <ul>
+                <li>Call on scalar output (or provide <code>gradient</code> argument for non-scalar)</li>
+                <li>Gradients accumulate in <code>.grad</code> attribute</li>
+                <li>Must call <code>optimizer.zero_grad()</code> to clear old gradients</li>
+                <li>Can only be called once per graph (unless <code>retain_graph=True</code>)</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># Simple gradient computation
+x = torch.tensor([2.0], requires_grad=True)
+y = x ** 3
+
+y.backward()  # compute dy/dx
+print(x.grad)  # 3*x^2 = 12.0
+
+# In training loop
+optimizer.zero_grad()  # clear old grads
+loss = criterion(output, target)
+loss.backward()  # compute gradients
+optimizer.step()  # update weights
+
+# Multiple backward passes
+x.grad.zero_()  # clear manually
+y = x ** 2
+y.backward()
+print(x.grad)  # 2*x = 4.0</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics autograd backward gradients EN</div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+        <div class="front">
+            What is the computation graph in PyTorch autograd?
+        </div>
+        <div class="back">
+            <strong>Computation graph:</strong> A directed acyclic graph (DAG) that records all operations performed on tensors with <code>requires_grad=True</code>.
+
+            <p><strong>How it works:</strong></p>
+            <ul>
+                <li>PyTorch builds the graph dynamically during forward pass</li>
+                <li>Each operation creates a new node in the graph</li>
+                <li>Stores information needed for backpropagation</li>
+                <li>Graph is freed after <code>.backward()</code> (unless <code>retain_graph=True</code>)</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>x = torch.tensor([2.0], requires_grad=True)
+y = x + 2      # AddBackward node
+z = y * y      # MulBackward node
+out = z.mean() # MeanBackward node
+
+# Check graph
+print(out.grad_fn)
+# <MeanBackward0>
+print(out.grad_fn.next_functions)
+# Shows previous operations
+
+# Backward destroys graph
+out.backward()
+
+# This would error:
+# out.backward()  # Error!
+
+# Keep graph for multiple backward
+out.backward(retain_graph=True)
+out.backward()  # OK now</code></pre>
+
+            <strong>Dynamic graph benefits:</strong> Easy debugging, supports control flow, Pythonic
+        </div>
+        <div class="tags">cs pythonML pytorch basics autograd computation-graph EN</div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between <code>.detach()</code> and <code>torch.no_grad()</code>?
+        </div>
+        <div class="back">
+            <strong>Both disable gradient tracking, but differently:</strong>
+
+            <p><strong><code>.detach()</code>:</strong></p>
+            <ul>
+                <li>Method on a tensor</li>
+                <li>Returns a new tensor detached from computation graph</li>
+                <li>Shares storage with original tensor</li>
+                <li>Use when you want to use a tensor's value without gradients</li>
+            </ul>
+
+            <p><strong><code>torch.no_grad()</code>:</strong></p>
+            <ul>
+                <li>Context manager</li>
+                <li>Disables gradient tracking for all operations inside</li>
+                <li>Reduces memory usage and speeds up computations</li>
+                <li>Use for inference or when computing metrics</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>x = torch.tensor([1.0], requires_grad=True)
+
+# Using .detach()
+y = x ** 2
+z = y.detach()  # z has no grad
+w = z * 3
+# x.grad stays None after w.backward()
+
+# Using torch.no_grad()
+with torch.no_grad():
+    y = x ** 2  # no graph built
+    z = y * 3
+
+# Common: inference
+model.eval()
+with torch.no_grad():
+    predictions = model(test_data)
+
+# Detach for stopping gradients mid-graph
+loss = pred_loss + 0.1 * aux_loss.detach()</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics autograd detach no-grad EN</div>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="card">
+        <div class="front">
+            What are the main PyTorch tensor data types and how do you convert between them?
+        </div>
+        <div class="back">
+            <strong>Common tensor dtypes:</strong>
+            <ul>
+                <li><code>torch.float32</code> / <code>torch.float</code> - 32-bit float (default)</li>
+                <li><code>torch.float64</code> / <code>torch.double</code> - 64-bit float</li>
+                <li><code>torch.float16</code> / <code>torch.half</code> - 16-bit float</li>
+                <li><code>torch.int64</code> / <code>torch.long</code> - 64-bit int</li>
+                <li><code>torch.int32</code> / <code>torch.int</code> - 32-bit int</li>
+                <li><code>torch.bool</code> - boolean</li>
+            </ul>
+
+            <strong>Conversion methods:</strong>
+            <pre><code># Specify at creation
+x = torch.tensor([1, 2, 3], dtype=torch.float32)
+
+# Convert existing tensor
+x = torch.tensor([1, 2, 3])
+x_float = x.float()   # to float32
+x_double = x.double() # to float64
+x_long = x.long()     # to int64
+x_half = x.half()     # to float16
+x_bool = x.bool()     # to bool
+
+# Using .to()
+x = x.to(torch.float32)
+
+# Check dtype
+print(x.dtype)  # torch.float32
+
+# Mixed precision training
+x_half = x.half()  # float16 for speed
+loss = loss.float()  # float32 for stability</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics dtypes data-types conversion EN</div>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="card">
+        <div class="front">
+            How does broadcasting work in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Broadcasting:</strong> Automatic expansion of tensors to compatible shapes for element-wise operations.
+
+            <p><strong>Broadcasting rules:</strong></p>
+            <ol>
+                <li>Align dimensions from right to left</li>
+                <li>Each dimension must either be equal or one of them must be 1</li>
+                <li>Dimensions of size 1 are stretched to match the other tensor</li>
+            </ol>
+
+            <strong>Example:</strong>
+            <pre><code># Shape (3, 4) + Shape (4,)
+a = torch.ones(3, 4)
+b = torch.tensor([1, 2, 3, 4])
+c = a + b  # b broadcast to (3, 4)
+
+# Shape (3, 1) + Shape (1, 4)
+a = torch.ones(3, 1)
+b = torch.ones(1, 4)
+c = a + b  # result is (3, 4)
+
+# Common: add bias
+batch = torch.randn(32, 10)
+bias = torch.randn(10)
+result = batch + bias  # bias broadcast across batch
+
+# Broadcasting with scalars
+x = torch.ones(2, 3)
+y = x * 5  # scalar broadcast to (2, 3)
+
+# Won't broadcast: incompatible
+a = torch.ones(3, 4)
+b = torch.ones(5)  # Error! 4 != 5</code></pre>
+
+            <strong>Use <code>.unsqueeze()</code> to add dimensions for broadcasting</strong>
+        </div>
+        <div class="tags">cs pythonML pytorch basics broadcasting tensor-operations EN</div>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="card">
+        <div class="front">
+            What are in-place operations in PyTorch and what are the risks?
+        </div>
+        <div class="back">
+            <strong>In-place operations:</strong> Operations that modify a tensor directly without creating a copy. Denoted with <code>_</code> suffix.
+
+            <p><strong>Common in-place ops:</strong></p>
+            <ul>
+                <li><code>tensor.add_(value)</code></li>
+                <li><code>tensor.mul_(value)</code></li>
+                <li><code>tensor.zero_()</code></li>
+                <li><code>tensor.fill_(value)</code></li>
+                <li><code>tensor.requires_grad_(True)</code></li>
+            </ul>
+
+            <p><strong>Risks:</strong></p>
+            <ul>
+                <li>Can break autograd if used on tensors in computation graph</li>
+                <li>May cause incorrect gradient computation</li>
+                <li>Saves memory but can be dangerous</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># In-place addition
+x = torch.tensor([1, 2, 3])
+x.add_(10)  # x is now [11, 12, 13]
+
+# Regular (creates new tensor)
+y = x.add(5)  # y is new, x unchanged
+
+# DANGER: in-place in computation graph
+x = torch.tensor([2.0], requires_grad=True)
+y = x ** 2
+x.add_(1)  # BREAKS AUTOGRAD!
+y.backward()  # Wrong gradients!
+
+# Safe: after computation
+x = torch.randn(10)
+x = x * 2  # compute
+x.mul_(0.5)  # safe, not in active graph
+
+# Common safe use: optimizer.zero_grad()
+for param in model.parameters():
+    param.grad.zero_()  # safe on gradients</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics in-place operations autograd EN</div>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="card">
+        <div class="front">
+            What are the most common loss functions in PyTorch and when do you use them?
+        </div>
+        <div class="back">
+            <strong>Common loss functions:</strong>
+
+            <p><strong>Classification:</strong></p>
+            <ul>
+                <li><code>nn.CrossEntropyLoss()</code> - multi-class classification (includes softmax)</li>
+                <li><code>nn.BCELoss()</code> - binary classification with sigmoid output</li>
+                <li><code>nn.BCEWithLogitsLoss()</code> - binary with raw logits (more stable)</li>
+                <li><code>nn.NLLLoss()</code> - negative log likelihood (after log_softmax)</li>
+            </ul>
+
+            <p><strong>Regression:</strong></p>
+            <ul>
+                <li><code>nn.MSELoss()</code> - mean squared error</li>
+                <li><code>nn.L1Loss()</code> - mean absolute error</li>
+                <li><code>nn.SmoothL1Loss()</code> - Huber loss (less sensitive to outliers)</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># Multi-class classification
+criterion = nn.CrossEntropyLoss()
+output = model(x)  # shape: (batch, num_classes)
+loss = criterion(output, target)  # target: class indices
+
+# Binary classification
+criterion = nn.BCEWithLogitsLoss()
+output = model(x)  # shape: (batch, 1) logits
+loss = criterion(output, target.float())  # target: 0 or 1
+
+# Regression
+criterion = nn.MSELoss()
+predictions = model(x)
+loss = criterion(predictions, true_values)
+
+# With class weights (imbalanced data)
+weights = torch.tensor([1.0, 10.0])  # weight class 1 more
+criterion = nn.CrossEntropyLoss(weight=weights)</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics loss-functions EN</div>
+    </div>
+
+    <!-- Card 11 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between SGD and Adam optimizers?
+        </div>
+        <div class="back">
+            <strong>SGD (Stochastic Gradient Descent):</strong>
+            <ul>
+                <li>Simple: updates = learning_rate * gradient</li>
+                <li>Can add momentum to smooth updates</li>
+                <li>Requires careful learning rate tuning</li>
+                <li>Often better for generalization with good tuning</li>
+                <li>Commonly used: SGD with momentum + LR scheduling</li>
+            </ul>
+
+            <strong>Adam (Adaptive Moment Estimation):</strong>
+            <ul>
+                <li>Adapts learning rate per parameter</li>
+                <li>Combines momentum + RMSprop</li>
+                <li>Works well with default hyperparameters</li>
+                <li>Faster convergence, easier to use</li>
+                <li>May overfit more than SGD in some cases</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># SGD
+optimizer = torch.optim.SGD(
+    model.parameters(),
+    lr=0.01,
+    momentum=0.9,
+    weight_decay=1e-4  # L2 regularization
+)
+
+# Adam
+optimizer = torch.optim.Adam(
+    model.parameters(),
+    lr=0.001,  # default, often works
+    betas=(0.9, 0.999),  # momentum params
+    weight_decay=1e-4
+)
+
+# AdamW (better weight decay)
+optimizer = torch.optim.AdamW(
+    model.parameters(),
+    lr=0.001
+)
+
+# When to use:
+# - Adam: default, rapid prototyping, NLP
+# - SGD: CV, final tuning, better generalization</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics optimizers sgd adam EN</div>
+    </div>
+
+    <!-- Card 12 -->
+    <div class="card">
+        <div class="front">
+            How do you properly use <code>optimizer.zero_grad()</code> and <code>optimizer.step()</code>?
+        </div>
+        <div class="back">
+            <strong><code>optimizer.zero_grad()</code>:</strong> Clears gradients from previous iteration.
+            <br>
+            <strong><code>optimizer.step()</code>:</strong> Updates parameters using computed gradients.
+
+            <p><strong>Why zero gradients?</strong></p>
+            <ul>
+                <li>Gradients accumulate by default in PyTorch</li>
+                <li>Must clear before each backward pass</li>
+                <li>Unless you want gradient accumulation (for large batches)</li>
+            </ul>
+
+            <strong>Standard training loop:</strong>
+            <pre><code>for epoch in range(num_epochs):
+    for batch_x, batch_y in dataloader:
+        # 1. Zero gradients
+        optimizer.zero_grad()
+
+        # 2. Forward pass
+        outputs = model(batch_x)
+        loss = criterion(outputs, batch_y)
+
+        # 3. Backward pass
+        loss.backward()
+
+        # 4. Update weights
+        optimizer.step()
+
+# Gradient accumulation (simulate larger batch)
+accumulation_steps = 4
+optimizer.zero_grad()
+
+for i, (batch_x, batch_y) in enumerate(dataloader):
+    outputs = model(batch_x)
+    loss = criterion(outputs, batch_y)
+    loss = loss / accumulation_steps
+    loss.backward()  # accumulate gradients
+
+    if (i + 1) % accumulation_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics optimizer training-loop EN</div>
+    </div>
+
+    <!-- Card 13 -->
+    <div class="card">
+        <div class="front">
+            How do you index and slice tensors in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Indexing works like NumPy arrays:</strong>
+
+            <strong>Examples:</strong>
+            <pre><code>x = torch.randn(4, 3, 5)
+
+# Basic indexing
+first_row = x[0]  # shape: (3, 5)
+element = x[0, 1, 2]  # single element
+
+# Slicing
+first_two = x[:2]  # first 2 rows
+middle = x[1:3]  # rows 1 and 2
+all_but_last = x[:-1]
+every_other = x[::2]
+
+# Multi-dimensional
+sub = x[:2, 1:, :3]  # complex slicing
+
+# Boolean indexing
+mask = x > 0
+positive = x[mask]  # 1D tensor of positive values
+
+# Advanced indexing
+indices = torch.tensor([0, 2, 3])
+selected = x[indices]  # rows 0, 2, 3
+
+# Combining
+batch = torch.randn(32, 10, 20)
+# Get 1st and 3rd item from batch
+subset = batch[[0, 2]]
+
+# In-place assignment
+x[0] = 0  # zero out first row
+x[:, 0] = 1  # set first column to 1
+
+# Index with conditions
+large_values = x[x > 1.0] = 1.0  # clamp</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics indexing slicing EN</div>
+    </div>
+
+    <!-- Card 14 -->
+    <div class="card">
+        <div class="front">
+            What's the difference between <code>.view()</code> and <code>.reshape()</code>?
+        </div>
+        <div class="back">
+            <strong>Both change tensor shape, but with different guarantees:</strong>
+
+            <p><strong><code>.view()</code>:</strong></p>
+            <ul>
+                <li>Returns a view of the same data (shares memory)</li>
+                <li>Requires tensor to be contiguous</li>
+                <li>Fails if tensor is not contiguous</li>
+                <li>Fast, no data copy</li>
+            </ul>
+
+            <p><strong><code>.reshape()</code>:</strong></p>
+            <ul>
+                <li>Returns view if possible, copy if necessary</li>
+                <li>Works on non-contiguous tensors</li>
+                <li>More flexible but may copy data</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>x = torch.randn(4, 3)
+
+# View (shares memory)
+y = x.view(12)  # 1D tensor
+y[0] = 100
+print(x[0, 0])  # Also 100! shared memory
+
+# Reshape (safer, may copy)
+z = x.reshape(2, 6)
+
+# View requires contiguous
+x = torch.randn(3, 4)
+x_t = x.t()  # transpose (non-contiguous)
+# x_t.view(12)  # Error!
+x_t.reshape(12)  # Works, copies data
+
+# Make contiguous first
+x_cont = x_t.contiguous()
+x_view = x_cont.view(12)  # Now works
+
+# Use -1 for automatic size
+x = torch.randn(2, 3, 4)
+y = x.view(2, -1)  # shape: (2, 12)
+z = x.view(-1)  # shape: (24,)</code></pre>
+
+            <strong>Tip:</strong> Use <code>.reshape()</code> when unsure, <code>.view()</code> when you know it's contiguous
+        </div>
+        <div class="tags">cs pythonML pytorch basics reshaping view reshape EN</div>
+    </div>
+
+    <!-- Card 15 -->
+    <div class="card">
+        <div class="front">
+            How do you concatenate and stack tensors in PyTorch?
+        </div>
+        <div class="back">
+            <strong><code>torch.cat()</code>:</strong> Concatenates along existing dimension.
+            <br>
+            <strong><code>torch.stack()</code>:</strong> Creates new dimension and stacks.
+
+            <strong>Example:</strong>
+            <pre><code># torch.cat - concatenate along dimension
+a = torch.randn(2, 3)
+b = torch.randn(2, 3)
+
+# Concatenate along rows (dim=0)
+c = torch.cat([a, b], dim=0)  # shape: (4, 3)
+
+# Concatenate along columns (dim=1)
+d = torch.cat([a, b], dim=1)  # shape: (2, 6)
+
+# Multiple tensors
+tensors = [torch.randn(2, 3) for _ in range(5)]
+combined = torch.cat(tensors, dim=0)  # (10, 3)
+
+# torch.stack - creates new dimension
+a = torch.randn(3, 4)
+b = torch.randn(3, 4)
+
+# Stack along new dim 0
+c = torch.stack([a, b], dim=0)  # shape: (2, 3, 4)
+
+# Stack along new dim 1
+d = torch.stack([a, b], dim=1)  # shape: (3, 2, 4)
+
+# Common: stack batch
+images = [img1, img2, img3]  # each (3, 224, 224)
+batch = torch.stack(images, dim=0)  # (3, 3, 224, 224)
+
+# Difference
+a = torch.tensor([1, 2])
+b = torch.tensor([3, 4])
+torch.cat([a, b])    # tensor([1, 2, 3, 4])
+torch.stack([a, b])  # tensor([[1, 2], [3, 4]])</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics concatenation stack cat EN</div>
+    </div>
+
+    <!-- Card 16 -->
+    <div class="card">
+        <div class="front">
+            How do you check and manage GPU memory usage in PyTorch?
+        </div>
+        <div class="back">
+            <strong>GPU memory management methods:</strong>
+
+            <strong>Checking memory:</strong>
+            <pre><code># Current memory allocated
+torch.cuda.memory_allocated(device=0)  # bytes
+
+# Max memory allocated
+torch.cuda.max_memory_allocated(device=0)
+
+# Memory reserved by caching allocator
+torch.cuda.memory_reserved(device=0)
+
+# Human-readable
+allocated_gb = torch.cuda.memory_allocated(0) / 1e9
+print(f"Allocated: {allocated_gb:.2f} GB")
+
+# Memory summary
+print(torch.cuda.memory_summary(device=0))
+
+# Reset peak stats
+torch.cuda.reset_peak_memory_stats(device=0)</code></pre>
+
+            <strong>Managing memory:</strong>
+            <pre><code># Clear cache (doesn't free allocated tensors)
+torch.cuda.empty_cache()
+
+# Delete tensors explicitly
+del large_tensor
+torch.cuda.empty_cache()
+
+# Move to CPU to free GPU memory
+tensor_cpu = tensor_gpu.cpu()
+del tensor_gpu
+
+# Prevent out-of-memory
+# Use smaller batch size
+# Use gradient accumulation
+# Use mixed precision (float16)
+# Use gradient checkpointing
+
+# Monitor during training
+def print_gpu_memory():
+    allocated = torch.cuda.memory_allocated(0)/1e9
+    reserved = torch.cuda.memory_reserved(0)/1e9
+    print(f"Alloc: {allocated:.2f}GB, "
+          f"Reserved: {reserved:.2f}GB")</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics gpu memory-management EN</div>
+    </div>
+
+    <!-- Card 17 -->
+    <div class="card">
+        <div class="front">
+            What are the key differences between <code>model.train()</code> and <code>model.eval()</code>?
+        </div>
+        <div class="back">
+            <strong><code>model.train()</code>:</strong> Sets model to training mode.
+            <br>
+            <strong><code>model.eval()</code>:</strong> Sets model to evaluation mode.
+
+            <p><strong>What changes:</strong></p>
+            <ul>
+                <li><strong>Dropout:</strong> Active in train(), disabled in eval()</li>
+                <li><strong>BatchNorm:</strong> Updates running stats in train(), uses fixed stats in eval()</li>
+                <li>Affects layers that behave differently during training vs inference</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># Training
+model.train()
+for batch_x, batch_y in train_loader:
+    optimizer.zero_grad()
+    outputs = model(batch_x)  # dropout active
+    loss = criterion(outputs, batch_y)
+    loss.backward()
+    optimizer.step()
+
+# Evaluation/Inference
+model.eval()
+with torch.no_grad():  # also disable gradients
+    for batch_x, batch_y in val_loader:
+        outputs = model(batch_x)  # dropout off
+        # compute metrics
+
+# After evaluation, back to training
+model.train()
+
+# Check current mode
+print(model.training)  # True or False
+
+# Specific layer mode
+class MyModel(nn.Module):
+    def forward(self, x):
+        if self.training:
+            # training-specific code
+            pass
+        else:
+            # inference code
+            pass</code></pre>
+
+            <strong>Important:</strong> Always use <code>model.eval()</code> + <code>torch.no_grad()</code> for inference!
+        </div>
+        <div class="tags">cs pythonML pytorch basics model-modes train eval EN</div>
+    </div>
+
+    <!-- Card 18 -->
+    <div class="card">
+        <div class="front">
+            How do you clone or copy a tensor in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Different ways to copy tensors:</strong>
+
+            <p><strong><code>.clone()</code>:</strong></p>
+            <ul>
+                <li>Creates a copy with same data</li>
+                <li>Supports autograd (gradient flows back)</li>
+                <li>Preferred for tensors in computation graphs</li>
+            </ul>
+
+            <p><strong><code>.detach().clone()</code>:</strong></p>
+            <ul>
+                <li>Creates copy without gradient tracking</li>
+                <li>Breaks connection to computation graph</li>
+                <li>Use when you don't need gradients</li>
+            </ul>
+
+            <p><strong><code>.copy_()</code>:</strong></p>
+            <ul>
+                <li>In-place copy (overwrites existing tensor)</li>
+                <li>Destination tensor must exist</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>x = torch.tensor([1, 2, 3], requires_grad=True)
+
+# Clone (keeps gradient tracking)
+y = x.clone()
+z = y * 2
+z.sum().backward()
+print(x.grad)  # gradients flow back
+
+# Clone without gradients
+y = x.detach().clone()
+z = y * 2
+z.sum().backward()  # x.grad remains None
+
+# In-place copy
+x = torch.randn(3, 4)
+y = torch.empty(3, 4)
+y.copy_(x)  # y now has x's values
+
+# Assignment doesn't copy!
+a = torch.tensor([1, 2, 3])
+b = a  # b and a are same tensor!
+b[0] = 100
+print(a)  # [100, 2, 3]
+
+# Use clone for actual copy
+b = a.clone()
+b[0] = 100
+print(a)  # [1, 2, 3] - unchanged</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics tensor-operations clone copy EN</div>
+    </div>
+
+    <!-- Card 19 -->
+    <div class="card">
+        <div class="front">
+            What are <code>.item()</code> and <code>.tolist()</code> used for?
+        </div>
+        <div class="back">
+            <strong>Converting tensors to Python values:</strong>
+
+            <p><strong><code>.item()</code>:</strong></p>
+            <ul>
+                <li>Converts single-element tensor to Python scalar</li>
+                <li>Only works on tensors with one element</li>
+                <li>Common for extracting loss values</li>
+            </ul>
+
+            <p><strong><code>.tolist()</code>:</strong></p>
+            <ul>
+                <li>Converts tensor to Python list</li>
+                <li>Works on any size tensor</li>
+                <li>Useful for logging or JSON serialization</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># .item() - single element
+loss_tensor = torch.tensor(0.5432)
+loss_value = loss_tensor.item()  # 0.5432
+print(type(loss_value))  # <class 'float'>
+
+# Common in training loops
+total_loss = 0
+for batch in dataloader:
+    loss = criterion(output, target)
+    total_loss += loss.item()  # accumulate
+
+# Error if not single element
+x = torch.tensor([1, 2, 3])
+# x.item()  # Error! Multiple elements
+
+# .tolist() - any size
+x = torch.tensor([1, 2, 3])
+x_list = x.tolist()  # [1, 2, 3]
+print(type(x_list))  # <class 'list'>
+
+# Multi-dimensional
+x = torch.tensor([[1, 2], [3, 4]])
+x_list = x.tolist()  # [[1, 2], [3, 4]]
+
+# Save to JSON
+import json
+predictions = model(x).tolist()
+json.dump(predictions, f)
+
+# Back to tensor
+x_tensor = torch.tensor(x_list)</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics tensor-conversion item tolist EN</div>
+    </div>
+
+    <!-- Card 20 -->
+    <div class="card">
+        <div class="front">
+            How do you use <code>torch.nn.Parameter</code> and when is it needed?
+        </div>
+        <div class="back">
+            <strong><code>nn.Parameter</code>:</strong> A special tensor that's automatically registered as a model parameter when assigned to a module attribute.
+
+            <p><strong>Key features:</strong></p>
+            <ul>
+                <li>Automatically added to <code>model.parameters()</code></li>
+                <li>Has <code>requires_grad=True</code> by default</li>
+                <li>Gets updated by optimizer</li>
+                <li>Saved/loaded with model state</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>import torch.nn as nn
+
+class MyModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        # Regular tensor - NOT a parameter
+        self.regular = torch.randn(10)
+
+        # Parameter - IS a parameter
+        self.weight = nn.Parameter(
+            torch.randn(10, 5)
+        )
+
+        # Non-trainable parameter
+        self.frozen = nn.Parameter(
+            torch.randn(5),
+            requires_grad=False
+        )
+
+    def forward(self, x):
+        return x @ self.weight
+
+model = MyModel()
+
+# Check parameters
+for name, param in model.named_parameters():
+    print(name, param.shape)
+# weight torch.Size([10, 5])
+
+# Regular tensor NOT in parameters!
+# frozen also not included (requires_grad=False)
+
+# Use case: learnable bias
+class CustomLayer(nn.Module):
+    def __init__(self, size):
+        super().__init__()
+        self.bias = nn.Parameter(torch.zeros(size))
+
+    def forward(self, x):
+        return x + self.bias
+
+# Register buffer (not a parameter, but saved)
+self.register_buffer('running_mean',
+                     torch.zeros(10))</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics nn-parameter parameters EN</div>
+    </div>
+
+    <!-- Card 21 -->
+    <div class="card">
+        <div class="front">
+            How do you save and load PyTorch models?
+        </div>
+        <div class="back">
+            <strong>Two main approaches:</strong>
+
+            <p><strong>1. Save state dict (recommended):</strong></p>
+            <ul>
+                <li>Saves only model parameters</li>
+                <li>More flexible, portable</li>
+                <li>Need model class definition to load</li>
+            </ul>
+
+            <p><strong>2. Save entire model:</strong></p>
+            <ul>
+                <li>Saves model structure + parameters</li>
+                <li>Less flexible, can break with code changes</li>
+                <li>Uses pickle</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># RECOMMENDED: Save state dict
+torch.save(
+    model.state_dict(),
+    'model.pth'
+)
+
+# Load state dict
+model = MyModel()  # create model first
+model.load_state_dict(
+    torch.load('model.pth')
+)
+model.eval()
+
+# Save with optimizer state
+checkpoint = {
+    'epoch': epoch,
+    'model_state_dict': model.state_dict(),
+    'optimizer_state_dict': optimizer.state_dict(),
+    'loss': loss,
+}
+torch.save(checkpoint, 'checkpoint.pth')
+
+# Load checkpoint
+checkpoint = torch.load('checkpoint.pth')
+model.load_state_dict(checkpoint['model_state_dict'])
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+epoch = checkpoint['epoch']
+loss = checkpoint['loss']
+
+# Save entire model (not recommended)
+torch.save(model, 'model_full.pth')
+model = torch.load('model_full.pth')
+
+# Load on different device
+# Save on GPU, load on CPU
+checkpoint = torch.load(
+    'model.pth',
+    map_location=torch.device('cpu')
+)</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics model-saving checkpointing EN</div>
+    </div>
+
+    <!-- Card 22 -->
+    <div class="card">
+        <div class="front">
+            What is <code>torch.nn.functional</code> and when should you use it vs <code>torch.nn</code> modules?
+        </div>
+        <div class="back">
+            <strong><code>torch.nn.functional</code> (F):</strong> Functional interface with stateless operations.
+            <br>
+            <strong><code>torch.nn</code> modules:</strong> Stateful layers that hold parameters.
+
+            <p><strong>Use <code>nn.Module</code> when:</strong></p>
+            <ul>
+                <li>Layer has learnable parameters (Conv2d, Linear)</li>
+                <li>Building model architecture</li>
+                <li>Layer has state (BatchNorm, Dropout)</li>
+            </ul>
+
+            <p><strong>Use <code>F.functional</code> when:</strong></p>
+            <ul>
+                <li>Stateless operations (relu, softmax)</li>
+                <li>Dynamic behavior needed</li>
+                <li>Simple transformations</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class MyModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        # Use nn.Module for layers with params
+        self.conv1 = nn.Conv2d(3, 64, 3)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.fc1 = nn.Linear(64, 10)
+
+        # Don't need nn.Module for activation
+        # Just use F.relu in forward()
+
+    def forward(self, x):
+        # Functional - no state
+        x = F.relu(self.conv1(x))
+        x = self.bn1(x)  # Module - has state
+        x = F.max_pool2d(x, 2)  # Functional
+        x = x.view(x.size(0), -1)
+        x = self.fc1(x)
+        return F.softmax(x, dim=1)  # Functional
+
+# Common functional operations
+F.relu(x)
+F.softmax(x, dim=1)
+F.cross_entropy(logits, targets)
+F.interpolate(x, size=(224, 224))
+F.dropout(x, p=0.5, training=True)
+F.pad(x, (1, 1, 1, 1))
+
+# Could use Module instead
+self.relu = nn.ReLU()
+# But functional is simpler for stateless ops</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics functional nn-functional EN</div>
+    </div>
+
+    <!-- Card 23 -->
+    <div class="card">
+        <div class="front">
+            How does <code>torch.no_grad()</code> differ from <code>model.eval()</code>?
+        </div>
+        <div class="back">
+            <strong>They serve different purposes - you usually need BOTH for inference:</strong>
+
+            <p><strong><code>torch.no_grad()</code>:</strong></p>
+            <ul>
+                <li>Disables gradient computation</li>
+                <li>Reduces memory usage</li>
+                <li>Speeds up computation</li>
+                <li>Doesn't affect model behavior (dropout, batchnorm)</li>
+            </ul>
+
+            <p><strong><code>model.eval()</code>:</strong></p>
+            <ul>
+                <li>Changes layer behavior (dropout OFF, batchnorm uses running stats)</li>
+                <li>Doesn't disable gradient computation</li>
+                <li>Affects model output</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code># WRONG - only eval
+model.eval()
+preds = model(x)
+# Gradients still computed! Wastes memory
+
+# WRONG - only no_grad
+with torch.no_grad():
+    preds = model(x)
+# Dropout still active! Wrong predictions
+
+# CORRECT - both
+model.eval()
+with torch.no_grad():
+    preds = model(x)
+
+# Training - need gradients, dropout ON
+model.train()
+# (don't use no_grad in training!)
+outputs = model(x)
+loss.backward()
+
+# Validation - no gradients, dropout OFF
+model.eval()
+with torch.no_grad():
+    val_outputs = model(val_x)
+    val_loss = criterion(val_outputs, val_y)
+
+# Back to training
+model.train()</code></pre>
+
+            <strong>Remember:</strong> <code>eval()</code> changes behavior, <code>no_grad()</code> disables gradients. Use both for inference!
+        </div>
+        <div class="tags">cs pythonML pytorch basics no-grad eval inference EN</div>
+    </div>
+
+    <!-- Card 24 -->
+    <div class="card">
+        <div class="front">
+            What are common tensor dimension operations in PyTorch?
+        </div>
+        <div class="back">
+            <strong>Dimension manipulation operations:</strong>
+
+            <strong>Examples:</strong>
+            <pre><code># squeeze - remove dimensions of size 1
+x = torch.randn(1, 3, 1, 5)
+y = x.squeeze()  # shape: (3, 5)
+y = x.squeeze(0)  # remove dim 0: (3, 1, 5)
+
+# unsqueeze - add dimension of size 1
+x = torch.randn(3, 5)
+y = x.unsqueeze(0)  # shape: (1, 3, 5)
+y = x.unsqueeze(1)  # shape: (3, 1, 5)
+y = x.unsqueeze(-1)  # shape: (3, 5, 1)
+
+# transpose - swap two dimensions
+x = torch.randn(2, 3, 4)
+y = x.transpose(0, 1)  # shape: (3, 2, 4)
+
+# permute - rearrange all dimensions
+x = torch.randn(2, 3, 4, 5)
+y = x.permute(0, 2, 1, 3)  # (2, 4, 3, 5)
+
+# Common: channels last to first
+img = torch.randn(224, 224, 3)  # HWC
+img = img.permute(2, 0, 1)  # CHW (3, 224, 224)
+
+# flatten - flatten to 1D
+x = torch.randn(2, 3, 4)
+y = x.flatten()  # shape: (24,)
+y = x.flatten(start_dim=1)  # (2, 12)
+
+# expand - repeat without copying
+x = torch.randn(1, 3)
+y = x.expand(4, 3)  # (4, 3), shares memory
+
+# repeat - actually copies
+y = x.repeat(4, 1)  # (4, 3), new memory</code></pre>
+        </div>
+        <div class="tags">cs pythonML pytorch basics tensor-operations dimensions EN</div>
+    </div>
+
+    <!-- Card 25 -->
+    <div class="card">
+        <div class="front">
+            How do you handle mixed precision training with <code>torch.cuda.amp</code>?
+        </div>
+        <div class="back">
+            <strong>Mixed precision:</strong> Use float16 for speed, float32 for stability.
+
+            <p><strong>Benefits:</strong></p>
+            <ul>
+                <li>Faster training (2-3x speedup on modern GPUs)</li>
+                <li>Reduced memory usage (~50%)</li>
+                <li>Minimal accuracy loss</li>
+            </ul>
+
+            <p><strong>Key components:</strong></p>
+            <ul>
+                <li><code>autocast()</code> - automatically casts operations</li>
+                <li><code>GradScaler()</code> - prevents gradient underflow</li>
+            </ul>
+
+            <strong>Example:</strong>
+            <pre><code>from torch.cuda.amp import autocast, GradScaler
+
+model = MyModel().cuda()
+optimizer = torch.optim.Adam(model.parameters())
+scaler = GradScaler()
+
+for epoch in range(num_epochs):
+    for batch_x, batch_y in dataloader:
+        batch_x = batch_x.cuda()
+        batch_y = batch_y.cuda()
+
+        optimizer.zero_grad()
+
+        # Forward in mixed precision
+        with autocast():
+            outputs = model(batch_x)
+            loss = criterion(outputs, batch_y)
+
+        # Backward with scaling
+        scaler.scale(loss).backward()
+
+        # Unscale before gradient clipping
+        scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(
+            model.parameters(), max_norm=1.0
+        )
+
+        # Update with scaler
+        scaler.step(optimizer)
+        scaler.update()
+
+# Inference with mixed precision
+model.eval()
+with torch.no_grad(), autocast():
+    predictions = model(test_x)</code></pre>
+
+            <strong>Requires GPU with Tensor Cores (V100, A100, RTX 20xx+)</strong>
+        </div>
+        <div class="tags">cs pythonML pytorch basics mixed-precision amp fp16 EN</div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Linux History & Trivia Flashcards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background: rgba(245, 245, 245, 0.95);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(221, 221, 221, 0.9);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .front {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgba(51, 51, 51, 0.95);
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        .back {
+            color: rgba(68, 68, 68, 0.95);
+        }
+        .back code {
+            background: rgba(240, 240, 240, 0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: rgba(197, 34, 31, 0.95);
+        }
+        .back pre {
+            background: rgba(40, 44, 52, 0.95);
+            color: rgba(171, 178, 191, 0.95);
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 3px solid rgba(76, 175, 80, 0.8);
+        }
+        .back pre code {
+            background: transparent;
+            color: rgba(171, 178, 191, 0.95);
+            padding: 0;
+        }
+        .tags {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(238, 238, 238, 0.9);
+            font-size: 12px;
+            color: rgba(128, 128, 128, 0.95);
+        }
+        ol, ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        strong {
+            color: rgba(76, 175, 80, 0.95);
+        }
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Linux History & Trivia Flashcards</h1>
+
+    <div class="card">
+        <div class="front">
+            Why is the command called "grep"? What does it stand for and where did it come from?
+        </div>
+        <div class="back">
+            <strong>grep = "Global Regular Expression Print"</strong>
+
+            <p><strong>The origin story:</strong></p>
+            <ul>
+                <li>In early Unix text editor <code>ed</code>, the command was: <code>g/re/p</code></li>
+                <li><code>g</code> = global (all lines)</li>
+                <li><code>re</code> = regular expression pattern</li>
+                <li><code>p</code> = print matching lines</li>
+                <li>Ken Thompson extracted this into standalone tool in 1974</li>
+                <li>Named it "grep" after the ed command sequence</li>
+            </ul>
+
+            <p><strong>How it worked in ed:</strong></p>
+            <pre><code># In ed editor:
+$ ed myfile.txt
+g/error/p          # Global search for "error", print matches
+# This became so useful it was made into grep
+
+# Modern equivalent:
+$ grep "error" myfile.txt</code></pre>
+
+            <p><strong>The grep family:</strong></p>
+            <ul>
+                <li><code>grep</code> - Basic regular expressions</li>
+                <li><code>egrep</code> - Extended regex (now <code>grep -E</code>)</li>
+                <li><code>fgrep</code> - Fixed strings, no regex (now <code>grep -F</code>)</li>
+                <li><code>pgrep</code> - Search process names</li>
+                <li><code>zgrep</code> - Search compressed files</li>
+            </ul>
+
+            <p><strong>Why this matters:</strong></p>
+            <ul>
+                <li>Understanding <code>g/re/p</code> helps remember what grep does</li>
+                <li>Many Unix tools originated from editor commands</li>
+                <li>The "do one thing well" philosophy: grep just searches, doesn't edit</li>
+            </ul>
+
+            <p><strong>Similar command origins:</strong></p>
+            <pre><code># sed = Stream EDitor (like ed, but for streams)
+# awk = Aho, Weinberger, Kernighan (authors' initials)
+# cat = conCATenate files
+# tee = shaped like letter T (splits stream)</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>The best Unix tools started as editor shortcuts</li>
+                <li>Knowing etymology helps remember functionality</li>
+                <li><code>man grep</code> mentions "g/re/p" in some versions</li>
+                <li>Modern <code>rg</code> (ripgrep) honors grep's legacy with better performance</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history grep etymology unix EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Why do hidden files in Linux start with a dot (.)? Was this intentional or a bug?
+        </div>
+        <div class="back">
+            <strong>It was an accidental feature that became convention!</strong>
+
+            <p><strong>The origin (bug turned feature):</strong></p>
+            <ul>
+                <li>Early Unix needed to hide <code>.</code> (current dir) and <code>..</code> (parent dir) from <code>ls</code></li>
+                <li>Programmers added check: "Don't list files starting with <code>.</code>"</li>
+                <li>This was meant ONLY for <code>.</code> and <code>..</code></li>
+                <li>Side effect: ANY file starting with <code>.</code> got hidden</li>
+                <li>Users discovered this and started using it intentionally</li>
+                <li>By the time anyone noticed, it was too established to change</li>
+            </ul>
+
+            <p><strong>Rob Pike (Unix creator) explained:</strong></p>
+            <blockquote>
+            "The use of dotfiles to store configuration is a well-intended but ultimately failed experiment. There was no plan; it just happened."
+            </blockquote>
+
+            <p><strong>How it works:</strong></p>
+            <pre><code># ls hides dotfiles by default
+$ ls
+file1.txt  file2.txt
+
+# Use -a to see ALL files (including dotfiles)
+$ ls -a
+.  ..  .bashrc  .vimrc  file1.txt  file2.txt
+
+# Use -A to see all EXCEPT . and ..
+$ ls -A
+.bashrc  .vimrc  file1.txt  file2.txt</code></pre>
+
+            <p><strong>Why we still use dotfiles:</strong></p>
+            <ul>
+                <li>Configuration files don't clutter default <code>ls</code> output</li>
+                <li>Keeps home directory clean visually</li>
+                <li>Prevents accidental deletion (hidden from casual viewing)</li>
+                <li>Universal convention across Unix-like systems</li>
+            </ul>
+
+            <p><strong>Common dotfiles:</strong></p>
+            <pre><code>~/.bashrc         # Bash configuration
+~/.vimrc          # Vim configuration
+~/.ssh/           # SSH keys and config
+~/.gitconfig      # Git configuration
+~/.env            # Environment variables (project-specific)</code></pre>
+
+            <p><strong>Modern alternatives that were proposed but didn't stick:</strong></p>
+            <ul>
+                <li>File attributes (like Windows hidden attribute)</li>
+                <li>Separate config directory (partially adopted: <code>~/.config/</code>)</li>
+                <li>Database for settings (rejected, too complex)</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>The dot convention is over 50 years old and won't change</li>
+                <li>XDG Base Directory standard tries to organize: <code>~/.config/</code>, <code>~/.local/</code>, <code>~/.cache/</code></li>
+                <li>Many modern apps support both: <code>~/.apprc</code> and <code>~/.config/app/config</code></li>
+                <li>Accidental features can become powerful conventions</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history dotfiles hidden-files conventions EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Why does Linux have both /bin and /usr/bin? Why the duplication?
+        </div>
+        <div class="back">
+            <strong>Historical reason: Disk space limitations in 1970s</strong>
+
+            <p><strong>The original problem:</strong></p>
+            <ul>
+                <li>Early Unix had a small hard disk for the root filesystem</li>
+                <li><code>/bin</code> = "binaries" on the root disk (fast, small disk)</li>
+                <li>This disk filled up quickly</li>
+                <li>Solution: Buy second disk, mount as <code>/usr</code> (user disk)</li>
+                <li><code>/usr/bin</code> = binaries on the larger, secondary disk</li>
+            </ul>
+
+            <p><strong>The distinction:</strong></p>
+            <pre><code>/bin/               # Essential binaries needed for boot/repair
+├── sh              # Shell (needed to boot)
+├── ls              # List files
+├── cp              # Copy files
+├── mv              # Move files
+└── cat             # View files
+
+/usr/bin/           # Regular user binaries (non-essential)
+├── vim             # Text editor
+├── gcc             # Compiler
+├── python          # Programming language
+└── git             # Version control
+
+# Rule: Could you boot and repair system without /usr?
+# Yes → Goes in /bin
+# No → Goes in /usr/bin</code></pre>
+
+            <p><strong>Why it still exists today (when disks are huge):</strong></p>
+            <ul>
+                <li>Backwards compatibility - scripts rely on <code>/bin/sh</code> paths</li>
+                <li>Allows mounting <code>/usr</code> from network (diskless systems)</li>
+                <li>Separation of concerns: critical vs non-critical</li>
+                <li>POSIX and FHS (Filesystem Hierarchy Standard) maintain distinction</li>
+            </ul>
+
+            <p><strong>Modern trend: Merging them:</strong></p>
+            <pre><code># Many distributions now use symlinks:
+$ ls -la /bin
+lrwxrwxrwx 1 root root 7 Jan 1 2024 /bin -> usr/bin
+
+# Fedora, Arch, Ubuntu (newer versions) merged them
+# /bin, /sbin, /lib → symlinks to /usr/bin, /usr/sbin, /usr/lib
+
+# Why merge: The original reason (disk space) no longer applies</code></pre>
+
+            <p><strong>Other similar splits:</strong></p>
+            <pre><code>/sbin/              # System binaries (root/admin only)
+├── reboot
+├── ifconfig
+└── fdisk
+
+/usr/sbin/          # User system binaries
+├── sshd
+├── nginx
+└── cron
+
+/lib/               # Essential libraries
+/usr/lib/           # Regular libraries
+
+# Same historical reason: Essential vs non-essential</code></pre>
+
+            <p><strong>Practical impact today:</strong></p>
+            <pre><code># Some scripts still hardcode paths:
+#!/bin/sh          # Works (essential binary in /bin)
+#!/usr/bin/python  # Works (user binary in /usr/bin)
+
+# Use env for portability:
+#!/usr/bin/env python3    # Finds python3 anywhere in PATH
+
+# Check if merged:
+$ ls -la / | grep bin
+lrwxrwxrwx   1 root root    7 bin -> usr/bin   # Merged
+drwxr-xr-x   2 root root 4096 bin              # Separate</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>The split was pragmatic in 1970s, vestigial now</li>
+                <li>Modern systems are slowly merging them</li>
+                <li>Use <code>which command</code> to find where binaries actually are</li>
+                <li>Many "weird" Unix decisions were practical given 1970s constraints</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history filesystem bin usr directories EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Why is it called "/etc" for configuration files? What does "etc" stand for?
+        </div>
+        <div class="back">
+            <strong>/etc = "et cetera" (Latin for "and other things")</strong>
+
+            <p><strong>The origin:</strong></p>
+            <ul>
+                <li>Early Unix needed a place for files that didn't fit elsewhere</li>
+                <li>/bin = binaries, /dev = devices, /lib = libraries (clear purposes)</li>
+                <li>/etc was the "everything else" directory</li>
+                <li>Latin "et cetera" = "and other things" or "and the rest"</li>
+                <li>Over time, became specifically for configuration files</li>
+            </ul>
+
+            <p><strong>Common misconception:</strong></p>
+            <ul>
+                <li>NOT "Editable Text Configuration" (backronym)</li>
+                <li>NOT "Extended Tool Chest" (also backronym)</li>
+                <li>Just literally "et cetera" - the miscellaneous directory</li>
+            </ul>
+
+            <p><strong>What lives in /etc:</strong></p>
+            <pre><code>/etc/
+├── passwd          # User account information
+├── shadow          # Encrypted passwords
+├── group           # Group definitions
+├── fstab           # Filesystem mount table
+├── hostname        # System hostname
+├── hosts           # DNS host mappings
+├── ssh/            # SSH daemon configuration
+│   └── sshd_config
+├── nginx/          # Nginx web server config
+├── cron.d/         # Cron job definitions
+└── systemd/        # Systemd service configs
+
+# Pattern: System-wide configuration, not user-specific</code></pre>
+
+            <p><strong>Historical evolution:</strong></p>
+            <pre><code># 1970s: Truly miscellaneous
+/etc/ had binaries, configs, random files
+
+# 1980s: Standardization begins
+/etc/ → configs only
+Binaries → moved to /bin, /sbin
+
+# 1990s: FHS (Filesystem Hierarchy Standard)
+/etc/ = "Host-specific system configuration"
+
+# Modern: Well-defined
+/etc/        → System configs
+~/.config/   → User configs (XDG standard)</code></pre>
+
+            <p><strong>Why /etc vs other locations:</strong></p>
+            <pre><code># System-wide config:
+/etc/ssh/sshd_config      # All users, requires root
+
+# User-specific config:
+~/.ssh/config             # Just this user
+
+# Application defaults:
+/usr/share/app/config     # Packaged defaults (don't edit)
+
+# Application overrides:
+/etc/app/config           # System-wide overrides (edit here)
+
+# Runtime state:
+/var/run/                 # Not config, changes during runtime</code></pre>
+
+            <p><strong>Practical implications:</strong></p>
+            <pre><code># /etc is usually:
+- Text files (human-readable configs)
+- Version controlled (easy to backup/restore)
+- Requires root to modify
+- Preserved during system upgrades
+
+# Example: Edit nginx config
+$ sudo vim /etc/nginx/nginx.conf
+$ sudo nginx -t              # Test config
+$ sudo systemctl reload nginx  # Apply changes
+
+# Backup /etc
+$ sudo tar -czf etc-backup.tar.gz /etc/
+# Common practice for system snapshots</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>/etc is sacred - always backup before editing</li>
+                <li>Many tools have <code>package.d/</code> directories in /etc for modular configs</li>
+                <li>Use version control for /etc: <code>etckeeper</code> tracks changes with git</li>
+                <li>"et cetera" → "and other things" → eventually "configuration things"</li>
+                <li>When in doubt about a system setting, check /etc first</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history etc configuration filesystem EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Why are there so many different shells (sh, bash, zsh, fish)? How did we get from sh to modern shells?
+        </div>
+        <div class="back">
+            <strong>Shell evolution: Each generation added features the previous lacked</strong>
+
+            <p><strong>The timeline:</strong></p>
+            <pre><code>1971: Thompson shell (sh)
+├─ First Unix shell, very minimal
+├─ No scripting features
+└─ Just ran commands
+
+1977: Bourne shell (sh)
+├─ Stephen Bourne at Bell Labs
+├─ Added: variables, control flow, functions
+├─ Standard shell for Unix
+└─ Still required by POSIX today
+
+1978: C shell (csh)
+├─ Bill Joy at Berkeley (BSD Unix)
+├─ Added: command history, aliases, job control
+├─ Syntax like C programming language
+└─ Popular with developers
+
+1983: Korn shell (ksh)
+├─ David Korn at Bell Labs
+├─ Combined Bourne + C shell features
+├─ Added: arrays, better scripting
+└─ Commercial Unix default
+
+1989: Bash (Bourne Again Shell)
+├─ GNU Project, Brian Fox
+├─ Free alternative to Korn shell
+├─ Superset of Bourne shell + GNU features
+├─ Added: tab completion, command line editing
+└─ Became Linux default (still is)
+
+1990: Zsh (Z shell)
+├─ Paul Falstad
+├─ Even more features than bash
+├─ Added: better autocomplete, themes, plugins
+└─ macOS default since Catalina (2019)
+
+2005: Fish (Friendly Interactive Shell)
+├─ Axel Liljencrantz
+├─ Rethink shell design from scratch
+├─ Added: syntax highlighting, web config
+└─ Not POSIX-compatible (intentional)
+
+2023: Nushell
+├─ Modern, structured data shell
+└─ Everything is a table, not text</code></pre>
+
+            <p><strong>Why so many:</strong></p>
+            <ul>
+                <li><strong>Backward compatibility:</strong> Can't break existing scripts</li>
+                <li><strong>Different philosophies:</strong> POSIX compliance vs innovation</li>
+                <li><strong>Interactive vs scripting:</strong> Good UX vs portable scripts</li>
+                <li><strong>Licensing:</strong> Commercial (ksh) vs open source (bash)</li>
+            </ul>
+
+            <p><strong>Key differences:</strong></p>
+            <pre><code># sh (Bourne shell) - POSIX standard
+#!/bin/sh
+if [ "$USER" = "root" ]; then
+  echo "root user"
+fi
+# Minimal, works everywhere, portable
+
+# bash - Linux default
+#!/bin/bash
+if [[ $USER == "root" ]]; then   # Better comparison
+  echo "root user"
+fi
+# Arrays, better scripting, tab completion
+
+# zsh - Power user favorite
+#!/bin/zsh
+if [[ $USER == "root" ]]; then
+  echo "root user"
+fi
+# Plugins (oh-my-zsh), themes, smart completion
+
+# fish - Beginner friendly
+#!/usr/bin/fish
+if test "$USER" = "root"
+  echo "root user"
+end
+# Syntax highlighting, suggestions, web config
+# NOT POSIX-compatible!</code></pre>
+
+            <p><strong>Which shell for what:</strong></p>
+            <pre><code># Scripts (portability):
+#!/bin/sh              # Most portable (POSIX)
+#!/bin/bash            # Acceptable, widely available
+
+# Interactive use:
+zsh                    # Power users, customization
+fish                   # Beginners, modern UX
+bash                   # Default, familiar, everywhere
+
+# Systems programming:
+sh                     # Init scripts, system scripts
+# Never bash! System scripts must work when bash isn't available</code></pre>
+
+            <p><strong>Checking your shell:</strong></p>
+            <pre><code># What shell am I using right now?
+$ echo $SHELL
+/bin/bash
+
+# What shell is this script running in?
+$ echo $0
+bash
+
+# What shells are available?
+$ cat /etc/shells
+/bin/sh
+/bin/bash
+/bin/zsh
+/usr/bin/fish
+
+# Change default shell:
+$ chsh -s /bin/zsh</code></pre>
+
+            <p><strong>Modern trends:</strong></p>
+            <ul>
+                <li>macOS switched from bash → zsh (licensing + features)</li>
+                <li>Docker/minimal systems: Use sh (smallest)</li>
+                <li>Developers: zsh + oh-my-zsh plugins</li>
+                <li>Servers: Still bash (universal, well-tested)</li>
+                <li>Scripts: sh for portability, bash for features</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Interactive shell != script shell (can use zsh interactively, sh for scripts)</li>
+                <li>Always use <code>#!/bin/sh</code> for portable system scripts</li>
+                <li>Use <code>#!/usr/bin/env bash</code> for bash-specific scripts</li>
+                <li>sh → bash → zsh is common upgrade path</li>
+                <li>Fish is great for interactive use, but scripts won't be portable</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history shells bash zsh fish evolution EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Why does chmod use numbers like 755 or 644? Where does this notation come from?
+        </div>
+        <div class="back">
+            <strong>Octal notation: Each digit is a 3-bit binary permission mask</strong>
+
+            <p><strong>The three permission groups:</strong></p>
+            <pre><code>-rwxr-xr-x
+ │││││││││
+ │││││││└─ Others: execute
+ ││││││└── Others: write
+ │││││└─── Others: read
+ ││││└──── Group: execute
+ │││└───── Group: write
+ ││└────── Group: read
+ │└─────── User: execute
+ └──────── User: write
+           User: read
+
+# Each group (user/group/others) has 3 bits:
+rwx = 111 (binary) = 7 (octal)
+r-x = 101 (binary) = 5 (octal)
+r-- = 100 (binary) = 4 (octal)</code></pre>
+
+            <p><strong>Breaking down 755:</strong></p>
+            <pre><code>chmod 755 file.sh
+
+7 = 111 = rwx  (User:   read + write + execute)
+5 = 101 = r-x  (Group:  read + execute)
+5 = 101 = r-x  (Others: read + execute)
+
+Result: -rwxr-xr-x
+        Owner can modify, everyone can read/execute</code></pre>
+
+            <p><strong>Common permission patterns:</strong></p>
+            <pre><code># 644 - Regular file (configs, documents)
+6 = 110 = rw-  (Owner: read + write)
+4 = 100 = r--  (Group: read only)
+4 = 100 = r--  (Others: read only)
+# Use for: README.md, config files
+
+# 755 - Executable script
+7 = 111 = rwx  (Owner: full control)
+5 = 101 = r-x  (Group: read + run, no modify)
+5 = 101 = r-x  (Others: read + run)
+# Use for: Scripts, programs, directories
+
+# 600 - Private file (secrets)
+6 = 110 = rw-  (Owner: read + write)
+0 = 000 = ---  (Group: nothing)
+0 = 000 = ---  (Others: nothing)
+# Use for: SSH keys, passwords
+
+# 700 - Private directory
+7 = 111 = rwx  (Owner: full control)
+0 = 000 = ---  (Group: nothing)
+0 = 000 = ---  (Others: nothing)
+# Use for: ~/.ssh directory
+
+# 777 - Everyone can do everything (DANGEROUS!)
+7 = 111 = rwx  (Owner: full)
+7 = 111 = rwx  (Group: full)
+7 = 111 = rwx  (Others: full)
+# Avoid! Security risk</code></pre>
+
+            <p><strong>Why octal (base-8):</strong></p>
+            <ul>
+                <li>Each octal digit maps perfectly to 3 bits (2³ = 8)</li>
+                <li>Permissions are 3 bits per group: r(4) + w(2) + x(1)</li>
+                <li>More compact than binary, more logical than decimal</li>
+                <li>Matches how Unix stores permissions internally</li>
+            </ul>
+
+            <p><strong>Symbolic notation alternative:</strong></p>
+            <pre><code># Instead of octal:
+chmod 755 script.sh
+
+# Use symbolic:
+chmod u=rwx,g=rx,o=rx script.sh
+# u=user, g=group, o=others
+
+# Add/remove permissions:
+chmod +x script.sh           # Add execute for all
+chmod u+w file.txt           # Add write for user
+chmod go-w file.txt          # Remove write for group+others
+chmod a+r file.txt           # Add read for all (a=all)
+
+# Copy permissions:
+chmod u=g file.txt           # User same as group</code></pre>
+
+            <p><strong>Special permissions (4-digit octal):</strong></p>
+            <pre><code># setuid (4000) - Run as file owner
+chmod 4755 /usr/bin/passwd
+# passwd runs as root even when called by normal user
+
+# setgid (2000) - Run as file group / directory group inheritance
+chmod 2755 /shared/
+# Files created in /shared/ inherit group
+
+# sticky bit (1000) - Only owner can delete
+chmod 1777 /tmp/
+# Anyone can write, but only owner can delete their files
+
+# Combined: 4755, 2755, 1777
+# First digit = special permissions
+# Last 3 digits = normal permissions</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Think in binary, write in octal: rwx = 4+2+1 = 7</li>
+                <li>Most common: 644 (files), 755 (scripts/dirs), 600 (secrets)</li>
+                <li>Never 777 unless you really understand the risk</li>
+                <li>SSH keys must be 600 or SSH refuses to use them</li>
+                <li>Use <code>ls -l</code> to see permissions before changing</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history permissions chmod octal unix EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Why is Linux called "Linux" and not "GNU"? What's the GNU/Linux debate about?
+        </div>
+        <div class="back">
+            <strong>Linux = kernel; GNU = userland tools; debate = who gets credit</strong>
+
+            <p><strong>The two projects:</strong></p>
+            <pre><code>GNU Project (1983, Richard Stallman)
+├─ Goal: Free Unix-like operating system
+├─ Created: gcc, bash, coreutils, emacs, glibc
+├─ Philosophy: Free software (freedom, not just price)
+├─ Problem: No kernel (GNU Hurd was delayed)
+└─ Had everything EXCEPT kernel by 1991
+
+Linux (1991, Linus Torvalds)
+├─ Goal: Free Unix-like kernel for personal use
+├─ Created: Just the kernel
+├─ Needed: All the tools to make it useful
+└─ Combined with GNU tools = complete system
+
+Result: GNU tools + Linux kernel = "Linux" system</code></pre>
+
+            <p><strong>What each part does:</strong></p>
+            <pre><code># The kernel (Linux):
+- Hardware abstraction
+- Process management
+- Memory management
+- Device drivers
+- System calls
+
+# The userland (mostly GNU):
+- Shell (bash)
+- Core utilities (ls, cp, mv, cat, grep)
+- Compiler (gcc)
+- C library (glibc)
+- Text editor (emacs, nano)
+- Build tools (make, autoconf)
+
+# Relationship:
+[Applications]
+      ↓
+[GNU tools: bash, ls, gcc, etc.]
+      ↓
+[Linux kernel: process, memory, drivers]
+      ↓
+[Hardware]</code></pre>
+
+            <p><strong>The naming debate:</strong></p>
+            <ul>
+                <li><strong>"Linux"</strong> - Popular usage, credits Linus</li>
+                <li><strong>"GNU/Linux"</strong> - FSF/GNU preferred, credits both projects</li>
+                <li><strong>Stallman's argument:</strong> Without GNU tools, Linux kernel is useless</li>
+                <li><strong>Pragmatic response:</strong> Linux is shorter, easier to say</li>
+                <li><strong>Modern reality:</strong> Many distros use less GNU (busybox, musl libc)</li>
+            </ul>
+
+            <p><strong>Technically accurate names:</strong></p>
+            <pre><code># Most accurate (verbose):
+"A distribution of GNU tools with the Linux kernel"
+
+# FSF preferred:
+GNU/Linux
+
+# Popular usage:
+Linux
+
+# Specific distributions:
+Ubuntu Linux
+Debian GNU/Linux (Debian officially uses GNU/Linux)
+Alpine Linux (uses busybox + musl, very little GNU)
+Android (Linux kernel, almost no GNU tools)</code></pre>
+
+            <p><strong>Why "Linux" won the name war:</strong></p>
+            <ul>
+                <li>Shorter, catchier (one syllable vs three)</li>
+                <li>Kernel is most distinctive part (many Unix-like userlands, one Linux)</li>
+                <li>Media and companies preferred simpler name</li>
+                <li>Linus didn't push back (Stallman did)</li>
+                <li>"Linux" sounds like brand; "GNU/Linux" sounds like explanation</li>
+            </ul>
+
+            <p><strong>Checking your system:</strong></p>
+            <pre><code># Kernel version (Linux part):
+$ uname -r
+6.5.0-15-generic
+
+# OS information (distribution):
+$ cat /etc/os-release
+NAME="Ubuntu"
+VERSION="22.04 LTS"
+ID=ubuntu
+
+# GNU tools version:
+$ bash --version
+GNU bash, version 5.1.16
+
+$ ls --version
+ls (GNU coreutils) 8.32
+
+# Many tools identify as GNU</code></pre>
+
+            <p><strong>Ironic footnotes:</strong></p>
+            <ul>
+                <li>GNU's own kernel (GNU Hurd) still isn't production-ready (40+ years later)</li>
+                <li>Android uses Linux kernel but almost zero GNU tools</li>
+                <li>Alpine Linux uses Linux kernel but busybox instead of GNU coreutils</li>
+                <li>Modern systems are more diverse than "GNU/Linux" suggests</li>
+            </ul>
+
+            <p><strong>Practical impact:</strong></p>
+            <pre><code># Some scripts assume GNU tools:
+#!/bin/bash
+ls --color=auto     # GNU coreutils flag
+
+# But BSD/macOS has different ls:
+ls -G               # BSD flag for color
+
+# Portable scripts avoid GNU-specific features
+# or detect: if ls --version 2>/dev/null | grep GNU</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Say "Linux" in casual conversation (everyone knows what you mean)</li>
+                <li>Say "GNU/Linux" to acknowledge both projects' importance</li>
+                <li>The debate is more philosophical than technical</li>
+                <li>Both Linux and GNU were crucial to free software movement</li>
+                <li>Without GNU tools, Linux would be useless; without Linux, GNU had no kernel</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history gnu naming debate stallman torvalds EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What's the difference between a terminal, console, shell, and TTY? Why so many words for "the command line"?
+        </div>
+        <div class="back">
+            <strong>They're different layers of the system, each with historical origins</strong>
+
+            <p><strong>The distinctions:</strong></p>
+            <pre><code>TTY (TeleTYpewriter)
+├─ Physical hardware device in 1960s-70s
+├─ Keyboard + printer (no screen!)
+├─ Connected to Unix mainframe via serial line
+└─ Example: /dev/tty1, /dev/ttyS0
+
+Console
+├─ The primary TTY connected directly to computer
+├─ Usually the keyboard + screen physically attached
+├─ In modern Linux: Virtual consoles (Ctrl+Alt+F1 through F6)
+└─ Example: /dev/console
+
+Terminal (Terminal Emulator)
+├─ Software that emulates old hardware TTY
+├─ What you actually use today
+├─ Displays text, sends keystrokes to shell
+└─ Examples: GNOME Terminal, iTerm2, Windows Terminal
+
+Shell
+├─ The command interpreter (not hardware!)
+├─ Receives commands from terminal, executes them
+├─ Different programs: bash, zsh, fish, sh
+└─ Can run without terminal (scripts, SSH, etc.)</code></pre>
+
+            <p><strong>Historical context:</strong></p>
+            <pre><code>1960s: Physical teletypewriters
+┌──────────────┐
+│  Mainframe   │ ← Unix computer
+│  Computer    │
+└──────┬───────┘
+       │ Serial cable
+┌──────▼───────┐
+│ Teletypewriter│ ← Physical device
+│   (TTY)       │
+│ [Keyboard]    │
+│ [Printer]     │ ← Output printed on paper!
+└──────────────┘
+
+1970s: Video terminals (VT100)
+┌──────────────┐
+│  Mainframe   │
+└──────┬───────┘
+┌──────▼───────┐
+│   Terminal   │ ← Screen instead of printer
+│   (VT100)    │
+│ [Keyboard]   │
+│ [CRT Screen] │ ← Big improvement!
+└──────────────┘
+
+Modern: Software emulation
+┌──────────────┐
+│ Your Laptop  │ ← Shell runs on same computer
+│              │
+│ ┌──────────┐ │
+│ │Terminal  │ │ ← Software pretending to be VT100
+│ │Emulator  │ │
+│ │          │ │
+│ │  bash $  │ │ ← Shell receives commands
+│ └──────────┘ │
+└──────────────┘</code></pre>
+
+            <p><strong>The relationship:</strong></p>
+            <pre><code>[You type]
+    ↓
+[Terminal Emulator] ← Displays text, captures keystrokes
+    ↓
+[TTY driver] ← Kernel component, handles I/O
+    ↓
+[Shell (bash/zsh)] ← Interprets commands
+    ↓
+[Commands execute] ← Your programs run
+    ↓
+[Output] → TTY → Terminal → You see it</code></pre>
+
+            <p><strong>Practical examples:</strong></p>
+            <pre><code># Check your TTY:
+$ tty
+/dev/pts/0          # Pseudo-terminal (pts = terminal emulator)
+
+# Check terminal type:
+$ echo $TERM
+xterm-256color      # Emulating old xterm terminal
+
+# Check shell:
+$ echo $SHELL
+/bin/bash
+
+# Multiple shells can run in one terminal:
+$ bash              # Start new bash in current terminal
+$ zsh               # Start zsh
+$ exit              # Close zsh, back to bash
+$ exit              # Close bash
+
+# List all TTYs:
+$ ls -l /dev/tty*
+/dev/tty1           # Virtual console 1 (Ctrl+Alt+F1)
+/dev/ttyS0          # Serial port (old hardware)
+/dev/pts/0          # Pseudo-terminal (your terminal emulator)</code></pre>
+
+            <p><strong>Why the confusion:</strong></p>
+            <ul>
+                <li>People use "terminal" and "shell" interchangeably (technically wrong)</li>
+                <li>Modern systems blur the lines (software emulates hardware)</li>
+                <li>"Terminal" used to mean physical device, now means software</li>
+                <li>TTY is kernel abstraction, invisible to most users</li>
+                <li>Console is rarely used term today (mostly system admins)</li>
+            </ul>
+
+            <p><strong>Real-world scenarios:</strong></p>
+            <pre><code># Opening "a terminal" means:
+1. Launching terminal emulator (GNOME Terminal)
+2. Which connects to pseudo-TTY (/dev/pts/0)
+3. Which runs default shell (bash)
+4. You interact with shell via terminal
+
+# SSH:
+ssh user@server
+1. Your terminal emulator stays local
+2. Connects to remote server
+3. Remote shell (bash) runs
+4. Output sent back over network
+5. Your terminal displays it
+
+# Headless server (no terminal emulator):
+- TTY still exists (/dev/ttyS0 for serial console)
+- Shell runs in background or over SSH
+- No "terminal emulator" involved</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Terminal = the window you see</li>
+                <li>Shell = the program interpreting commands</li>
+                <li>TTY = kernel abstraction for text input/output</li>
+                <li>Console = physical system access point</li>
+                <li>In casual conversation, "terminal" usually means "terminal running a shell"</li>
+                <li>You can change shells without changing terminal</li>
+                <li>You can change terminals without changing shell</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history terminal console shell tty differences EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Why is hyphen (-) used to represent stdin/stdout in many commands? Where did this convention come from?
+        </div>
+        <div class="back">
+            <strong>Historical convention: - means "standard stream" instead of file</strong>
+
+            <p><strong>The origin:</strong></p>
+            <ul>
+                <li>Early Unix needed way to say "use stdin/stdout instead of file"</li>
+                <li>Couldn't use empty argument (ambiguous)</li>
+                <li>Chose <code>-</code> because it's not a valid filename character at start</li>
+                <li>Ken Thompson and Dennis Ritchie era convention (1970s)</li>
+                <li>Became de facto standard across Unix tools</li>
+            </ul>
+
+            <p><strong>Common usage:</strong></p>
+            <pre><code># Read from stdin instead of file:
+$ cat file1.txt - file2.txt
+# Prints file1, then reads from stdin, then file2
+
+$ tar -czf - directory/ | ssh server 'tar -xzf -'
+#          ↑ stdout              stdin ↑
+# Create tar to stdout, pipe to remote, extract from stdin
+
+# Download and extract in one go:
+$ curl https://example.com/file.tar.gz | tar -xzf -
+#                                                  ↑
+# Extract from stdin (pipe), not from file
+
+# Use stdin as input:
+$ echo "hello world" | grep -f - file.txt
+#                            ↑
+# Use stdin as pattern file for grep
+
+# Multiple input sources:
+$ cat file1.txt - file2.txt <<< "from stdin" file3.txt
+# Combines: file1, stdin pipe, file2, here-string, file3</code></pre>
+
+            <p><strong>Tools that support - convention:</strong></p>
+            <pre><code># tar: Extract from stdin
+tar -xzf -
+
+# diff: Compare stdin to file
+diff - file.txt
+
+# patch: Apply patch from stdin
+patch -p1 < changes.diff
+patch -p1 -        # Explicit stdin
+
+# sed: Read from stdin (default anyway)
+sed 's/old/new/' -
+
+# awk: Process stdin
+awk '{print $1}' -
+
+# vim: Edit stdin (creates buffer)
+echo "text" | vim -
+
+# sort: Read from stdin
+cat file.txt | sort -</code></pre>
+
+            <p><strong>When - is not needed:</strong></p>
+            <pre><code># Many commands default to stdin if no file given:
+$ cat                # Reads stdin (- is implicit)
+$ grep "pattern"     # Searches stdin (- is implicit)
+$ wc                 # Counts lines in stdin
+$ sort               # Sorts stdin
+
+# Explicit - is for clarity or mixing with files:
+$ cat - file.txt     # Stdin THEN file.txt
+$ cat file.txt -     # file.txt THEN stdin</code></pre>
+
+            <p><strong>Special case: Writing to stdout:</strong></p>
+            <pre><code># Compress to stdout instead of file:
+$ tar -czf - directory/ > output.tar.gz
+#          ↑
+# - means "write to stdout" (we redirect to file)
+
+# Extract to specific directory, control output:
+$ tar -xzf archive.tar.gz -C /destination/
+$ tar -xzf - -C /destination/ < archive.tar.gz
+#          ↑
+# Extract from stdin</code></pre>
+
+            <p><strong>Modern alternatives and variations:</strong></p>
+            <pre><code># Some tools use /dev/stdin explicitly:
+$ diff /dev/stdin file.txt < input.txt
+
+# /dev/stdout and /dev/stderr:
+$ command > /dev/stdout 2> /dev/stderr
+# Explicit standard streams
+
+# Bash process substitution (better than -):
+$ diff <(command1) <(command2)
+# Compare outputs of two commands
+
+# But - is more portable (works in sh, not just bash)</code></pre>
+
+            <p><strong>Exceptions and gotchas:</strong></p>
+            <pre><code># Not all tools support -:
+$ cp - destination/     # ERROR: cp doesn't support -
+$ mv - newname          # ERROR: mv doesn't support -
+
+# Some use - for "options end" instead:
+$ rm -- -filename       # Delete file named "-filename"
+#    ↑
+# -- means "no more options", not stdin
+
+# Context matters:
+$ command -             # Usually means stdin
+$ command --            # Usually means "end of options"
+$ command ---           # Probably an error!</code></pre>
+
+            <p><strong>Why this convention persists:</strong></p>
+            <ul>
+                <li>Enables powerful piping and composability</li>
+                <li>Short and memorable (one character)</li>
+                <li>Works across decades of tools</li>
+                <li>POSIX standard (required for compliance)</li>
+                <li>Muscle memory for Unix users</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Use <code>-</code> to mix stdin with file arguments</li>
+                <li>When in doubt, try <code>-</code> (worst case: error message)</li>
+                <li>Explicit <code>-</code> improves script readability</li>
+                <li>Check <code>man page</code> to see if tool supports <code>-</code></li>
+                <li>Remember: <code>-</code> for stdin/stdout, <code>--</code> for end-of-options</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history stdin stdout conventions hyphen dash EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            Why is tilde (~) used as shortcut for home directory? What's the origin of this convention?
+        </div>
+        <div class="back">
+            <strong>Historical: Tilde was unused key, became "home" shortcut</strong>
+
+            <p><strong>The origin:</strong></p>
+            <ul>
+                <li>Bill Joy added it to C shell (csh) at Berkeley in 1978</li>
+                <li>Tilde (~) was rarely used in filenames or commands</li>
+                <li>Needed single-character shortcut for /home/username</li>
+                <li>~ is visually distinctive and easy to type</li>
+                <li>Later adopted by bash, zsh, and other shells</li>
+                <li>Not a filesystem feature - shell expands it before execution</li>
+            </ul>
+
+            <p><strong>How it works:</strong></p>
+            <pre><code># Shell expansion (happens before command runs):
+$ cd ~
+# Shell expands to:
+$ cd /home/russell
+
+$ ls ~/Documents
+# Shell expands to:
+$ ls /home/russell/Documents
+
+# The command never sees ~, only the expanded path
+# You can see this with echo:
+$ echo ~
+/home/russell
+
+$ echo ~/*
+/home/russell/Desktop /home/russell/Documents /home/russell/Downloads</code></pre>
+
+            <p><strong>Variations and uses:</strong></p>
+            <pre><code># Current user's home:
+~                   → /home/russell
+~/Documents         → /home/russell/Documents
+
+# Specific user's home:
+~alice              → /home/alice
+~root               → /root
+~alice/Documents    → /home/alice/Documents
+
+# Previous directory:
+~-                  → $OLDPWD (last directory)
+cd ~-               # Go to previous directory
+
+# Home directory explicitly:
+~+                  → $PWD (current directory, rarely used)</code></pre>
+
+            <p><strong>Shell vs environment variable:</strong></p>
+            <pre><code># $HOME is environment variable (always set):
+$ echo $HOME
+/home/russell
+
+# ~ is shell expansion (converted by shell):
+$ echo ~
+/home/russell
+
+# Difference in scripts:
+echo "$HOME/file"   # Works in any context
+echo "~/file"       # Only works if shell expands
+#     ↑
+# Quoted ~ is NOT expanded!
+
+# This fails:
+$ cd "~"
+bash: cd: ~: No such file or directory
+
+# This works:
+$ cd ~              # Unquoted, shell expands
+$ cd "$HOME"        # Variable always works</code></pre>
+
+            <p><strong>Where ~ works:</strong></p>
+            <pre><code># In shell commands (expanded by shell):
+$ cd ~              ✓
+$ ls ~/Documents    ✓
+$ cp file.txt ~     ✓
+
+# In scripts:
+#!/bin/bash
+cd ~                ✓ Works
+cd "$HOME"          ✓ Better (more reliable)
+
+# Programs don't see ~:
+$ cat ~/.bashrc
+# Shell expands to: cat /home/russell/.bashrc
+# cat never sees ~, only /home/russell/.bashrc</code></pre>
+
+            <p><strong>Where ~ does NOT work:</strong></p>
+            <pre><code># Inside quotes:
+$ echo "~/file"
+~/file              # Literal ~, not expanded
+
+# In $() command substitution:
+$ $(echo ~)/file    # ~ not expanded here
+
+# Environment variables:
+$ PATH="~/bin:$PATH"     # ~ not expanded
+$ PATH="$HOME/bin:$PATH" # This works
+
+# Many programs:
+$ vim "~/.vimrc"    # vim sees literal ~, fails
+$ vim ~/.vimrc      # Shell expands first, works
+
+# SSH shorthand (exception!):
+$ scp file user@host:~/     # SSH understands ~
+# But it's SSH expanding it remotely, not local shell</code></pre>
+
+            <p><strong>Related file naming convention:</strong></p>
+            <pre><code># Backup files often end with ~:
+file.txt~           # Emacs backup file
+config.conf~        # Backup copy
+
+# Remove all backup files:
+$ rm -f *~
+
+# This is unrelated to ~/ for home
+# Just coincidence of using same character</code></pre>
+
+            <p><strong>Practical usage patterns:</strong></p>
+            <pre><code># Dotfiles in home:
+~/.bashrc
+~/.vimrc
+~/.ssh/config
+
+# User directories:
+~/Documents
+~/Downloads
+~/Desktop
+
+# Specify user:
+~alice/.bashrc      # View another user's config
+                    # (if permissions allow)
+
+# In scripts, prefer $HOME:
+#!/bin/bash
+CONFIG_DIR="$HOME/.config/myapp"
+mkdir -p "$CONFIG_DIR"
+# More reliable than ~/</code></pre>
+
+            <p><strong>Security consideration:</strong></p>
+            <pre><code># Be careful with ~username expansion:
+$ ls ~alice
+# If alice doesn't exist:
+ls: cannot access '/home/alice': No such file or directory
+
+# Check existence first:
+if [ -d ~alice ]; then
+    ls ~alice
+fi
+
+# Or use getent:
+if getent passwd alice > /dev/null; then
+    ALICE_HOME=$(getent passwd alice | cut -d: -f6)
+    ls "$ALICE_HOME"
+fi</code></pre>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>~ is shell syntax, not filesystem feature</li>
+                <li>Always quote $HOME in scripts: <code>"$HOME/file"</code></li>
+                <li>Never quote ~ if you want expansion: <code>cd ~</code> not <code>cd "~"</code></li>
+                <li>Use $HOME in env vars and scripts for reliability</li>
+                <li>Use ~ interactively for brevity</li>
+                <li>~username lets you access other users' home (if permitted)</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history tilde home-directory shell-expansion EN</div>
+    </div>
+
+    <div class="card">
+        <div class="front">
+            What is POSIX, why does it matter, and how does it affect modern Linux/Unix systems?
+        </div>
+        <div class="back">
+            <strong>POSIX = Portable Operating System Interface standard</strong>
+
+            <p><strong>What POSIX is:</strong></p>
+            <ul>
+                <li>IEEE standard (POSIX.1-2008, IEEE 1003.1)</li>
+                <li>Defines: What a Unix-like system must provide</li>
+                <li>Standardizes: Commands, system calls, shell behavior, utilities</li>
+                <li>Goal: Write once, run on any POSIX system</li>
+                <li>Created: 1988, when Unix variants were fragmenting</li>
+            </ul>
+
+            <p><strong>Why POSIX was needed:</strong></p>
+            <pre><code>1980s Unix Wars:
+├── AT&T Unix (System V)
+├── BSD Unix (Berkeley)
+├── Sun Solaris
+├── HP-UX
+├── AIX (IBM)
+└── Many incompatible variants
+
+Problem: Code written for one wouldn't run on another
+Solution: POSIX standard all must follow</code></pre>
+
+            <p><strong>What POSIX standardizes:</strong></p>
+            <pre><code># 1. Shell commands must exist:
+ls, cp, mv, rm, cat, grep, sed, awk, find, etc.
+
+# 2. Shell syntax:
+if [ condition ]; then
+    command
+fi
+
+# 3. System calls (C functions):
+open(), read(), write(), fork(), exec(), wait()
+
+# 4. Utilities must accept certain flags:
+ls -l               # Long listing
+grep -i             # Case insensitive
+cp -r               # Recursive copy
+
+# 5. File structure:
+/tmp                # Temporary directory
+/dev/null           # Null device
+/dev/tty            # Controlling terminal</code></pre>
+
+            <p><strong>POSIX vs non-POSIX:</strong></p>
+            <pre><code># POSIX-compliant shell (sh):
+#!/bin/sh
+if [ "$USER" = "root" ]; then
+    echo "root"
+fi
+# Works on: Linux, macOS, BSD, Solaris, AIX
+
+# Bash-specific (NOT POSIX):
+#!/bin/bash
+if [[ $USER == "root" ]]; then    # [[]] is bash extension
+    echo "root"
+fi
+# Only works where bash is available
+
+# Fish shell (NOT POSIX):
+#!/usr/bin/fish
+if test "$USER" = "root"
+    echo "root"
+end
+# Intentionally non-POSIX syntax</code></pre>
+
+            <p><strong>Why POSIX matters today:</strong></p>
+            <ul>
+                <li><strong>Portability:</strong> Scripts work across Linux, macOS, BSD</li>
+                <li><strong>System scripts:</strong> /etc/init.d scripts must be POSIX</li>
+                <li><strong>Container base images:</strong> Alpine Linux is POSIX-compliant</li>
+                <li><strong>Embedded systems:</strong> BusyBox provides POSIX tools</li>
+                <li><strong>Job security:</strong> Learn POSIX, skills work everywhere</li>
+            </ul>
+
+            <p><strong>Non-POSIX extensions (GNU/Linux):</strong></p>
+            <pre><code># GNU coreutils add features:
+ls --color=auto           # POSIX ls doesn't have --color
+grep -r                   # POSIX grep doesn't have -r (recursive)
+cp --reflink              # POSIX cp doesn't have --reflink
+
+# Why GNU adds features:
+# - Better user experience
+# - More powerful tools
+# - But: Less portable
+
+# Portable version:
+find . -type f -exec grep "pattern" {} +  # POSIX
+grep -r "pattern" .                       # GNU extension</code></pre>
+
+            <p><strong>Checking POSIX compliance:</strong></p>
+            <pre><code># Use shellcheck to detect non-POSIX:
+$ shellcheck script.sh
+# Warns about bash-specific features
+
+# Specify POSIX mode:
+# Add shebang:
+#!/bin/sh
+# shellcheck shell=sh
+
+# Test on minimal POSIX system:
+$ docker run -it alpine sh
+# Alpine uses busybox (minimal POSIX tools)
+# Your script should work here
+
+# Check shell compliance:
+$ sh --posix  # Run sh in POSIX mode (if available)</code></pre>
+
+            <p><strong>macOS and POSIX:</strong></p>
+            <pre><code># macOS is POSIX-certified (unlike Linux!)
+# But:
+# - Uses BSD tools, not GNU
+# - Different flags for some commands
+
+# Example: ls
+$ ls --color=auto  # Works on Linux (GNU)
+$ ls -G            # Works on macOS (BSD)
+
+# Portable script:
+if ls --color >/dev/null 2>&1; then
+    # GNU ls
+    alias ls='ls --color=auto'
+else
+    # BSD ls
+    alias ls='ls -G'
+fi</code></pre>
+
+            <p><strong>When to use POSIX vs extensions:</strong></p>
+            <pre><code># Use POSIX when:
+- Writing system/init scripts
+- Maximum portability needed
+- Targeting minimal environments (Docker, embedded)
+- Library/framework scripts
+
+# Use bash/GNU when:
+- Interactive use (better UX)
+- Linux-only deployment
+- Need advanced features
+- Development scripts (not production)</code></pre>
+
+            <p><strong>POSIX certification vs compliance:</strong></p>
+            <ul>
+                <li><strong>Certified:</strong> macOS, Solaris, AIX (paid for official cert)</li>
+                <li><strong>Compliant (not certified):</strong> Most Linux distros (don't pay for cert)</li>
+                <li><strong>Mostly compliant:</strong> FreeBSD, OpenBSD</li>
+                <li><strong>Intentionally non-compliant:</strong> Fish shell, PowerShell</li>
+            </ul>
+
+            <p><strong>Tips:</strong></p>
+            <ul>
+                <li>Use <code>#!/bin/sh</code> for portable scripts</li>
+                <li>Use <code>#!/bin/bash</code> for Linux-specific scripts</li>
+                <li>Test scripts in Docker Alpine to verify POSIX compliance</li>
+                <li>Avoid <code>[[</code>, use <code>[</code> for POSIX compliance</li>
+                <li>Avoid <code>echo -e</code>, use <code>printf</code> for POSIX</li>
+                <li>POSIX is lowest common denominator - works everywhere but less features</li>
+            </ul>
+        </div>
+        <div class="tags">cs linux history posix standards portability unix EN</div>
+    </div>
+
+</body>
+</html>
